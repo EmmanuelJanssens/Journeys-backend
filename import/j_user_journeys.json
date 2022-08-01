@@ -1,0 +1,2498 @@
+﻿[
+  {
+    "p": {
+"start": {
+"identity": 27,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+        }
+      },
+"end": {
+"identity": 2610,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "5ad8f5f3-0bb5-42f6-8a8f-e38ea44caa9c",
+"title": "my journey  6"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 27,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+            }
+          },
+          "relationship": {
+"identity": 0,
+"start": 27,
+"end": 2610,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2610,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "5ad8f5f3-0bb5-42f6-8a8f-e38ea44caa9c",
+"title": "my journey  6"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 27,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+        }
+      },
+"end": {
+"identity": 2611,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "dd07c72f-0181-4aee-aafb-1122fe0a4270",
+"title": "my journey  7"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 27,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+            }
+          },
+          "relationship": {
+"identity": 1,
+"start": 27,
+"end": 2611,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2611,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "dd07c72f-0181-4aee-aafb-1122fe0a4270",
+"title": "my journey  7"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 25,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Ilyse",
+"lastName": "Siney",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "isineyh",
+"email": "isineyh@tiny.cc"
+        }
+      },
+"end": {
+"identity": 2612,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "29aa5664-6eb8-49ad-8312-f5a178ffbf0a",
+"title": "my journey  8"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 25,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Ilyse",
+"lastName": "Siney",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "isineyh",
+"email": "isineyh@tiny.cc"
+            }
+          },
+          "relationship": {
+"identity": 2,
+"start": 25,
+"end": 2612,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2612,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "29aa5664-6eb8-49ad-8312-f5a178ffbf0a",
+"title": "my journey  8"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 9,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "O'Harney",
+"firstName": "Willard",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "woharney1",
+"email": "woharney1@sciencedirect.com"
+        }
+      },
+"end": {
+"identity": 2613,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "a295d2d5-9499-4da7-9899-c7d8aa906dfa",
+"title": "my journey  9"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 9,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "O'Harney",
+"firstName": "Willard",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "woharney1",
+"email": "woharney1@sciencedirect.com"
+            }
+          },
+          "relationship": {
+"identity": 3,
+"start": 9,
+"end": 2613,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2613,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "a295d2d5-9499-4da7-9899-c7d8aa906dfa",
+"title": "my journey  9"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 23,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Hatherleigh",
+"firstName": "Allegra",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "ahatherleighf",
+"email": "ahatherleighf@columbia.edu"
+        }
+      },
+"end": {
+"identity": 2614,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "a8d754a6-1cae-4a58-b4bc-82605942e4fd",
+"title": "my journey  10"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 23,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Hatherleigh",
+"firstName": "Allegra",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "ahatherleighf",
+"email": "ahatherleighf@columbia.edu"
+            }
+          },
+          "relationship": {
+"identity": 4,
+"start": 23,
+"end": 2614,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2614,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "a8d754a6-1cae-4a58-b4bc-82605942e4fd",
+"title": "my journey  10"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 23,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Hatherleigh",
+"firstName": "Allegra",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "ahatherleighf",
+"email": "ahatherleighf@columbia.edu"
+        }
+      },
+"end": {
+"identity": 2615,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "f21fe025-ea8e-4ce4-ae1e-e47345566d19",
+"title": "my journey  11"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 23,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Hatherleigh",
+"firstName": "Allegra",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "ahatherleighf",
+"email": "ahatherleighf@columbia.edu"
+            }
+          },
+          "relationship": {
+"identity": 5,
+"start": 23,
+"end": 2615,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2615,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "f21fe025-ea8e-4ce4-ae1e-e47345566d19",
+"title": "my journey  11"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 23,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Hatherleigh",
+"firstName": "Allegra",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "ahatherleighf",
+"email": "ahatherleighf@columbia.edu"
+        }
+      },
+"end": {
+"identity": 2616,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "f68c5904-d393-4494-9a11-db1590f2e969",
+"title": "my journey  12"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 23,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Hatherleigh",
+"firstName": "Allegra",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "ahatherleighf",
+"email": "ahatherleighf@columbia.edu"
+            }
+          },
+          "relationship": {
+"identity": 6,
+"start": 23,
+"end": 2616,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2616,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "f68c5904-d393-4494-9a11-db1590f2e969",
+"title": "my journey  12"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 12,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Sackey",
+"firstName": "Kath",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "ksackey4",
+"email": "ksackey4@cnn.com"
+        }
+      },
+"end": {
+"identity": 2617,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "08ec4390-cc59-4c2f-973d-085f8f229e66",
+"title": "my journey  13"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 12,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Sackey",
+"firstName": "Kath",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "ksackey4",
+"email": "ksackey4@cnn.com"
+            }
+          },
+          "relationship": {
+"identity": 7,
+"start": 12,
+"end": 2617,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2617,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "08ec4390-cc59-4c2f-973d-085f8f229e66",
+"title": "my journey  13"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 26,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Vanstone",
+"firstName": "Isabella",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "ivanstonei",
+"email": "ivanstonei@bravesites.com"
+        }
+      },
+"end": {
+"identity": 2618,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "4e05962a-3b2b-451b-9127-420bb6c62d87",
+"title": "my journey  17"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 26,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Vanstone",
+"firstName": "Isabella",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "ivanstonei",
+"email": "ivanstonei@bravesites.com"
+            }
+          },
+          "relationship": {
+"identity": 8,
+"start": 26,
+"end": 2618,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2618,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "4e05962a-3b2b-451b-9127-420bb6c62d87",
+"title": "my journey  17"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 16,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Zanetti",
+"firstName": "Mignonne",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "mzanetti8",
+"email": "mzanetti8@sfgate.com"
+        }
+      },
+"end": {
+"identity": 2619,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "e21b0b73-8b8f-4493-83bc-95636e67111e",
+"title": "my journey  18"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 16,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Zanetti",
+"firstName": "Mignonne",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "mzanetti8",
+"email": "mzanetti8@sfgate.com"
+            }
+          },
+          "relationship": {
+"identity": 9,
+"start": 16,
+"end": 2619,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2619,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "e21b0b73-8b8f-4493-83bc-95636e67111e",
+"title": "my journey  18"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 15,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Elves",
+"firstName": "Ricki",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "relves7",
+"email": "relves7@bloglines.com"
+        }
+      },
+"end": {
+"identity": 2620,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "7ae8dd98-69bd-4322-a626-2b77229a5bfa",
+"title": "my journey  19"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 15,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Elves",
+"firstName": "Ricki",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "relves7",
+"email": "relves7@bloglines.com"
+            }
+          },
+          "relationship": {
+"identity": 10,
+"start": 15,
+"end": 2620,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2620,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "7ae8dd98-69bd-4322-a626-2b77229a5bfa",
+"title": "my journey  19"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 15,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Elves",
+"firstName": "Ricki",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "relves7",
+"email": "relves7@bloglines.com"
+        }
+      },
+"end": {
+"identity": 2621,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "bcfe6651-7b2c-43ef-b7ca-8913ed592e27",
+"title": "my journey  20"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 15,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Elves",
+"firstName": "Ricki",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "relves7",
+"email": "relves7@bloglines.com"
+            }
+          },
+          "relationship": {
+"identity": 11,
+"start": 15,
+"end": 2621,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2621,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "bcfe6651-7b2c-43ef-b7ca-8913ed592e27",
+"title": "my journey  20"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 27,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+        }
+      },
+"end": {
+"identity": 2606,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "218fdb49-7acf-4fea-b86f-41ce85077327",
+"title": "my journey  1"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 27,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+            }
+          },
+          "relationship": {
+"identity": 12,
+"start": 27,
+"end": 2606,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2606,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "218fdb49-7acf-4fea-b86f-41ce85077327",
+"title": "my journey  1"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 27,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+        }
+      },
+"end": {
+"identity": 2607,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "e5b43d6a-da9e-497a-8503-f0b0bc13a729",
+"title": "my journey  3"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 27,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+            }
+          },
+          "relationship": {
+"identity": 13,
+"start": 27,
+"end": 2607,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2607,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "e5b43d6a-da9e-497a-8503-f0b0bc13a729",
+"title": "my journey  3"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 27,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+        }
+      },
+"end": {
+"identity": 2608,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "4fc8c9a3-f775-4142-bc78-9f1156317e6d",
+"title": "my journey  4"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 27,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+            }
+          },
+          "relationship": {
+"identity": 14,
+"start": 27,
+"end": 2608,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2608,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "4fc8c9a3-f775-4142-bc78-9f1156317e6d",
+"title": "my journey  4"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 27,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+        }
+      },
+"end": {
+"identity": 2609,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "79caf5ac-d848-473a-8fa4-cdc096cd0bc1",
+"title": "my journey  5"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 27,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Reece",
+"lastName": "Bode",
+"password": "$2a$10$Sb4ENJN7DR6zdDh.IUyB5OoKCfVPRvOSqciWp/9j9Ql/8NIHiqUKG",
+"userName": "rbodej",
+"email": "rbodej@prnewswire.com"
+            }
+          },
+          "relationship": {
+"identity": 15,
+"start": 27,
+"end": 2609,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2609,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "79caf5ac-d848-473a-8fa4-cdc096cd0bc1",
+"title": "my journey  5"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2647,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "G",
+"firstName": "As",
+"password": "$2a$10$lIQU009t8QgOH71mMB.DzOPFfac3fEtgHDb/fb9vGJV/RzuPQqmJK",
+"userName": "asg",
+"email": "anne.ganguillet@heig-vd.ch"
+        }
+      },
+"end": {
+"identity": 2648,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "c5cbf08f-88ee-44c2-9310-09b67448b612",
+"title": "Petit tour vers Sauvablin"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2647,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "G",
+"firstName": "As",
+"password": "$2a$10$lIQU009t8QgOH71mMB.DzOPFfac3fEtgHDb/fb9vGJV/RzuPQqmJK",
+"userName": "asg",
+"email": "anne.ganguillet@heig-vd.ch"
+            }
+          },
+          "relationship": {
+"identity": 79,
+"start": 2647,
+"end": 2648,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2648,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "c5cbf08f-88ee-44c2-9310-09b67448b612",
+"title": "Petit tour vers Sauvablin"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2627,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Janssens",
+"firstName": "Emmanuel",
+"password": "$2a$10$emrLdOcmXuJiQz6W0nT40uUwUOkaaquAV3a8/cY6sC9.Aj4aXbt9q",
+"userName": "heymanuel",
+"email": "emmanueljanssens@gmail.com"
+        }
+      },
+"end": {
+"identity": 2628,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "a43b72e6-4dc6-468e-80d2-8aafda11ed53",
+"title": "Lausanne Montreux"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2627,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Janssens",
+"firstName": "Emmanuel",
+"password": "$2a$10$emrLdOcmXuJiQz6W0nT40uUwUOkaaquAV3a8/cY6sC9.Aj4aXbt9q",
+"userName": "heymanuel",
+"email": "emmanueljanssens@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 93,
+"start": 2627,
+"end": 2628,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2628,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "a43b72e6-4dc6-468e-80d2-8aafda11ed53",
+"title": "Lausanne Montreux"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2636,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Salvador",
+"lastName": "Dali",
+"password": "$2a$10$bIEl3tCor71rbZ6s.1vzAeRXvvauZPa/J9NwYoEYDWt9/wGHFx6ou",
+"userName": "salvadada",
+"email": "ceciestevidemmentunemail@cestfaux.com"
+        }
+      },
+"end": {
+"identity": 2637,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "5825919c-659a-4578-9ec1-1cab7c996296",
+"title": "J'aime la vie :)"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2636,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Salvador",
+"lastName": "Dali",
+"password": "$2a$10$bIEl3tCor71rbZ6s.1vzAeRXvvauZPa/J9NwYoEYDWt9/wGHFx6ou",
+"userName": "salvadada",
+"email": "ceciestevidemmentunemail@cestfaux.com"
+            }
+          },
+          "relationship": {
+"identity": 97,
+"start": 2636,
+"end": 2637,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2637,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "5825919c-659a-4578-9ec1-1cab7c996296",
+"title": "J'aime la vie :)"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2639,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Marie",
+"lastName": "Mario",
+"password": "$2a$10$Qw0.H22oMxBskNvOZJHRGus41daMcqy.XImHnGlLwPULlH0tmZRQu",
+"userName": "Marie",
+"email": "marie@gmail.com"
+        }
+      },
+"end": {
+"identity": 2641,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "aa432ea2-aa66-446e-a49b-23d9dfab6d24",
+"title": "voyage 1"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2639,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Marie",
+"lastName": "Mario",
+"password": "$2a$10$Qw0.H22oMxBskNvOZJHRGus41daMcqy.XImHnGlLwPULlH0tmZRQu",
+"userName": "Marie",
+"email": "marie@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 124,
+"start": 2639,
+"end": 2641,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2641,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "aa432ea2-aa66-446e-a49b-23d9dfab6d24",
+"title": "voyage 1"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2657,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Delafontaine",
+"firstName": "Ludovic",
+"password": "$2a$10$a36K3fhwrdRigR4NvmZOMuCd.dUNPbH0j/6eo1j3Vz5FCAJM31a3u",
+"userName": "ludelafo",
+"email": "ludovic.delafontaine@heig-vd.ch"
+        }
+      },
+"end": {
+"identity": 2658,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "014b4470-b018-4daf-91f0-f9b0ee1eb847",
+"title": "test"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2657,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Delafontaine",
+"firstName": "Ludovic",
+"password": "$2a$10$a36K3fhwrdRigR4NvmZOMuCd.dUNPbH0j/6eo1j3Vz5FCAJM31a3u",
+"userName": "ludelafo",
+"email": "ludovic.delafontaine@heig-vd.ch"
+            }
+          },
+          "relationship": {
+"identity": 135,
+"start": 2657,
+"end": 2658,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2658,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "014b4470-b018-4daf-91f0-f9b0ee1eb847",
+"title": "test"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2659,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Parker",
+"firstName": "Peter",
+"password": "$2a$10$GnEe7lpR4djfy8h3VSEHdOrz64DpIOcVEEZs0ZTQwBGzxDgwN/gjO",
+"userName": "Spiderman",
+"email": "dreama15@egzones.com"
+        }
+      },
+"end": {
+"identity": 2660,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "1de4a673-5e11-4b5f-be7a-8d539f346b8f",
+"title": "The journey of my life"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2659,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Parker",
+"firstName": "Peter",
+"password": "$2a$10$GnEe7lpR4djfy8h3VSEHdOrz64DpIOcVEEZs0ZTQwBGzxDgwN/gjO",
+"userName": "Spiderman",
+"email": "dreama15@egzones.com"
+            }
+          },
+          "relationship": {
+"identity": 183,
+"start": 2659,
+"end": 2660,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2660,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "1de4a673-5e11-4b5f-be7a-8d539f346b8f",
+"title": "The journey of my life"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2666,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "frog",
+"firstName": "the",
+"password": "$2a$10$kMgVsbGvRRJ1JG6hgDHf/OAkxzQAcpbKBINbgOmWa1aQarJSm4x/y",
+"userName": "heymanuel1100",
+"email": "klc@con.com"
+        }
+      },
+"end": {
+"identity": 2667,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "b487c734-a1f8-43f1-9654-fce8cef50626",
+"title": "my journey"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2666,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "frog",
+"firstName": "the",
+"password": "$2a$10$kMgVsbGvRRJ1JG6hgDHf/OAkxzQAcpbKBINbgOmWa1aQarJSm4x/y",
+"userName": "heymanuel1100",
+"email": "klc@con.com"
+            }
+          },
+          "relationship": {
+"identity": 194,
+"start": 2666,
+"end": 2667,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2667,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "b487c734-a1f8-43f1-9654-fce8cef50626",
+"title": "my journey"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2629,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Bonzon",
+"firstName": "Ludovic",
+"password": "$2a$10$iXjLXvrgcr9jaqBR2r5dXuL.Qjjr54BssUcRrlWTeC4AGk9Yz3s02",
+"userName": "bonzonlu",
+"email": "ludovic.bonzon@heig-vd.ch"
+        }
+      },
+"end": {
+"identity": 2651,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "003fcb29-91a3-42fb-b2a6-cda819d3a48c",
+"title": "Mobile"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2629,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Bonzon",
+"firstName": "Ludovic",
+"password": "$2a$10$iXjLXvrgcr9jaqBR2r5dXuL.Qjjr54BssUcRrlWTeC4AGk9Yz3s02",
+"userName": "bonzonlu",
+"email": "ludovic.bonzon@heig-vd.ch"
+            }
+          },
+          "relationship": {
+"identity": 207,
+"start": 2629,
+"end": 2651,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2651,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "003fcb29-91a3-42fb-b2a6-cda819d3a48c",
+"title": "Mobile"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2629,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Bonzon",
+"firstName": "Ludovic",
+"password": "$2a$10$iXjLXvrgcr9jaqBR2r5dXuL.Qjjr54BssUcRrlWTeC4AGk9Yz3s02",
+"userName": "bonzonlu",
+"email": "ludovic.bonzon@heig-vd.ch"
+        }
+      },
+"end": {
+"identity": 2630,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "82e6e51f-b6d5-4c34-86b9-25d782c2acc8",
+"title": "Bord du lac"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2629,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Bonzon",
+"firstName": "Ludovic",
+"password": "$2a$10$iXjLXvrgcr9jaqBR2r5dXuL.Qjjr54BssUcRrlWTeC4AGk9Yz3s02",
+"userName": "bonzonlu",
+"email": "ludovic.bonzon@heig-vd.ch"
+            }
+          },
+          "relationship": {
+"identity": 504,
+"start": 2629,
+"end": 2630,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2630,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "82e6e51f-b6d5-4c34-86b9-25d782c2acc8",
+"title": "Bord du lac"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2622,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+        }
+      },
+"end": {
+"identity": 2624,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "ab880efe-ce1f-4b22-9c42-7276f661803b",
+"title": "Voyage1"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2622,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1301,
+"start": 2622,
+"end": 2624,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2624,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "ab880efe-ce1f-4b22-9c42-7276f661803b",
+"title": "Voyage1"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2639,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Marie",
+"lastName": "Mario",
+"password": "$2a$10$Qw0.H22oMxBskNvOZJHRGus41daMcqy.XImHnGlLwPULlH0tmZRQu",
+"userName": "Marie",
+"email": "marie@gmail.com"
+        }
+      },
+"end": {
+"identity": 2640,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "f687f10c-3f2e-4157-9f7d-8c4b037d62c7",
+"title": "Voyage 7"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2639,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Marie",
+"lastName": "Mario",
+"password": "$2a$10$Qw0.H22oMxBskNvOZJHRGus41daMcqy.XImHnGlLwPULlH0tmZRQu",
+"userName": "Marie",
+"email": "marie@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1309,
+"start": 2639,
+"end": 2640,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2640,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "f687f10c-3f2e-4157-9f7d-8c4b037d62c7",
+"title": "Voyage 7"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2622,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+        }
+      },
+"end": {
+"identity": 2631,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "9fe3f6bd-f0d2-4aaa-bb46-83b610a1387c",
+"title": "Voyage2"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2622,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1342,
+"start": 2622,
+"end": 2631,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2631,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "9fe3f6bd-f0d2-4aaa-bb46-83b610a1387c",
+"title": "Voyage2"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2629,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Bonzon",
+"firstName": "Ludovic",
+"password": "$2a$10$iXjLXvrgcr9jaqBR2r5dXuL.Qjjr54BssUcRrlWTeC4AGk9Yz3s02",
+"userName": "bonzonlu",
+"email": "ludovic.bonzon@heig-vd.ch"
+        }
+      },
+"end": {
+"identity": 2653,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "2e90cf58-7ab2-4d7a-8cb9-617a1b1a25c6",
+"title": "démo 2"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2629,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Bonzon",
+"firstName": "Ludovic",
+"password": "$2a$10$iXjLXvrgcr9jaqBR2r5dXuL.Qjjr54BssUcRrlWTeC4AGk9Yz3s02",
+"userName": "bonzonlu",
+"email": "ludovic.bonzon@heig-vd.ch"
+            }
+          },
+          "relationship": {
+"identity": 1344,
+"start": 2629,
+"end": 2653,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2653,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "2e90cf58-7ab2-4d7a-8cb9-617a1b1a25c6",
+"title": "démo 2"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2636,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Salvador",
+"lastName": "Dali",
+"password": "$2a$10$bIEl3tCor71rbZ6s.1vzAeRXvvauZPa/J9NwYoEYDWt9/wGHFx6ou",
+"userName": "salvadada",
+"email": "ceciestevidemmentunemail@cestfaux.com"
+        }
+      },
+"end": {
+"identity": 2638,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "eafa522c-a017-42ab-86ef-48e10649cd87",
+"title": "Rickrolled"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2636,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Salvador",
+"lastName": "Dali",
+"password": "$2a$10$bIEl3tCor71rbZ6s.1vzAeRXvvauZPa/J9NwYoEYDWt9/wGHFx6ou",
+"userName": "salvadada",
+"email": "ceciestevidemmentunemail@cestfaux.com"
+            }
+          },
+          "relationship": {
+"identity": 1354,
+"start": 2636,
+"end": 2638,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2638,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "eafa522c-a017-42ab-86ef-48e10649cd87",
+"title": "Rickrolled"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2622,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+        }
+      },
+"end": {
+"identity": 2632,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "20a05159-f0eb-4448-b887-2acdae5d9c88",
+"title": "Voyage3"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2622,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1355,
+"start": 2622,
+"end": 2632,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2632,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "20a05159-f0eb-4448-b887-2acdae5d9c88",
+"title": "Voyage3"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2622,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+        }
+      },
+"end": {
+"identity": 2633,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "54f9803b-7329-4247-9c85-1056d23c84d7",
+"title": "Voyage 4"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2622,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1366,
+"start": 2622,
+"end": 2633,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2633,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "54f9803b-7329-4247-9c85-1056d23c84d7",
+"title": "Voyage 4"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2622,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+        }
+      },
+"end": {
+"identity": 2634,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "5427110c-b7ef-486c-80eb-debdb17f37a9",
+"title": "Voyage 5"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2622,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1387,
+"start": 2622,
+"end": 2634,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2634,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "5427110c-b7ef-486c-80eb-debdb17f37a9",
+"title": "Voyage 5"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2622,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+        }
+      },
+"end": {
+"identity": 2635,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "e1ae6891-29f6-4057-8910-c9767625c14e",
+"title": "Voyage6"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2622,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Chhen",
+"firstName": "Rosalie",
+"password": "$2a$10$27T9fsCe.WhlcpVPca7SeuO2X1VWoKNIprRb9pqZ00KAlZm7rlQQS",
+"userName": "Roro",
+"email": "roro@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1404,
+"start": 2622,
+"end": 2635,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2635,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "e1ae6891-29f6-4057-8910-c9767625c14e",
+"title": "Voyage6"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2636,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Salvador",
+"lastName": "Dali",
+"password": "$2a$10$bIEl3tCor71rbZ6s.1vzAeRXvvauZPa/J9NwYoEYDWt9/wGHFx6ou",
+"userName": "salvadada",
+"email": "ceciestevidemmentunemail@cestfaux.com"
+        }
+      },
+"end": {
+"identity": 2646,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "4680a990-1ce5-4594-8842-649a65c0c81e",
+"title": "Chouette démo"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2636,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Salvador",
+"lastName": "Dali",
+"password": "$2a$10$bIEl3tCor71rbZ6s.1vzAeRXvvauZPa/J9NwYoEYDWt9/wGHFx6ou",
+"userName": "salvadada",
+"email": "ceciestevidemmentunemail@cestfaux.com"
+            }
+          },
+          "relationship": {
+"identity": 1427,
+"start": 2636,
+"end": 2646,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2646,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "4680a990-1ce5-4594-8842-649a65c0c81e",
+"title": "Chouette démo"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2639,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Marie",
+"lastName": "Mario",
+"password": "$2a$10$Qw0.H22oMxBskNvOZJHRGus41daMcqy.XImHnGlLwPULlH0tmZRQu",
+"userName": "Marie",
+"email": "marie@gmail.com"
+        }
+      },
+"end": {
+"identity": 2642,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "80344e30-934e-45f3-a10b-a2bd52cb7383",
+"title": "voyage 2"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2639,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Marie",
+"lastName": "Mario",
+"password": "$2a$10$Qw0.H22oMxBskNvOZJHRGus41daMcqy.XImHnGlLwPULlH0tmZRQu",
+"userName": "Marie",
+"email": "marie@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1434,
+"start": 2639,
+"end": 2642,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2642,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "80344e30-934e-45f3-a10b-a2bd52cb7383",
+"title": "voyage 2"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2639,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Marie",
+"lastName": "Mario",
+"password": "$2a$10$Qw0.H22oMxBskNvOZJHRGus41daMcqy.XImHnGlLwPULlH0tmZRQu",
+"userName": "Marie",
+"email": "marie@gmail.com"
+        }
+      },
+"end": {
+"identity": 2643,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "53315187-b433-4d61-b6db-ba3accf723bf",
+"title": "Voyage 4"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2639,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Marie",
+"lastName": "Mario",
+"password": "$2a$10$Qw0.H22oMxBskNvOZJHRGus41daMcqy.XImHnGlLwPULlH0tmZRQu",
+"userName": "Marie",
+"email": "marie@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1449,
+"start": 2639,
+"end": 2643,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2643,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "53315187-b433-4d61-b6db-ba3accf723bf",
+"title": "Voyage 4"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2627,
+"labels": [
+          "User"
+        ],
+"properties": {
+"lastName": "Janssens",
+"firstName": "Emmanuel",
+"password": "$2a$10$emrLdOcmXuJiQz6W0nT40uUwUOkaaquAV3a8/cY6sC9.Aj4aXbt9q",
+"userName": "heymanuel",
+"email": "emmanueljanssens@gmail.com"
+        }
+      },
+"end": {
+"identity": 2656,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "c369a304-dc46-4136-a922-81d05fb923f6",
+"title": "hello"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2627,
+"labels": [
+              "User"
+            ],
+"properties": {
+"lastName": "Janssens",
+"firstName": "Emmanuel",
+"password": "$2a$10$emrLdOcmXuJiQz6W0nT40uUwUOkaaquAV3a8/cY6sC9.Aj4aXbt9q",
+"userName": "heymanuel",
+"email": "emmanueljanssens@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1450,
+"start": 2627,
+"end": 2656,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2656,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "c369a304-dc46-4136-a922-81d05fb923f6",
+"title": "hello"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  },
+  {
+    "p": {
+"start": {
+"identity": 2639,
+"labels": [
+          "User"
+        ],
+"properties": {
+"firstName": "Marie",
+"lastName": "Mario",
+"password": "$2a$10$Qw0.H22oMxBskNvOZJHRGus41daMcqy.XImHnGlLwPULlH0tmZRQu",
+"userName": "Marie",
+"email": "marie@gmail.com"
+        }
+      },
+"end": {
+"identity": 2645,
+"labels": [
+          "Journey"
+        ],
+"properties": {
+"id": "b58adc27-294e-4e94-b39b-c25c2e73affd",
+"title": "Hippo"
+        }
+      },
+"segments": [
+        {
+          "start": {
+"identity": 2639,
+"labels": [
+              "User"
+            ],
+"properties": {
+"firstName": "Marie",
+"lastName": "Mario",
+"password": "$2a$10$Qw0.H22oMxBskNvOZJHRGus41daMcqy.XImHnGlLwPULlH0tmZRQu",
+"userName": "Marie",
+"email": "marie@gmail.com"
+            }
+          },
+          "relationship": {
+"identity": 1460,
+"start": 2639,
+"end": 2645,
+"type": "CREATED",
+"properties": {
+
+            }
+          },
+          "end": {
+"identity": 2645,
+"labels": [
+              "Journey"
+            ],
+"properties": {
+"id": "b58adc27-294e-4e94-b39b-c25c2e73affd",
+"title": "Hippo"
+            }
+          }
+        }
+      ],
+"length": 1.0
+    }
+  }
+]

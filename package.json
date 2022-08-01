@@ -1,0 +1,29 @@
+{
+  "name": "journeys-graphql",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/storage": "^6.2.2",
+    "@neo4j/graphql": "^3.4.0",
+    "@neo4j/graphql-ogm": "^3.4.0",
+    "@neo4j/graphql-plugin-auth": "^1.0.0",
+    "apollo-server-express": "^3.9.0",
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "express-async-handler": "^1.2.0",
+    "fetch": "^1.1.0",
+    "graphql": "^16.5.0",
+    "jsonwebtoken": "^8.5.1",
+    "neo4j-driver": "^4.4.6",
+    "nodemon": "^2.0.16",
+    "uuid": "^8.3.2"
+  }
+}
