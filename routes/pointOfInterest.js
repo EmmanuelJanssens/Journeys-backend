@@ -11,7 +11,7 @@ router.use(require('body-parser').json());
     var {offset,limit,sort,radius,lat,lng} = req.query;
 
     if(!Number(lat) ||  !Number(lng) || !Number(radius) ){
-        return next("Bad request format, required(lat,lng,radius)")     
+        return next("Bad request format, required lat,lng,radius")     
     }
 
 

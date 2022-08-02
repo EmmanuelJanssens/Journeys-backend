@@ -7,14 +7,12 @@ const users = require('./routes/users');
 const auth = require('./routes/authentication');
 const ogm = require("./graphql/Models").ogm;
 const neoSchema = require('./graphql/Models').neoSchema;
-const session = require('express-session')
 
 const app = express();  
 
 const router = express.Router();
 
 const cors = require('cors');
-const { passport } = require("./routes/authentication");
 
 router.use('/api/pois',pois);
 router.use('/api/journeys',journeys);

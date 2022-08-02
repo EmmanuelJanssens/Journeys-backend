@@ -1,8 +1,8 @@
 const express =  require('express')
-const jwt = require('jsonwebtoken');
-const user = require('../graphql/Models').User
-const bcrypt = require('bcrypt');
+const asyncHandler = require('express-async-handler');
 const userService = require('../services/userService');
+
+const authenticationService = require('../services/authenticationService')
 
 const router = express.Router()
 router.use(express.json())
@@ -11,8 +11,6 @@ router.use(express.urlencoded({extended: true}))
 var passport  = require('passport');
 var JwtStrategy = require('passport-jwt').Strategy,
     ExtractJwt = require('passport-jwt').ExtractJwt
-
-
 
 var opts = {}
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
@@ -25,76 +23,27 @@ passport.use(new JwtStrategy(opts,function(jwt_payload,done){
 }))
 
 
+router.post("/login",asyncHandler(async(req,res,next) => {
 
+    try{
+        const loginAtempt = await authenticationService.login(req.body.userName,req.body.password)
+        res.json(loginAtempt).end();
 
-router.post("/login",async(req,res) => {
-
-    const body = req.body
-
-
-    const result = await user.find({
-        where: { userName: body.userName}
-    })
-    if(result.length === 1 ){
-        const valid = await bcrypt.compare(body.password, result[0].password) && result[0].userName === body.userName
-        if(valid){
-            const token = jwt.sign(
-                {userName: body.userName},
-                 'secret',
-                {expiresIn: '1h'}
-                );
-            result[0].token = token
-            res.status(200).json(result[0])
-        }
-        else{
-            res.status(403).json({message:"Invalid credentials"})
-        }
-    }else
-    {
-        res.status(400).json({message:"something went wrong"})
+    }catch(e){
+        return next(e)
     }
-    
-})
+}))
 
 
-router.post("/register",async(req,res) => {
-    const body = req.body
+router.post("/register",asyncHandler(async(req,res,next) => {
 
-    const result = await user.find({
-        where: { userName: body.userName}
-    })
-    if(result.length === 1 ){
-        res.status(400).json({message:"user already exists"})
-    }else{
-        const hash = await bcrypt.hash(body.password, 10)
-        var newUser = await user.create({
-            input:
-            [{
-                userName: body.userName,
-                firstName: body.firstName,
-                lastName: body.lastName,
-                email: body.email,
-                password: hash
-            }]
-        })
-        
-        newUser = newUser['users'];
-        if(newUser.length === 1 && newUser[0].userName === body.userName){
-            const token = jwt.sign(
-                {userName: body.userName},
-                 '1234',
-                {expiresIn: '1h'}
-                );
-            const result = newUser[0]
-            result.token = token
-            res.status(200).json(result)
-        }
-        else{
-            res.status(400).json({message:"something went wrong"})
-        }
+    try{
+        const registerAtempt = await authenticationService.register(req.body)
+        res.json(registerAtempt).end(); 
+    }catch(e){
+        return next(e) 
     }
-    
-})
+}))
 module.exports= {
     router: router,
     passport: passport
