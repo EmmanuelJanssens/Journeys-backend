@@ -5,7 +5,6 @@ const pois = require('./routes/pointOfInterest');
 const journeys = require('./routes/journeys');
 const users = require('./routes/users');
 const auth = require('./routes/authentication');
-const file = require('./gcloudAuth');
 const ogm = require("./graphql/Models").ogm;
 const neoSchema = require('./graphql/Models').neoSchema;
 const bodyParser = require('body-parser')
@@ -20,7 +19,6 @@ router.use('/api/pois',pois);
 router.use('/api/journeys',journeys);
 router.use('/api/users',users);
 router.use('/api/auth',auth);
-router.use('/api/file',file)
 
 app.use(router);
 Promise.all([neoSchema.getSchema(),ogm.init()]).then(([schema]) => {

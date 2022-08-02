@@ -3,6 +3,10 @@ const { json } = require('neo4j-driver-core');
 const router = require('express').Router()
 const poiService = require('../services/poiService')
 
+router.use(require('body-parser').json());
+
+
+//get all pois arround a certain locationnnnn
  router.get("/",asyncHandler(async(req,res,next) => {
     var {offset,limit,sort,radius,lat,lng} = req.query;
 
@@ -16,6 +20,7 @@ const poiService = require('../services/poiService')
 
 }))
 
+//get poi by id
 router.get("/:id",asyncHandler(async(req,res,next) => {
     const id = req.params.id
 
@@ -27,6 +32,7 @@ router.get("/:id",asyncHandler(async(req,res,next) => {
     res.json(result).end();
 }))
 
+//get experience list from poi
 router.get("/:id/experiences",asyncHandler(async(req,res,next)=>{
     const id = req.params.id;
     const maxExperiences = req.query.maxExperiences;
@@ -38,14 +44,16 @@ router.get("/:id/experiences",asyncHandler(async(req,res,next)=>{
     result = await poiService.getPoiExperiences(id,Number(maxExperiences))
     res.json(result).end();
 }))
-router.use(require('body-parser').json());
 
+
+//create a new poi
 router.post("/",asyncHandler(async(req,res,next) => {
     console.log(req.body)
     result = await poiService.addPoi(req.body)
     return res.json(result).end();
 }))
 
+//update a poi
 router.put("/:id",asyncHandler(async(req,res,next) => {
     console.log(req.body)
     result = await poiService.updatePoi(req.body)

@@ -24,7 +24,6 @@ const poiService = {
     },
     async addPoi(poiData){
         
-        console.log(poiData)
         const created = await poi.create(
             {
                 input:[
@@ -39,12 +38,10 @@ const poiService = {
                 ]}
 
         );
-        console.log(created)
         return created;
     },
     async updatePoi(poiData){
         
-        console.log(poiData)
         const updated = await poi.update(
             {
                 where: {id: poiData.id},
@@ -55,7 +52,6 @@ const poiService = {
             }
 
         );
-        console.log(updated)
         return updated;
     },
     async getPoi(id){
@@ -76,7 +72,7 @@ const poiService = {
         });
         
         if(pois.length <= 0 ){
-            throw new Error("Could not find POI")
+            throw Error("Could not find POI")
         }
         return  pois
     },
