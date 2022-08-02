@@ -23,16 +23,21 @@ router.get("/:id", async(req,res)  =>{
 router.post("/",auth.passport.authenticate('jwt',{session: false}), asyncHandler(async(req,res,next)=>{
     
     result = await journeyService.addJourney(req.body,req.user[0])
-
     return res.json(result).end();
 }))
 
 router.put("/", auth.passport.authenticate('jwt',{session: false}), asyncHandler(async(req,res,next) => {
 
     result = await journeyService.updateJourney(req.body)
-
     return res.json(result).end();
 }))
+
+router.post("/experience", auth.passport.authenticate('jwt',{session: false}), asyncHandler(async(req,res,next)=> {
+
+    result  = await journeyService.addExperience(req.body)
+    return res.json(result).end();
+}))
+
 
 module.exports = router
 

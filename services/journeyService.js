@@ -128,7 +128,27 @@ const journeyService = {
         })
 
         return updated;
-    }
+    },
+    async addExperience(journeyData){
+        const added = await journey.update({
+            where: {
+                id: journeyData.id
+            },
+            connect: {
+                experiences: [{
+                    where:{
+                        node:{
+                            id:journeyData.poi.id
+                        }
+                    },
+                    edge: journeyData.experience
+
+                }]
+            }
+        })
+        return added
+    },
+
 }
 
 module.exports = journeyService
