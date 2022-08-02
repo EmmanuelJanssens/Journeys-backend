@@ -7,7 +7,7 @@ router.get("/:userName",auth,async(req,res) => {
     const result = await user.find({
         where: { userName: userName}
     })
-    res.status(200).json(result[0])
+    res.status(200).json(result[0]).end()
 })
 router.get("/:userName/journeys",async(req,res) => {
     const userName = req.params.userName;

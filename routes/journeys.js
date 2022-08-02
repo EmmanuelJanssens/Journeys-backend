@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const router = require('express').Router()
 const journeyService = require('../services/journeyService')
+const auth  = require('../routes/authentication')
 
 router.use(require('body-parser').json());
 
@@ -12,8 +13,6 @@ router.get("/",async(req,res) => {
     return  res.json(result).end();
 })
 
-
-
 router.get("/:id", async(req,res)  =>{
     const nexp = req.query.experiences
     const id = req.params.id
@@ -21,8 +20,12 @@ router.get("/:id", async(req,res)  =>{
     return res.json(result).end();
 })
 
-router.post("/",asyncHandler(async(req,res,next)=>{
-    result = await journeyService.addJourney(req.body)
+router.post("/",
+            auth.passport.authenticate('jwt',{session: false}),
+            asyncHandler(async(req,res,next)=>{
+    
+    result = await journeyService.addJourney(req.body,req.user[0])
+
     return res.json(result).end();
 }))
 

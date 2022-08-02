@@ -3,13 +3,40 @@ const jwt = require('jsonwebtoken');
 const user = require('../graphql/Models').User
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
-
+const userService = require('../services/userService');
 
 const router = express.Router()
 router.use(express.json())
 router.use(express.urlencoded({extended: true}))
 
+var passport  = require('passport');
+var JwtStrategy = require('passport-jwt').Strategy,
+    ExtractJwt = require('passport-jwt').ExtractJwt
 
+
+
+var opts = {}
+opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.secretOrKey = 'secret';
+
+passport.use(new JwtStrategy(opts,function(jwt_payload,done){
+  userService.findOne(jwt_payload.userName).then((user) => {
+    return done(null,user)
+  })
+}))
+
+
+passport.serializeUser((user,done) =>{
+    console.log("serialize")
+    done(null,user)
+})
+
+passport.deserializeUser((req,user,done) => {
+    console.log("deserialize")
+    userService.findOne(user.userName).then((user) => {
+        return done(null,user);
+    })
+})
 router.post("/login",async(req,res) => {
 
     const body = req.body
@@ -29,7 +56,7 @@ router.post("/login",async(req,res) => {
         if(valid){
             const token = jwt.sign(
                 {userName: body.userName},
-                 '1234',
+                 'secret',
                 {expiresIn: '1h'}
                 );
             result[0].token = token
@@ -92,4 +119,7 @@ router.post("/register",async(req,res) => {
     }
     
 })
-module.exports= router
+module.exports= {
+    router: router,
+    passport: passport
+}

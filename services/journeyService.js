@@ -90,7 +90,7 @@ const journeyService = {
         }
     },
 
-    async addJourney(journeyData){
+    async addJourney(journeyData,user){
         const created = await journey.create({
             input: [
                 {
@@ -103,6 +103,15 @@ const journeyService = {
                     end:{
                         latitude: journeyData.end.latitude,
                         longitude: journeyData.end.longitude
+                    },
+                    creator: {
+                        connect:{
+                            where:{
+                                node:{
+                                    userName:user.userName
+                                }
+                            }
+                        }
                     }
                 }
             ]
