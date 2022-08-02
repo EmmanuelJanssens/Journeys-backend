@@ -1,7 +1,6 @@
 const express =  require('express')
 const jwt = require('jsonwebtoken');
 const user = require('../graphql/Models').User
-const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const userService = require('../services/userService');
 
@@ -26,28 +25,13 @@ passport.use(new JwtStrategy(opts,function(jwt_payload,done){
 }))
 
 
-passport.serializeUser((user,done) =>{
-    console.log("serialize")
-    done(null,user)
-})
 
-passport.deserializeUser((req,user,done) => {
-    console.log("deserialize")
-    userService.findOne(user.userName).then((user) => {
-        return done(null,user);
-    })
-})
+
 router.post("/login",async(req,res) => {
 
     const body = req.body
-    console.log(req.body)
 
-    const selectionSet = `
-    {
-        userName
-        password
-    }
-    `
+
     const result = await user.find({
         where: { userName: body.userName}
     })
@@ -67,7 +51,6 @@ router.post("/login",async(req,res) => {
         }
     }else
     {
-        console.log(result)
         res.status(400).json({message:"something went wrong"})
     }
     
@@ -76,12 +59,7 @@ router.post("/login",async(req,res) => {
 
 router.post("/register",async(req,res) => {
     const body = req.body
-    const selectionSet = `
-    {
-        userName
-        password
-    }
-    `
+
     const result = await user.find({
         where: { userName: body.userName}
     })
@@ -101,7 +79,6 @@ router.post("/register",async(req,res) => {
         })
         
         newUser = newUser['users'];
-        console.log(newUser)
         if(newUser.length === 1 && newUser[0].userName === body.userName){
             const token = jwt.sign(
                 {userName: body.userName},
@@ -110,7 +87,6 @@ router.post("/register",async(req,res) => {
                 );
             const result = newUser[0]
             result.token = token
-            console.log(result)
             res.status(200).json(result)
         }
         else{

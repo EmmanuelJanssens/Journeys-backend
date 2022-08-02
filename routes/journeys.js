@@ -20,11 +20,16 @@ router.get("/:id", async(req,res)  =>{
     return res.json(result).end();
 })
 
-router.post("/",
-            auth.passport.authenticate('jwt',{session: false}),
-            asyncHandler(async(req,res,next)=>{
+router.post("/",auth.passport.authenticate('jwt',{session: false}), asyncHandler(async(req,res,next)=>{
     
     result = await journeyService.addJourney(req.body,req.user[0])
+
+    return res.json(result).end();
+}))
+
+router.put("/", auth.passport.authenticate('jwt',{session: false}), asyncHandler(async(req,res,next) => {
+
+    result = await journeyService.updateJourney(req.body)
 
     return res.json(result).end();
 }))

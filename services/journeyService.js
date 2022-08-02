@@ -119,6 +119,16 @@ const journeyService = {
 
         return created;
     },
+    async updateJourney(journeyData){
+        const updated = await journey.update({
+            where: { id: journeyData.id},
+            update: {
+                title: journeyData.title
+            }
+        })
+
+        return updated;
+    }
 }
 
 module.exports = journeyService
