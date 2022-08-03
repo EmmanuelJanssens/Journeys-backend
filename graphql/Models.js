@@ -1,14 +1,13 @@
-const { OGM } = require("@neo4j/graphql-ogm");
-const {gql} = require('apollo-server-express');
-const { Neo4jGraphQL } = require("@neo4j/graphql");
+const { OGM } = require('@neo4j/graphql-ogm');
+const { gql } = require('apollo-server-express');
+const { Neo4jGraphQL } = require('@neo4j/graphql');
 
-const neo4j = require("neo4j-driver");
-
+const neo4j = require('neo4j-driver');
 
 const driver = neo4j.driver(
-    "bolt://localhost:7687",
-    neo4j.auth.basic("neo4j", "password")
-)
+  'bolt://localhost:7687',
+  neo4j.auth.basic('neo4j', 'password'),
+);
 
 const typeDefs = gql`
 
@@ -59,16 +58,16 @@ interface Experience @relationshipProperties {
 
 `;
 
-const ogm = new OGM({typeDefs,driver});
+const ogm = new OGM({ typeDefs, driver });
 const neoSchema = new Neo4jGraphQL({
-    typeDefs,
-    driver
-  })
-  
+  typeDefs,
+  driver,
+});
+
 module.exports = {
-    POI : ogm.model("POI"),
-    Journey : ogm.model("Journey"),
-    User : ogm.model("User"),
-    ogm: ogm,
-    neoSchema: neoSchema
-}
+  POI: ogm.model('POI'),
+  Journey: ogm.model('Journey'),
+  User: ogm.model('User'),
+  ogm,
+  neoSchema,
+};

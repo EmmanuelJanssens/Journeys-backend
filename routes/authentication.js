@@ -1,50 +1,42 @@
-const express =  require('express')
+const express = require('express');
 const asyncHandler = require('express-async-handler');
+const passport = require('passport');
+const JwtStrategy = require('passport-jwt').Strategy;
+const { ExtractJwt } = require('passport-jwt');
+
+const authenticationService = require('../services/authenticationService');
 const userService = require('../services/userService');
 
-const authenticationService = require('../services/authenticationService')
+const router = express.Router();
+router.use(express.json());
+router.use(express.urlencoded({ extended: true }));
 
-const router = express.Router()
-router.use(express.json())
-router.use(express.urlencoded({extended: true}))
-
-var passport  = require('passport');
-var JwtStrategy = require('passport-jwt').Strategy,
-    ExtractJwt = require('passport-jwt').ExtractJwt
-
-var opts = {}
+const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = 'secret';
 
-passport.use(new JwtStrategy(opts,function(jwt_payload,done){
-  userService.findOne(jwt_payload.userName).then((user) => {
-    return done(null,user)
-  })
-}))
+passport.use(new JwtStrategy(opts, ((jwtPayload, done) => {
+  userService.findOne(jwtPayload.userName).then((user) => done(null, user));
+})));
 
+router.post('/login', asyncHandler(async (req, res, next) => {
+  try {
+    const loginAtempt = await authenticationService.login(req.body.userName, req.body.password);
+    return res.json(loginAtempt).end();
+  } catch (e) {
+    return next(e);
+  }
+}));
 
-router.post("/login",asyncHandler(async(req,res,next) => {
-
-    try{
-        const loginAtempt = await authenticationService.login(req.body.userName,req.body.password)
-        res.json(loginAtempt).end();
-
-    }catch(e){
-        return next(e)
-    }
-}))
-
-
-router.post("/register",asyncHandler(async(req,res,next) => {
-
-    try{
-        const registerAtempt = await authenticationService.register(req.body)
-        res.json(registerAtempt).end(); 
-    }catch(e){
-        return next(e) 
-    }
-}))
-module.exports= {
-    router: router,
-    passport: passport
-}
+router.post('/register', asyncHandler(async (req, res, next) => {
+  try {
+    const registerAtempt = await authenticationService.register(req.body);
+    return res.json(registerAtempt).end();
+  } catch (e) {
+    return next(e);
+  }
+}));
+module.exports = {
+  router,
+  passport,
+};

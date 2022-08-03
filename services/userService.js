@@ -1,15 +1,13 @@
-const {gql} = require('apollo-server-express');
-const user = require('../graphql/Models').User
-const uuid = require('uuid')
+const user = require('../graphql/Models').User;
 
 const userService = {
 
-    async findOne(userName){
-        const result = await user.find({
-            where: { userName: userName}
-        })
-        return result
-    }
+  async findOne(userName) {
+    const result = await user.find({
+      where: { userName },
+    });
+    return result;
+  },
 };
 
 module.exports = userService;

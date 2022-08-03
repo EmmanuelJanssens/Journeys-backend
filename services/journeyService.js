@@ -1,18 +1,17 @@
-const {gql} = require('apollo-server-express');
-const journey = require('../graphql/Models').Journey
-const uuid = require('uuid')
+const { gql } = require('apollo-server-express');
+const uuid = require('uuid');
+const journey = require('../graphql/Models').Journey;
 
 const journeyService = {
 
-    //return all journeys
-    async getJourneys(offset,limit,sort){
+  // return all journeys
+  async getJourneys(_offset, _limit, _sort) {
+    // limit by then by default
+    const limit = Number(_limit) ? Number(_limit) : 10;
+    const offset = Number(_offset) ? Number(_offset) : null;
+    const sort = _sort ? { name: _sort } : null;
 
-        //limit by then by default
-        limit = Number(limit) ? Number(limit) : 10;
-        offset = Number(offset) ? Number(offset) : null;
-        sort = sort ? {name:sort} : null;
-
-        const selectionSet = `
+    const selectionSet = `
         {
             id
             title
@@ -28,27 +27,26 @@ const journeyService = {
                 userName
             }
         }
-        `
+        `;
 
-        const journeys = await journey.find(
-            {
-                selectionSet,
-                options: {
-                    offset,
-                    limit,
-                    sort
-                },
-            }
-        )
+    const journeys = await journey.find(
+      {
+        selectionSet,
+        options: {
+          offset,
+          limit,
+          sort,
+        },
+      },
+    );
 
-        return journeys;
-    },
+    return journeys;
+  },
 
-    //get journey by id, returns journey name, poi data, and experience list
-    async getJourney(id,experiences){
-
-        const nexp = Number(experiences) ? Number(experiences) : 3
-        const selectionSet = gql`
+  // get journey by id, returns journey name, poi data, and experience list
+  async getJourney(id, experiences) {
+    const nexp = Number(experiences) ? Number(experiences) : 3;
+    const selectionSet = gql`
         {
             id
             title
@@ -72,83 +70,83 @@ const journeyService = {
             }
             
         }
-        `
+        `;
 
-        const j = await journey.find(
-            {
-                selectionSet,
-                where: {id: id}
-            }
-        )
+    const j = await journey.find(
+      {
+        selectionSet,
+        where: { id },
+      },
+    );
 
-        if(j.length > 1){
-            throw Error("An error occured while fetching journeys")
-        }else if(j.length == 0){
-            throw Error("Journey not found")
-        }else{
-            return j
-        }
-    },
+    if (j.length > 1) {
+      throw Error('An error occured while fetching journeys');
+    } else if (j.length === 0) {
+      throw Error('Journey not found');
+    } else {
+      return j;
+    }
+  },
 
-    async addJourney(journeyData,user){
-        const created = await journey.create({
-            input: [
-                {
-                    id: uuid.v4(),
-                    title: journeyData.title,
-                    start:{
-                        latitude: journeyData.start.latitude,
-                        longitude: journeyData.start.longitude
-                    },
-                    end:{
-                        latitude: journeyData.end.latitude,
-                        longitude: journeyData.end.longitude
-                    },
-                    creator: {
-                        connect:{
-                            where:{
-                                node:{
-                                    userName:user.userName
-                                }
-                            }
-                        }
-                    }
-                }
-            ]
-        })
-
-        return created;
-    },
-    async updateJourney(journeyData){
-        const updated = await journey.update({
-            where: { id: journeyData.id},
-            update: {
-                title: journeyData.title
-            }
-        })
-
-        return updated;
-    },
-    async addExperience(journeyData){
-        const added = await journey.update({
-            where: {
-                id: journeyData.id
-            },
+  async addJourney(journeyData, user) {
+    const created = await journey.create({
+      input: [
+        {
+          id: uuid.v4(),
+          title: journeyData.title,
+          start: {
+            latitude: journeyData.start.latitude,
+            longitude: journeyData.start.longitude,
+          },
+          end: {
+            latitude: journeyData.end.latitude,
+            longitude: journeyData.end.longitude,
+          },
+          creator: {
             connect: {
-                experiences: [{
-                    where:{
-                        node:{
-                            id:journeyData.poi.id
-                        }
-                    },
-                    edge: journeyData.experience
+              where: {
+                node: {
+                  userName: user.userName,
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
 
-                }]
-            }
-        })
-        return added
-    },
+    return created;
+  },
+  async updateJourney(journeyData) {
+    const updated = await journey.update({
+      where: { id: journeyData.id },
+      update: {
+        title: journeyData.title,
+      },
+    });
 
-}
+    return updated;
+  },
+  async addExperience(journeyData) {
+    const added = await journey.update({
+      where: {
+        id: journeyData.id,
+      },
+      connect: {
+        experiences: [{
+          where: {
+            node: {
+              id: journeyData.poi.id,
+            },
+          },
+          edge: journeyData.experience,
 
-module.exports = journeyService
+        }],
+      },
+    });
+    return added;
+  },
+
+};
+
+module.exports = journeyService;
