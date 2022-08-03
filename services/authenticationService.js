@@ -3,7 +3,16 @@ const jwt = require('jsonwebtoken');
 
 const user = require('../graphql/Models').User;
 
+/**
+ * Service to handle everything related to authentication
+ */
 const authenticationService = {
+  /**
+   * Log a user in
+   * @param {*} userName username
+   * @param {*} password password
+   * @returns logged in user
+   */
   async login(userName, password) {
     const foundUser = await user.find({
       where: { userName },
@@ -29,6 +38,11 @@ const authenticationService = {
       throw new Error('Something went wrong');
     }
   },
+  /**
+   * register a new user
+   * @param {*} userData data of the new user
+   * @returns user registered
+   */
   async register(userData) {
     const result = await user.find({
       where: { userName: userData.userName },

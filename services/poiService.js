@@ -3,7 +3,16 @@ const uuid = require('uuid');
 const poi = require('../graphql/Models').POI;
 
 const poiService = {
-
+  /**
+   * get a list of pois
+   * @param {*} _offset offset
+   * @param {*} _limit limit
+   * @param {*} sort_ sorting direction
+   * @param {*} radius radius to search arround
+   * @param {*} lat latitude
+   * @param {*} lng longitude
+   * @returns a list of pois belonging in the radius
+   */
   async getPois(_offset, _limit, sort_, radius, lat, lng) {
     const limit = _limit;
     const offset = Number(_offset) ? Number(_offset) : null;
@@ -29,6 +38,11 @@ const poiService = {
     // arrays of pois
     return pois;
   },
+  /**
+   * add a new poi in the database
+   * @param {*} poiData data of the poi
+   * @returns newly created poi
+   */
   async addPoi(poiData) {
     const created = await poi.create(
       {
@@ -47,6 +61,11 @@ const poiService = {
     );
     return created;
   },
+  /**
+   * update a poi
+   * @param {*} poiData data to be updated
+   * @returns updated poi
+   */
   async updatePoi(poiData) {
     const updated = await poi.update(
       {
@@ -60,6 +79,11 @@ const poiService = {
     );
     return updated;
   },
+  /**
+   * get a single poi
+   * @param {*} id id
+   * @returns poi
+   */
   async getPoi(id) {
     const selectionSet = gql`
             {
@@ -81,6 +105,12 @@ const poiService = {
     }
     return pois;
   },
+  /**
+   * get experiences related to a poi
+   * @param {*} id id
+   * @param {*} maxExperiences number of experiences to return
+   * @returns poi with its list of experiences
+   */
   async getPoiExperiences(id, maxExperiences) {
     const selectionSet = gql`
         {

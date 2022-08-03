@@ -3,8 +3,13 @@ const uuid = require('uuid');
 const journey = require('../graphql/Models').Journey;
 
 const journeyService = {
-
-  // return all journeys
+  /**
+   * get a list of journeys
+   * @param {*} _offset offset
+   * @param {*} _limit limit
+   * @param {*} _sort sorting direction
+   * @returns list of journeys
+   */
   async getJourneys(_offset, _limit, _sort) {
     // limit by then by default
     const limit = Number(_limit) ? Number(_limit) : 10;
@@ -42,8 +47,12 @@ const journeyService = {
 
     return journeys;
   },
-
-  // get journey by id, returns journey name, poi data, and experience list
+  /**
+   * get one journey by id
+   * @param {*} id id of the journey
+   * @param {*} experiences number of experiences to display
+   * @returns a journey with its detais
+   */
   async getJourney(id, experiences) {
     const nexp = Number(experiences) ? Number(experiences) : 3;
     const selectionSet = gql`
@@ -87,7 +96,12 @@ const journeyService = {
       return j;
     }
   },
-
+  /**
+   * add a new journey
+   * @param {*} journeyData data of the journey to be added
+   * @param {*} user creator of the journey
+   * @returns the newly created journey
+   */
   async addJourney(journeyData, user) {
     const created = await journey.create({
       input: [
@@ -117,6 +131,11 @@ const journeyService = {
 
     return created;
   },
+  /**
+   * update a journey
+   * @param {*} journeyData data of the journey to update
+   * @returns updated journey
+   */
   async updateJourney(journeyData) {
     const updated = await journey.update({
       where: { id: journeyData.id },
@@ -127,6 +146,11 @@ const journeyService = {
 
     return updated;
   },
+  /**
+   * add an experience to the journey
+   * @param {*} journeyData data of the experience
+   * @returns journey with its added experience
+   */
   async addExperience(journeyData) {
     const added = await journey.update({
       where: {
