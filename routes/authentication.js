@@ -13,7 +13,7 @@ router.use(express.urlencoded({ extended: true }));
 
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = 'secret';
+opts.secretOrKey = process.env.JWT_SECRET;
 
 passport.use(new JwtStrategy(opts, ((jwtPayload, done) => {
   userService.findOne(jwtPayload.userName).then((user) => done(null, user));

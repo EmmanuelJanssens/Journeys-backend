@@ -26,8 +26,8 @@ const authenticationService = {
       if (validPwd) {
         const token = jwt.sign(
           { userName },
-          'secret',
-          { expiresIn: '5h' },
+          process.env.JWT_SECRET,
+          { expiresIn: process.env.JWT_TOKEN_EXPIRATION },
         );
 
         foundUser[0].token = token;
@@ -66,8 +66,8 @@ const authenticationService = {
       if (newUser.length === 1 && newUser[0].userName === userData.userName) {
         const token = jwt.sign(
           { userName: userData.userName },
-          '1234',
-          { expiresIn: '5h' },
+          process.env.JWT_SECRET,
+          { expiresIn: process.env.JWT_TOKEN_EXPIRATION },
         );
         const userFound = newUser[0];
         userFound.token = token;

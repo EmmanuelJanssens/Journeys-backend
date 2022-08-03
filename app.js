@@ -1,7 +1,8 @@
 const express = require('express');
 const { ApolloServer } = require('apollo-server-express');
-
 const cors = require('cors');
+require('dotenv').config();
+
 const pois = require('./routes/pointOfInterest');
 const journeys = require('./routes/journeys');
 const users = require('./routes/users');
@@ -10,7 +11,6 @@ const { ogm } = require('./graphql/Models');
 const { neoSchema } = require('./graphql/Models');
 
 const app = express();
-
 const router = express.Router();
 
 router.use('/api/pois', pois);
@@ -28,7 +28,6 @@ Promise.all([neoSchema.getSchema(), ogm.init()]).then(([schema]) => {
 
   server.start().then(() => {
     server.applyMiddleware({ app, path: '/graphql' });
-
     app.use(cors({
       origin: '*',
       allowedHeaders: '*',
