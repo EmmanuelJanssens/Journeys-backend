@@ -13,30 +13,46 @@ const poiService = {
    * @param {*} lng longitude
    * @returns a list of pois belonging in the radius
    */
-  async getPois(_offset, _limit, sort_, radius, lat, lng) {
-    const limit = _limit;
-    const offset = Number(_offset) ? Number(_offset) : null;
-    const sort = sort_ ? { name: sort_ } : null;
+  async getPois(page, pageSize, sort_, radius, lat, lng) {
+    const options = {
+      limit: page ? pageSize : 10,
+      offset: pageSize ? page * pageSize : 0,
+      sort: sort_ ? { name: sort_ } : null,
+    };
 
-    const pois = await poi.find({
-      options: {
-        offset,
-        limit,
-        sort,
-      },
-      where: {
-        location_LT: {
-          point: {
-            latitude: Number(lat),
-            longitude: Number(lng),
-          },
-          distance: Number(radius),
+    const condition = {
+      location_LT: {
+        point: {
+          latitude: Number(lat),
+          longitude: Number(lng),
         },
+        distance: Number(radius),
       },
+    };
+
+    const count = await poi.aggregate({
+      where: condition,
+      aggregate: {
+        count: 1,
+      },
+      options,
+    });
+    const pois = await poi.find({
+      options,
+      where: condition,
     });
 
-    // arrays of pois
-    return pois;
+    const result = {
+      data: pois,
+      pageInfo: {
+        totalCount: count.count,
+        pageCount: Math.ceil(count.count / pageSize),
+        currentPage: page,
+        hasNextPage: (page + 1) * pageSize < count.count,
+        first: page === 0,
+      },
+    };
+    return result;
   },
   /**
    * add a new poi in the database
@@ -111,7 +127,11 @@ const poiService = {
    * @param {*} maxExperiences number of experiences to return
    * @returns poi with its list of experiences
    */
-  async getPoiExperiences(id, maxExperiences) {
+  async getPoiExperiences(id, cursor, pageSize, sort_) {
+    const options = {
+      sort: sort_ ? { name: sort_ } : null,
+    };
+
     const selectionSet = gql`
         {
             id
@@ -123,7 +143,7 @@ const poiService = {
             journeysAggregate{
                 count
             }
-            journeysConnection(first:${maxExperiences}){
+            journeysConnection(first:${pageSize}, after:  ${cursor} ){
                 edges{
                     date
                     description
@@ -136,12 +156,19 @@ const poiService = {
                         }
                     }
                 }
+                pageInfo{
+                  startCursor
+                  endCursor
+                  hasNextPage
+                  hasPreviousPage
+                }
             }
         }
         `;
     const pois = await poi.find({
       selectionSet,
       where: { id },
+      options,
     });
 
     // make sure there is only one poi
@@ -161,6 +188,7 @@ const poiService = {
           order: experience.order,
           creator: experience.node.creator.userName,
         })),
+        pageInfo: pois[0].journeysConnection.pageInfo,
       };
       return finalRes;
     }

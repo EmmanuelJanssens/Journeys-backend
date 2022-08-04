@@ -7,14 +7,17 @@ router.use(require('body-parser').json());
 // get all pois arround a certain locationnnnn
 router.get('/', asyncHandler(async (req, res, next) => {
   const {
-    offset, limit, sort, radius, lat, lng,
+    page, pageSize, sort, radius, lat, lng,
   } = req.query;
 
   if (!Number(lat) || !Number(lng) || !Number(radius)) {
     return next('Bad request format, required lat,lng,radius');
   }
 
-  const result = await poiService.getPois(offset, limit, sort, radius, lat, lng);
+  const pageNumber = Number(page) ? Number(page) : 0;
+  const pageSizeNumber = Number(pageSize) ? Number(pageSize) : 10;
+
+  const result = await poiService.getPois(pageNumber, pageSizeNumber, sort, radius, lat, lng);
   return res.json(result).end();
 }));
 
@@ -33,13 +36,15 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
 // get experience list from poi
 router.get('/:id/experiences', asyncHandler(async (req, res, next) => {
   const { id } = req.params;
-  const { maxExperiences } = req.query;
+  const { cursor, pageSize } = req.query;
 
   if (id == null) {
     return next('Id is required');
   }
 
-  const result = await poiService.getPoiExperiences(id, Number(maxExperiences));
+  const pageSizeNumber = Number(pageSize) ? Number(pageSize) : 10;
+  const cursorStr = cursor === undefined ? null : cursor;
+  const result = await poiService.getPoiExperiences(id, cursorStr, pageSizeNumber);
   return res.json(result).end();
 }));
 

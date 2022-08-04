@@ -15,6 +15,7 @@ const typeDefs = gql`
 type POI {
     id: ID!
     name: String!
+    description: String
     location: Point!
     journeys: [Journey!]! @relationship(type: "EXPERIENCE",direction:IN, properties: "Experience")
 }
