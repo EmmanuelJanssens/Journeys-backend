@@ -15,8 +15,8 @@ const poiService = {
    */
   async getPois(page, pageSize, sort_, radius, lat, lng) {
     const options = {
-      limit: page ? pageSize : 10,
-      offset: pageSize ? page * pageSize : 0,
+      limit: pageSize,
+      offset: page,
       sort: sort_ ? { name: sort_ } : null,
     };
 

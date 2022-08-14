@@ -10,11 +10,13 @@ const journeyService = {
    * @param {*} _sort sorting direction
    * @returns list of journeys
    */
-  async getJourneys(_offset, _limit, _sort) {
+  async getJourneys(page, pageSize, sort_) {
     // limit by then by default
-    const limit = Number(_limit) ? Number(_limit) : 10;
-    const offset = Number(_offset) ? Number(_offset) : null;
-    const sort = _sort ? { name: _sort } : null;
+    const options = {
+      limit: pageSize,
+      offset: page,
+      sort: sort_ ? { name: sort_ } : null,
+    };
 
     const selectionSet = `
         {
@@ -33,28 +35,41 @@ const journeyService = {
             }
         }
         `;
-
+    const count = await journey.aggregate({
+      aggregate: {
+        count: 1,
+      },
+      options,
+    });
     const journeys = await journey.find(
       {
         selectionSet,
-        options: {
-          offset,
-          limit,
-          sort,
-        },
+        options,
       },
     );
 
-    return journeys;
+    const result = {
+      data: journeys,
+      pageInfo: {
+        totalCount: count.count,
+        pageCount: Math.ceil(count.count / pageSize),
+        currentPage: page,
+        hasNextPage: (page + 1) * pageSize < count.count,
+        first: page === 0,
+      },
+    };
+
+    return result;
   },
+
   /**
    * get one journey by id
    * @param {*} id id of the journey
    * @param {*} experiences number of experiences to display
    * @returns a journey with its detais
    */
-  async getJourney(id, experiences) {
-    const nexp = Number(experiences) ? Number(experiences) : 3;
+  async getJourney(id, cursor, experiences) {
+    const nexp = Number(experiences) ? Number(experiences) : 10;
     const selectionSet = gql`
         {
             id
@@ -62,7 +77,18 @@ const journeyService = {
             creator {
               userName
             }
-            experiencesConnection(first:${nexp}) {
+            start{
+              latitude
+              longitude
+            }
+            end{
+              latitude
+              longitude
+            }
+            experiencesAggregate{
+              count
+            }
+            experiencesConnection(first:${nexp}, after:  ${cursor} ) {
               edges {
                 date
                 description
@@ -71,7 +97,17 @@ const journeyService = {
                 node {
                   id
                   name
+                  location{
+                    latitude
+                    longitude
+                  }
                 }
+              }
+              pageInfo{
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
               }
             }
             experiencesAggregate{
@@ -93,7 +129,26 @@ const journeyService = {
     } else if (j.length === 0) {
       throw Error('Journey not found');
     } else {
-      return j;
+      const res = {
+        id: j[0].id,
+        title: j[0].title,
+        creator: j[0].creator,
+        start: j[0].start,
+        end: j[0].end,
+        experiencesCount: j[0].experiencesAggregate.count,
+        experiences: j[0].experiencesConnection.edges.map((experience) => (
+          {
+            poi: experience.node,
+            date: experience.date,
+            description: experience.description,
+            images: experience.images,
+            order: experience.order,
+          }
+        )),
+        pageInfo: j[0].experiencesConnection.pageInfo,
+
+      };
+      return res;
     }
   },
   /**

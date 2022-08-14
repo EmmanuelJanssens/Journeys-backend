@@ -35,8 +35,7 @@ router.get('/:id', asyncHandler(async (req, res, next) => {
 
 // get experience list from poi
 router.get('/:id/experiences', asyncHandler(async (req, res, next) => {
-  const { id } = req.params;
-  const { cursor, pageSize } = req.query;
+  const { id, cursor, pageSize } = req.params;
 
   if (id == null) {
     return next('Id is required');

@@ -6,13 +6,26 @@ const auth = require('./authentication');
 router.use(require('body-parser').json());
 
 router.get('/', asyncHandler(async (req, res) => {
-  const { offset, limit, sort } = req.query;
+  const {
+    page, pageSize, sort,
+  } = req.query;
 
-  const result = await journeyService.getJourneys(offset, limit, sort);
+  const pageNumber = Number(page) ? Number(page) : 0;
+  const pageSizeNumber = Number(pageSize) ? Number(pageSize) : 10;
+
+  const result = await journeyService.getJourneys(pageNumber, pageSizeNumber, sort);
   return res.json(result).end();
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
+  const nexp = req.query.experiences;
+  const { id, cursor } = req.params;
+  const cursorStr = cursor === undefined ? null : cursor;
+  const result = await journeyService.getJourney(id, cursorStr, nexp);
+  return res.json(result).end();
+}));
+
+router.get('/:id/experiences', asyncHandler(async (req, res) => {
   const nexp = req.query.experiences;
   const { id } = req.params;
   const result = await journeyService.getJourney(id, nexp);
