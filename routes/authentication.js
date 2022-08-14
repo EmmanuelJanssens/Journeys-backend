@@ -16,7 +16,11 @@ opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = process.env.JWT_SECRET;
 
 passport.use(new JwtStrategy(opts, ((jwtPayload, done) => {
-  userService.findOne(jwtPayload.userName).then((user) => done(null, user));
+  try {
+    userService.findOne(jwtPayload.userName).then((user) => done(null, user));
+  } catch (e) {
+    done(e, null);
+  }
 })));
 
 router.post('/login', asyncHandler(async (req, res, next) => {

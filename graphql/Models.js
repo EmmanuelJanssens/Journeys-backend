@@ -18,6 +18,7 @@ type POI {
     description: String
     location: Point!
     journeys: [Journey!]! @relationship(type: "EXPERIENCE",direction:IN, properties: "Experience")
+    tags: [Tag!]!  @relationship(type: "IS",direction:OUT)
 }
 
 
@@ -28,6 +29,7 @@ type Journey{
     end: Point!
     experiences:  [POI!]! @relationship(type: "EXPERIENCE",direction:OUT, properties: "Experience")
     creator: User! @relationship(type: "CREATED",direction:IN)
+    tags: [Tag!]! @relationship(type: "IS",direction:OUT)
 }
 
 type User{
@@ -38,6 +40,12 @@ type User{
     userName: String!
     journeys: [Journey!]! @relationship(type: "CREATED",direction:OUT)
     experiences: [POI!]! @relationship(type: "EXPERIENCE", direction:OUT, properties: "Experience") 
+}
+
+type Tag{
+    name: String!
+    pois: [POI!]! @relationship(type: "IS", direction: IN)
+    journeys: [Journey!]! @relationship(type: "IS",direction:IN)
 }
 
 enum SortDirection{
