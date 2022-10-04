@@ -21,6 +21,7 @@ export type LocationDto = {
 };
 
 export type ExperienceDto = {
+    journey?: JourneyDto;
     poi: PoiDto;
     experience: {
         description: string;

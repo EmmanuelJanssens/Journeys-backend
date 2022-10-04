@@ -3,7 +3,7 @@ import { Neo4jService } from "src/neo4j/neo4j.service";
 import { User } from "src/neo4j/neo4j.utils";
 import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
-import { UserDto } from "src/dto/dtos";
+import { UserDto } from "src/data/dtos";
 
 @Injectable()
 export class AuthenticationService {

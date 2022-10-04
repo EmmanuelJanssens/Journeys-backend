@@ -1,6 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import {
+    BadRequestException,
+    Injectable,
+    NotFoundException
+} from "@nestjs/common";
 import { gql } from "apollo-server-express";
-import { JourneyDto } from "src/dto/dtos";
+import { ExperienceDto, JourneyDto } from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { Journey } from "src/neo4j/neo4j.utils";
 import * as uuid from "uuid";
@@ -42,12 +46,14 @@ export class JourneyService {
                 count: 1
             }
         });
-
         const journeys = await this.journey.find({
             selectionSet,
             options
         });
 
+        if (journeys.length <= 0) {
+            throw new BadRequestException();
+        }
         const result = {
             data: journeys,
             pageInfo: {
@@ -58,13 +64,12 @@ export class JourneyService {
                 first: page === 0
             }
         };
-
         return result;
     }
 
     async getJourney(id, cursor, experiences) {
         const nexp = Number(experiences) ? Number(experiences) : 10;
-        const selectionSet = `
+        const selectionSet = gql`
             {
                 id
                 title
@@ -119,9 +124,11 @@ export class JourneyService {
         });
 
         if (j.length > 1) {
-            throw Error("An error occured while fetching journeys");
+            throw new BadRequestException(
+                "An error occured while fetching journeys"
+            );
         } else if (j.length === 0) {
-            throw Error("Journey not found");
+            throw new NotFoundException("Journey not found");
         } else {
             const result = {
                 id: j[0].id,
@@ -211,6 +218,7 @@ export class JourneyService {
 
         return created;
     }
+
     async updateJourney(journeyData: JourneyDto, username) {
         const updated = await this.journey.update({
             where: {
@@ -225,10 +233,13 @@ export class JourneyService {
         return updated;
     }
 
-    async addExperience(journeyData, username: string) {
-        const added = await this.journey.update({
+    async updateExperience(journeyData: ExperienceDto, username: string) {
+        if (journeyData.journey == undefined) {
+            throw new BadRequestException("Journey not included");
+        }
+        const updated = await this.journey.update({
             where: {
-                id: journeyData.id,
+                id: journeyData.journey.id,
                 creator: { username: username }
             },
             connect: {
@@ -244,6 +255,37 @@ export class JourneyService {
                 ]
             }
         });
+        if (updated.length == 0) {
+            throw new BadRequestException();
+        }
+        return updated;
+    }
+
+    async addExperience(journeyData: ExperienceDto, username: string) {
+        if (journeyData.journey == undefined) {
+            throw new BadRequestException("Journey not included");
+        }
+        const added = await this.journey.update({
+            where: {
+                id: journeyData.journey.id,
+                creator: { username: username }
+            },
+            update: {
+                experiences: [
+                    {
+                        where: {
+                            node: {
+                                id: journeyData.poi.id
+                            }
+                        },
+                        edge: journeyData.experience
+                    }
+                ]
+            }
+        });
+        if (added.length == 0) {
+            throw new BadRequestException();
+        }
         return added;
     }
 }

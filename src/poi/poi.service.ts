@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { gql } from "apollo-server-express";
-import { PoiDto } from "src/dto/dtos";
+import { PoiDto } from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { Poi } from "src/neo4j/neo4j.utils";
 import uuid from "uuid";

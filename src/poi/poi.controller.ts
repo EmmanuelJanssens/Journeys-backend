@@ -7,7 +7,7 @@ import {
     Query,
     UseGuards
 } from "@nestjs/common";
-import { SearchPoiDto } from "src/dto/dtos";
+import { SearchPoiDto } from "src/data/dtos";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { PoiService } from "./poi.service";
 

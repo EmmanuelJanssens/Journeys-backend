@@ -7,7 +7,8 @@ import { AuthenticationService } from "./authentication/authentication.service";
 import { AuthenticationController } from "./authentication/authentication.controller";
 import { AuthenticationModule } from "./authentication/authentication.module";
 import { JwtService } from "@nestjs/jwt";
-import { Neo4jService } from "./neo4j/neo4j.service";
+import { APP_FILTER } from "@nestjs/core";
+import { GeneralExceptionFilter } from "./error/general-exception.filter";
 
 @Module({
     imports: [
@@ -24,6 +25,13 @@ import { Neo4jService } from "./neo4j/neo4j.service";
         AuthenticationModule
     ],
     controllers: [AuthenticationController],
-    providers: [AuthenticationService, JwtService]
+    providers: [
+        AuthenticationService,
+        JwtService,
+        {
+            provide: APP_FILTER,
+            useClass: GeneralExceptionFilter
+        }
+    ]
 })
 export class AppModule {}

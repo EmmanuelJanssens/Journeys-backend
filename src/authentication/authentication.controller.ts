@@ -7,7 +7,7 @@ import {
     BadRequestException,
     HttpCode
 } from "@nestjs/common";
-import { UserDto } from "src/dto/dtos";
+import { UserDto } from "src/data/dtos";
 import { LocalAuthGuard } from "src/guard/local-auth.guard";
 import { AuthenticationService } from "./authentication.service";
 

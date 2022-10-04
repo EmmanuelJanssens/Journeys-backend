@@ -9,8 +9,7 @@ import {
     Request,
     Put
 } from "@nestjs/common";
-import { AuthGuard } from "@nestjs/passport";
-import { JourneyDto } from "src/dto/dtos";
+import { ExperienceDto, JourneyDto } from "src/data/dtos";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { JourneyService } from "./journey.service";
 
@@ -24,12 +23,10 @@ export class JourneyController {
         const pageSizeNumber = Number(query.pageSize)
             ? Number(query.ageSize)
             : 10;
-
         const result = await this.journeyService.getJourneys(
             pageNumber,
             pageSizeNumber
         );
-
         return result;
     }
 
@@ -50,7 +47,10 @@ export class JourneyController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    async createOne(@Body() body: any, @Request() req): Promise<JourneyDto> {
+    async createOne(
+        @Body() body: JourneyDto,
+        @Request() req
+    ): Promise<JourneyDto> {
         const res = await this.journeyService.addJourney(
             body,
             req.user.userName
@@ -60,7 +60,10 @@ export class JourneyController {
 
     @UseGuards(JwtAuthGuard)
     @Put()
-    async updateOne(@Body() body: any, @Request() req): Promise<JourneyDto> {
+    async updateOne(
+        @Body() body: JourneyDto,
+        @Request() req
+    ): Promise<JourneyDto> {
         const res = await this.journeyService.updateJourney(
             body,
             req.user.userName
@@ -70,8 +73,18 @@ export class JourneyController {
 
     @UseGuards(JwtAuthGuard)
     @Post("experience")
-    async addExperience(@Body() body: any, @Request() req) {
+    async addExperience(@Body() body: ExperienceDto, @Request() req) {
         const res = await this.journeyService.addExperience(
+            body,
+            req.user.username
+        );
+        return res;
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Put("experience")
+    async updateExperience(@Body() body: ExperienceDto, @Request() req) {
+        const res = await this.journeyService.updateExperience(
             body,
             req.user.username
         );
