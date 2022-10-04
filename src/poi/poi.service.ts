@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { gql } from "apollo-server-express";
-import { PoiDto } from "src/data/dtos";
+import { ExperienceDto, JourneyDto, PoiDto, UserDto } from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { Poi } from "src/neo4j/neo4j.utils";
 import uuid from "uuid";
@@ -52,7 +52,7 @@ export class PoiService {
         );
 
         const result = {
-            data: results,
+            data: results as PoiDto[],
             pageInfo: {}
         };
         return result;
@@ -132,6 +132,7 @@ export class PoiService {
                         order
                         node{
                             id
+                            title
                             creator{
                                 username
                             }
@@ -153,7 +154,9 @@ export class PoiService {
 
         // make sure there is only one poi
         if (pois.length > 1) {
-            throw new Error("An error occured while fetching pois");
+            throw new BadRequestException(
+                "An error occured while fetching pois"
+            );
         } else {
             const result = {
                 id: pois[0].id,
@@ -161,14 +164,20 @@ export class PoiService {
                 location: pois[0].location,
                 totalCount: pois[0].journeysAggregate.count,
                 experiences: pois[0].journeysConnection.edges.map(
-                    (experience) => ({
-                        journey: experience.node.id,
-                        date: experience.date,
-                        description: experience.description,
-                        images: experience.images,
-                        order: experience.order,
-                        creator: experience.node.creator.userName
-                    })
+                    (experience) =>
+                        ({
+                            journey: {
+                                id: experience.node.id,
+                                title: experience.node.title,
+                                creator: experience.node.creator
+                            } as JourneyDto,
+                            experience: {
+                                date: experience.date,
+                                description: experience.description,
+                                image: experience.images,
+                                order: experience.order
+                            }
+                        } as ExperienceDto)
                 ),
                 pageInfo: pois[0].journeysConnection.pageInfo
             };

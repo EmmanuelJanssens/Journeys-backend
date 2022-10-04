@@ -22,7 +22,7 @@ export type LocationDto = {
 
 export type ExperienceDto = {
     journey?: JourneyDto;
-    poi: PoiDto;
+    poi?: PoiDto;
     experience: {
         description: string;
         order: number;
@@ -37,6 +37,7 @@ export type JourneyDto = {
     start?: LocationDto;
     end?: LocationDto;
     creator?: UserDto;
+    experienceCount?: number;
     experiences?: ExperienceDto[];
 };
 

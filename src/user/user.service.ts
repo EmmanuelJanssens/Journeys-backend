@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { gql } from "apollo-server-express";
+import { PoiDto } from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { User } from "src/neo4j/neo4j.utils";
 
@@ -33,11 +34,61 @@ export class UserService {
         `;
         const condition = { username: username };
 
-        const result = await this.neo4jService.readGql(
+        const result = await this.neo4jService.readGql<PoiDto[]>(
             this.user,
             selectionSet,
             condition
         );
         return result[0];
+    }
+
+    async getMyExperiences(username: string) {
+        const selectionSet = gql`
+            {
+                journeys {
+                    experiencesConnection {
+                        edges {
+                            description
+                            images
+                            order
+                            date
+                            node {
+                                id
+                                name
+                                location {
+                                    longitude
+                                    latitude
+                                }
+                            }
+                        }
+                    }
+                    title
+                }
+                experiencesConnection {
+                    edges {
+                        description
+                        images
+                        date
+                        node {
+                            id
+                            name
+                            location {
+                                longitude
+                                latitude
+                            }
+                        }
+                    }
+                }
+            }
+        `;
+
+        const condition = { username: username };
+
+        const result = await this.neo4jService.readGql<PoiDto[]>(
+            this.user,
+            selectionSet,
+            condition
+        );
+        return result;
     }
 }

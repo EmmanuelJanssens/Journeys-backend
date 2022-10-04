@@ -36,7 +36,7 @@ export class JourneyService {
                     longitude
                 }
                 creator {
-                    userName
+                    username
                 }
             }
         `;
@@ -46,7 +46,7 @@ export class JourneyService {
                 count: 1
             }
         });
-        const journeys = await this.journey.find({
+        const journeys: JourneyDto[] = await this.journey.find({
             selectionSet,
             options
         });
@@ -118,10 +118,12 @@ export class JourneyService {
             }
             `;
 
-        const j = await this.journey.find({
+        const condition = { id };
+        const j: any[] = await this.neo4jService.readGql(
+            this.journey,
             selectionSet,
-            where: { id }
-        });
+            condition
+        );
 
         if (j.length > 1) {
             throw new BadRequestException(
@@ -138,16 +140,23 @@ export class JourneyService {
                 end: j[0].end,
                 experiencesCount: j[0].experiencesAggregate.count,
                 experiences: j[0].experiencesConnection.edges.map(
-                    (experience) => ({
-                        poi: experience.node,
-                        date: experience.date,
-                        description: experience.description,
-                        images: experience.images,
-                        order: experience.order
-                    })
-                ),
+                    (experience) =>
+                        ({
+                            poi: experience.node,
+                            experience: {
+                                date: experience.date,
+                                description: experience.description,
+                                image: experience.images,
+                                order: experience.order
+                            }
+                        } as ExperienceDto)
+                ) as ExperienceDto[],
                 pageInfo: j[0].experiencesConnection.pageInfo
             };
+
+            result.experiences.sort(
+                (a, b) => a.experience.order - b.experience.order
+            );
             return result;
         }
     }
