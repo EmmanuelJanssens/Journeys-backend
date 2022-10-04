@@ -1,8 +1,0 @@
-version: '3.8' 
-
-services:
-  journeys-app:
-    image: journeys-db
-    build:
-      context: ./
-      dockerfile: DB.Dockerfile
