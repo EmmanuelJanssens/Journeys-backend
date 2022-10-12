@@ -1,19 +1,18 @@
 import { Controller, Get, Param, Request, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "@nestjs/passport";
-import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
+import { AuthenticationGuard } from "src/guard/authentication.guard";
 import { UserService } from "./user.service";
 
 @Controller("user")
 export class UserController {
     constructor(private userService: UserService) {}
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(AuthenticationGuard)
     @Get("journeys")
     async getMyJourneys(@Request() req) {
         const result = await this.userService.getMyJourneys(req.user.username);
         return result;
     }
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(AuthenticationGuard)
     @Get("experiences")
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     async getMyExperiences(@Request() req) {

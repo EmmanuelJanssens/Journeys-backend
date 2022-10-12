@@ -5,7 +5,8 @@ import {
     UseGuards,
     Body,
     BadRequestException,
-    HttpCode
+    HttpCode,
+    Get
 } from "@nestjs/common";
 import { UserDto } from "src/data/dtos";
 import { LocalAuthGuard } from "src/guard/local-auth.guard";
@@ -28,5 +29,11 @@ export class AuthenticationController {
             throw new BadRequestException("Fields missing");
         const result = this.authService.register(data);
         return result;
+    }
+
+    @Get("logout")
+    async logout(@Request() req) {
+        req.session.destroy();
+        return { msg: "Loggedout" };
     }
 }

@@ -7,10 +7,11 @@ import { User } from "src/neo4j/neo4j.utils";
 @Injectable()
 export class UserService {
     constructor(private neo4jService: Neo4jService) {}
-
     private user = User(this.neo4jService.getOGM());
 
     async getMyJourneys(username: string) {
+        console.log("fdff");
+
         const selectionSet = gql`
             {
                 journeys {

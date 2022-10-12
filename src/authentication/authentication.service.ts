@@ -2,15 +2,11 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { User } from "src/neo4j/neo4j.utils";
 import * as bcrypt from "bcrypt";
-import { JwtService } from "@nestjs/jwt";
 import { UserDto } from "src/data/dtos";
 
 @Injectable()
 export class AuthenticationService {
-    constructor(
-        private neo4jService: Neo4jService,
-        private jwtService: JwtService
-    ) {}
+    constructor(private neo4jService: Neo4jService) {}
 
     private user = User(this.neo4jService.getOGM());
 
@@ -25,11 +21,9 @@ export class AuthenticationService {
                 foundUser[0].username === username;
 
             if (validPwd) {
-                const payload = { username: foundUser[0].username };
-                const token = this.jwtService.sign(payload);
-
-                foundUser[0].token = token;
-                return foundUser[0];
+                return {
+                    username
+                };
             }
             throw new Error("Bad credentials");
         }

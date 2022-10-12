@@ -3,6 +3,7 @@ import { Neo4jConfig } from "./neo4j-config.interface";
 import { OGM } from "@neo4j/graphql-ogm";
 import { Neo4jGraphQL } from "@neo4j/graphql";
 import { gql } from "apollo-server-express";
+import * as connect from "connect-neo4j";
 
 const typeDefs = gql`
     type POI {
