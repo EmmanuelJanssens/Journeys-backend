@@ -34,6 +34,8 @@
     "apollo-server-core": "^3.10.2",
     "apollo-server-express": "^3.10.2",
     "bcrypt": "^5.0.1",
+    "connect-neo4j": "^1.0.1",
+    "express-session": "^1.17.3",
     "graphql": "^16.6.0",
     "jsonwebtoken": "^8.5.1",
     "neo4j-driver": "^5.0.1",
