@@ -10,7 +10,7 @@ import {
     Put
 } from "@nestjs/common";
 import { ExperienceDto, JourneyDto } from "src/data/dtos";
-import { AuthenticationGuard } from "src/guard/authentication.guard";
+import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { JourneyService } from "./journey.service";
 
 @Controller("journey")
@@ -45,7 +45,7 @@ export class JourneyController {
         return result;
     }
 
-    @UseGuards(AuthenticationGuard)
+    @UseGuards(JwtAuthGuard)
     @Post()
     async createOne(
         @Body() body: JourneyDto,
@@ -58,7 +58,7 @@ export class JourneyController {
         return res;
     }
 
-    @UseGuards(AuthenticationGuard)
+    @UseGuards(JwtAuthGuard)
     @Put()
     async updateOne(
         @Body() body: JourneyDto,
@@ -71,7 +71,7 @@ export class JourneyController {
         return res;
     }
 
-    @UseGuards(AuthenticationGuard)
+    @UseGuards(JwtAuthGuard)
     @Post("experience")
     async addExperience(@Body() body: ExperienceDto, @Request() req) {
         const res = await this.journeyService.addExperience(
@@ -81,7 +81,7 @@ export class JourneyController {
         return res;
     }
 
-    @UseGuards(AuthenticationGuard)
+    @UseGuards(JwtAuthGuard)
     @Put("experience")
     async updateExperience(@Body() body: ExperienceDto, @Request() req) {
         const res = await this.journeyService.updateExperience(

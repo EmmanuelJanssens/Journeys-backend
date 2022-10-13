@@ -3,14 +3,24 @@ import { Neo4jService } from "src/neo4j/neo4j.service";
 import { User } from "src/neo4j/neo4j.utils";
 import * as bcrypt from "bcrypt";
 import { UserDto } from "src/data/dtos";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthenticationService {
-    constructor(private neo4jService: Neo4jService) {}
+    constructor(
+        private neo4jService: Neo4jService,
+        private jwtService: JwtService
+    ) {}
 
     private user = User(this.neo4jService.getOGM());
 
-    async validateUser(username: string, password: string) {
+    async validateUser(
+        username: string,
+        password: string
+    ): Promise<{
+        username: string;
+        token: string;
+    }> {
         const foundUser: UserDto[] = await this.user.find({
             where: { username: username }
         });
@@ -21,8 +31,13 @@ export class AuthenticationService {
                 foundUser[0].username === username;
 
             if (validPwd) {
+                const payload = {
+                    username: foundUser[0].username
+                };
+                const token = this.jwtService.sign(payload);
                 return {
-                    username
+                    username,
+                    token
                 };
             }
             throw new Error("Bad credentials");
@@ -51,7 +66,16 @@ export class AuthenticationService {
             });
             if (created.users.length > 1 || created.users.length == 0)
                 throw new BadRequestException();
-            return { message: "Successfuly registered you can now login" };
+
+            const payload = {
+                username: userData.username
+            };
+            const token = this.jwtService.sign(payload);
+
+            return {
+                username: userData.username,
+                token
+            };
         }
     }
 }

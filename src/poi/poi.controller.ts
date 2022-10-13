@@ -8,7 +8,7 @@ import {
     UseGuards
 } from "@nestjs/common";
 import { SearchPoiDto } from "src/data/dtos";
-import { AuthenticationGuard } from "src/guard/authentication.guard";
+import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { PoiService } from "./poi.service";
 
 @Controller("poi")
@@ -25,14 +25,14 @@ export class PoiController {
         return result;
     }
 
-    @UseGuards(AuthenticationGuard)
+    @UseGuards(JwtAuthGuard)
     @Post()
     async createPoi(poiData) {
         const result = await this.poiService.addPoi(poiData);
         return result;
     }
 
-    @UseGuards(AuthenticationGuard)
+    @UseGuards(JwtAuthGuard)
     @Put()
     async updatePoi(poiData) {
         const result = await this.poiService.updatePoi(poiData);
