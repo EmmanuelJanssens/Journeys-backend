@@ -7,7 +7,9 @@ import {
     Query,
     UseGuards,
     Request,
-    Put
+    Put,
+    Delete,
+    Patch
 } from "@nestjs/common";
 import { ExperienceDto, JourneyDto } from "src/data/dtos";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
@@ -47,13 +49,10 @@ export class JourneyController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    async createOne(
-        @Body() body: JourneyDto,
-        @Request() req
-    ): Promise<JourneyDto> {
+    async createOne(@Body() body: JourneyDto, @Request() req): Promise<string> {
         const res = await this.journeyService.addJourney(
             body,
-            req.user.userName
+            req.user.username
         );
         return res;
     }
@@ -66,7 +65,7 @@ export class JourneyController {
     ): Promise<JourneyDto> {
         const res = await this.journeyService.updateJourney(
             body,
-            req.user.userName
+            req.user.username
         );
         return res;
     }
@@ -74,11 +73,13 @@ export class JourneyController {
     @UseGuards(JwtAuthGuard)
     @Post("experience")
     async addExperience(@Body() body: ExperienceDto, @Request() req) {
-        const res = await this.journeyService.addExperience(
-            body,
-            req.user.username
-        );
-        return res;
+        try {
+            const res = await this.journeyService.addExperience(
+                body,
+                req.user.username
+            );
+            return res;
+        } catch (error) {}
     }
 
     @UseGuards(JwtAuthGuard)
@@ -88,6 +89,23 @@ export class JourneyController {
             body,
             req.user.username
         );
+        return res;
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Patch("experience")
+    async removeExperience(@Body() body: ExperienceDto, @Request() req) {
+        const res = await this.journeyService.removeExperience(
+            body,
+            req.user.username
+        );
+        return res;
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete(":id")
+    async deleteJourney(@Param("id") id: string) {
+        const res = await this.journeyService.deleteJourney(id);
         return res;
     }
 }

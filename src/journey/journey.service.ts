@@ -6,13 +6,13 @@ import {
 import { gql } from "apollo-server-express";
 import { ExperienceDto, JourneyDto } from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
-import { Journey } from "src/neo4j/neo4j.utils";
+import { JourneyModel } from "src/neo4j/neo4j.utils";
 import * as uuid from "uuid";
 @Injectable()
 export class JourneyService {
     constructor(private readonly neo4jService: Neo4jService) {}
 
-    private journey = Journey(this.neo4jService.getOGM());
+    private journey = JourneyModel(this.neo4jService.getOGM());
 
     async getJourneys(page, pageSize) {
         // limit by then by default
@@ -140,17 +140,17 @@ export class JourneyService {
                 end: j[0].end,
                 experiencesCount: j[0].experiencesAggregate.count,
                 experiences: j[0].experiencesConnection.edges.map(
-                    (experience) =>
-                        ({
-                            poi: experience.node,
-                            experience: {
-                                date: experience.date,
-                                description: experience.description,
-                                image: experience.images,
-                                order: experience.order
-                            }
-                        } as ExperienceDto)
-                ) as ExperienceDto[],
+                    (experience) => ({
+                        poi: experience.node,
+                        experience: {
+                            date: experience.date,
+                            description: experience.description,
+                            images: experience.images,
+                            order: experience.order
+                        },
+                        id: experience.node.id
+                    })
+                ),
                 pageInfo: j[0].experiencesConnection.pageInfo
             };
 
@@ -161,7 +161,10 @@ export class JourneyService {
         }
     }
 
-    async addJourney(journeyData: JourneyDto, username: string) {
+    async addJourney(
+        journeyData: JourneyDto,
+        username: string
+    ): Promise<string> {
         const connections = [];
         journeyData.experiences.forEach((element) => {
             connections.push({
@@ -224,8 +227,7 @@ export class JourneyService {
                 }
             ]
         });
-
-        return created;
+        return created.journeys[0].id;
     }
 
     async updateJourney(journeyData: JourneyDto, username) {
@@ -264,16 +266,43 @@ export class JourneyService {
                 ]
             }
         });
+
         if (updated.length == 0) {
             throw new BadRequestException();
         }
-        return updated;
+        return updated.journeys[0];
     }
 
+    async removeExperience(experience: ExperienceDto, username: string) {
+        if (experience.journey == undefined) {
+            throw new BadRequestException("Journey not included");
+        }
+
+        const updated = await this.journey.update({
+            where: {
+                id: experience.journey.id,
+                creator: { username: username }
+            },
+            disconnect: {
+                experiences: {
+                    where: {
+                        node: {
+                            id: experience.poi.id
+                        }
+                    }
+                }
+            }
+        });
+        if (updated.length == 0) {
+            throw new BadRequestException();
+        }
+        return updated.journeys[0];
+    }
     async addExperience(journeyData: ExperienceDto, username: string) {
         if (journeyData.journey == undefined) {
             throw new BadRequestException("Journey not included");
         }
+
         const added = await this.journey.update({
             where: {
                 id: journeyData.journey.id,
@@ -292,9 +321,20 @@ export class JourneyService {
                 ]
             }
         });
+
         if (added.length == 0) {
             throw new BadRequestException();
         }
         return added;
+    }
+
+    async deleteJourney(id: string) {
+        if (id === undefined || id === "")
+            throw new BadRequestException("Journey not found");
+        const deleted = await this.journey.delete({
+            where: { id: id }
+        });
+
+        return deleted;
     }
 }

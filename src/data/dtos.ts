@@ -12,6 +12,7 @@ export type PoiDto = {
     description?: string;
     location?: LocationDto;
     experiences?: ExperienceDto[];
+    thumbnail?: string;
 };
 
 export type LocationDto = {
@@ -22,13 +23,14 @@ export type LocationDto = {
 
 export type ExperienceDto = {
     journey?: JourneyDto;
-    poi?: PoiDto;
+    poi: PoiDto;
     experience: {
         description: string;
         order: number;
-        image: string[];
+        images: string[];
         date: string;
     };
+    id?: number;
 };
 
 export type JourneyDto = {

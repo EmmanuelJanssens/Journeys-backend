@@ -1,13 +1,15 @@
 import {
+    Body,
     Controller,
     Get,
     Param,
+    Patch,
     Post,
     Put,
     Query,
     UseGuards
 } from "@nestjs/common";
-import { SearchPoiDto } from "src/data/dtos";
+import { PoiDto, SearchPoiDto } from "src/data/dtos";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { PoiService } from "./poi.service";
 
@@ -36,6 +38,12 @@ export class PoiController {
     @Put()
     async updatePoi(poiData) {
         const result = await this.poiService.updatePoi(poiData);
+        return result;
+    }
+
+    @Post("/thumbnail")
+    async getThumbnail(@Body() poiData: PoiDto) {
+        const result = await this.poiService.getRandomThumbnail(poiData);
         return result;
     }
 

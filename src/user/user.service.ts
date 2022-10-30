@@ -2,16 +2,14 @@ import { Injectable } from "@nestjs/common";
 import { gql } from "apollo-server-express";
 import { PoiDto } from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
-import { User } from "src/neo4j/neo4j.utils";
+import { UserModel } from "src/neo4j/neo4j.utils";
 
 @Injectable()
 export class UserService {
     constructor(private neo4jService: Neo4jService) {}
-    private user = User(this.neo4jService.getOGM());
+    private user = UserModel(this.neo4jService.getOGM());
 
     async getMyJourneys(username: string) {
-        console.log("fdff");
-
         const selectionSet = gql`
             {
                 journeys {
@@ -63,6 +61,7 @@ export class UserService {
                             }
                         }
                     }
+                    id
                     title
                 }
                 experiencesConnection {
@@ -85,11 +84,13 @@ export class UserService {
 
         const condition = { username: username };
 
-        const result = await this.neo4jService.readGql<PoiDto[]>(
+        const result = await this.neo4jService.readGql(
             this.user,
             selectionSet,
             condition
         );
-        return result;
+
+        //transform to readable
+        return result[0];
     }
 }

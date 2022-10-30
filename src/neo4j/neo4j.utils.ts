@@ -84,10 +84,9 @@ export const createDriver = async (config: Neo4jConfig): Promise<AppConfig> => {
         typeDefs,
         driver
     });
-
     return { driver, ogm, schema: neo4j_scheme };
 };
 
-export const Poi = (ogm: OGM) => ogm.model("POI");
-export const Journey = (ogm: OGM) => ogm.model("Journey");
-export const User = (ogm: OGM) => ogm.model("User");
+export const PoiModel = (ogm: OGM) => ogm.model("POI");
+export const JourneyModel = (ogm: OGM) => ogm.model("Journey");
+export const UserModel = (ogm: OGM) => ogm.model("User");

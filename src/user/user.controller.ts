@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Request, UseGuards } from "@nestjs/common";
+import { ExperienceDto } from "src/data/dtos";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { UserService } from "./user.service";
 
@@ -19,7 +20,7 @@ export class UserController {
         const result = await this.userService.getMyExperiences(
             req.user.username
         );
-        return result;
+        return this.transform(result);
     }
 
     @Get(":username/journeys")
@@ -32,6 +33,29 @@ export class UserController {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     async getUserExperiences(@Param("username") username: string) {
         const result = await this.userService.getMyExperiences(username);
-        return result;
+        return this.transform(result);
+    }
+
+    transform(request) {
+        const experiences: ExperienceDto[] = [];
+        request.journeys.forEach((el) => {
+            el.experiencesConnection.edges.forEach((exp) => {
+                delete el.experiencesConnection;
+                const data = {
+                    description: exp.description,
+                    order: exp.order,
+                    images: exp.images,
+                    date: exp.date
+                };
+                experiences.push({
+                    poi: exp.node,
+                    experience: data,
+                    journey: el,
+                    id: experiences.length
+                });
+            });
+        });
+
+        return experiences;
     }
 }

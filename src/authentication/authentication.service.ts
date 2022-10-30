@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { Neo4jService } from "src/neo4j/neo4j.service";
-import { User } from "src/neo4j/neo4j.utils";
+import { UserModel } from "src/neo4j/neo4j.utils";
 import * as bcrypt from "bcrypt";
 import { UserDto } from "src/data/dtos";
 import { JwtService } from "@nestjs/jwt";
@@ -12,7 +12,7 @@ export class AuthenticationService {
         private jwtService: JwtService
     ) {}
 
-    private user = User(this.neo4jService.getOGM());
+    private user = UserModel(this.neo4jService.getOGM());
 
     async validateUser(
         username: string,
@@ -67,14 +67,8 @@ export class AuthenticationService {
             if (created.users.length > 1 || created.users.length == 0)
                 throw new BadRequestException();
 
-            const payload = {
-                username: userData.username
-            };
-            const token = this.jwtService.sign(payload);
-
             return {
-                username: userData.username,
-                token
+                message: "Sucessgfully registered"
             };
         }
     }
