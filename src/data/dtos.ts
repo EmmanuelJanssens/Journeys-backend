@@ -24,7 +24,29 @@ export type LocationDto = {
 export type ExperienceDto = {
     journey?: JourneyDto;
     poi: PoiDto;
+    updated?: {
+        poi: PoiDto;
+        experience: {
+            title: string;
+            description: string;
+            images: string[];
+            date: string;
+        };
+    };
+    deleted?: {
+        id: string[];
+    };
+    connected?: {
+        poi: PoiDto;
+        experience: {
+            title: string;
+            description: string;
+            images: string[];
+            date: string;
+        };
+    }[];
     experience: {
+        title: string;
         description: string;
         order: number;
         images: string[];

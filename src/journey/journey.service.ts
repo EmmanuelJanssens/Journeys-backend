@@ -91,6 +91,7 @@ export class JourneyService {
                 }
                 experiencesConnection(first:${nexp}, after:  ${cursor} ) {
                   edges {
+                    title
                     date
                     description
                     images
@@ -143,6 +144,7 @@ export class JourneyService {
                     (experience) => ({
                         poi: experience.node,
                         experience: {
+                            title: experience.title,
                             date: experience.date,
                             description: experience.description,
                             images: experience.images,
@@ -231,13 +233,35 @@ export class JourneyService {
     }
 
     async updateJourney(journeyData: JourneyDto, username) {
+        console.log(journeyData);
+        const experiences = [];
+
+        journeyData.experiences.forEach((experience) => {
+            experiences.push({
+                where: {
+                    node: {
+                        id: experience.poi.id
+                    }
+                },
+                update: {
+                    edge: {
+                        title: experience.experience.title,
+                        images: experience.experience.images,
+                        description: experience.experience.description,
+                        order: experience.experience.order,
+                        date: experience.experience.date
+                    }
+                }
+            });
+        });
         const updated = await this.journey.update({
             where: {
                 id: journeyData.id,
                 creator: { username: username }
             },
             update: {
-                title: journeyData.title
+                title: journeyData.title,
+                experiences: experiences
             }
         });
 
@@ -245,6 +269,7 @@ export class JourneyService {
     }
 
     async updateExperience(journeyData: ExperienceDto, username: string) {
+        console.log(journeyData.experience);
         if (journeyData.journey == undefined) {
             throw new BadRequestException("Journey not included");
         }

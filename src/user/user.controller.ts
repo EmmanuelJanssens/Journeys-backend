@@ -42,6 +42,7 @@ export class UserController {
             el.experiencesConnection.edges.forEach((exp) => {
                 delete el.experiencesConnection;
                 const data = {
+                    title: exp.title,
                     description: exp.description,
                     order: exp.order,
                     images: exp.images,

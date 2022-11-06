@@ -54,6 +54,7 @@ const typeDefs = gql`
         longitude: Float!
     }
     interface Experience @relationshipProperties {
+        title: String
         date: DateTime
         description: String
         images: [String]
