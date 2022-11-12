@@ -10,12 +10,12 @@ export type PoiDto = {
     id?: string;
     name?: string;
     description?: string;
-    location?: LocationDto;
+    location?: AddressDto;
     experiences?: ExperienceDto[];
     thumbnail?: string;
 };
 
-export type LocationDto = {
+export type AddressDto = {
     address?: string;
     latitude: number;
     longitude: number;
@@ -77,8 +77,8 @@ export type JourneyDto = {
     id?: string;
     title?: string;
     description?: string;
-    start?: LocationDto;
-    end?: LocationDto;
+    start?: AddressDto;
+    end?: AddressDto;
     creator?: UserDto;
     experienceCount?: number;
     experiences?: ExperienceDto[];

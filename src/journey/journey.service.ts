@@ -179,11 +179,12 @@ export class JourneyService {
             });
         });
 
-        const created = await this.journey.create({
+        const input = {
             input: [
                 {
                     id: uuid.v4(),
                     title: journeyData.title,
+                    description: journeyData.description,
                     start: {
                         connectOrCreate: {
                             where: {
@@ -228,7 +229,10 @@ export class JourneyService {
                     }
                 }
             ]
-        });
+        };
+        console.log(JSON.stringify(input));
+
+        const created = await this.journey.create(input);
         return created.journeys[0].id;
     }
     async updateJourneyV2(journeyData: UpdateJourneyDto, username: string) {
