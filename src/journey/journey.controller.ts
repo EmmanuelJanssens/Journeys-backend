@@ -11,7 +11,7 @@ import {
     Delete,
     Patch
 } from "@nestjs/common";
-import { ExperienceDto, JourneyDto } from "src/data/dtos";
+import { ExperienceDto, JourneyDto, UpdateJourneyDto } from "src/data/dtos";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { JourneyService } from "./journey.service";
 
@@ -60,10 +60,10 @@ export class JourneyController {
     @UseGuards(JwtAuthGuard)
     @Put()
     async updateOne(
-        @Body() body: JourneyDto,
+        @Body() body: UpdateJourneyDto,
         @Request() req
     ): Promise<JourneyDto> {
-        const res = await this.journeyService.updateJourney(
+        const res = await this.journeyService.updateJourneyV2(
             body,
             req.user.username
         );

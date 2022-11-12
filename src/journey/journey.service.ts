@@ -4,7 +4,7 @@ import {
     NotFoundException
 } from "@nestjs/common";
 import { gql } from "apollo-server-express";
-import { ExperienceDto, JourneyDto } from "src/data/dtos";
+import { ExperienceDto, JourneyDto, UpdateJourneyDto } from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { JourneyModel } from "src/neo4j/neo4j.utils";
 import * as uuid from "uuid";
@@ -231,7 +231,65 @@ export class JourneyService {
         });
         return created.journeys[0].id;
     }
+    async updateJourneyV2(journeyData: UpdateJourneyDto, username: string) {
+        const connected = journeyData.connected.poi_ids;
+        const disconnected = journeyData.deleted.poi_ids;
+        const experiences = [];
+        experiences.push({
+            connect: [
+                {
+                    where: {
+                        node: {
+                            id_IN: connected
+                        }
+                    }
+                }
+            ],
+            disconnect: [
+                {
+                    where: {
+                        node: {
+                            id_IN: disconnected
+                        }
+                    }
+                }
+            ]
+        });
+        journeyData.updated.forEach((update) => {
+            experiences.push({
+                update: {
+                    edge: update.experience
+                },
+                where: {
+                    node: {
+                        id: update.poi.id
+                    }
+                }
+            });
+        });
+        const input = {
+            update: {
+                experiences: experiences,
+                title: journeyData.journey.title,
+                description: journeyData.journey.description
+            },
+            where: {
+                id: journeyData.journey.id,
+                creator: {
+                    username: username
+                }
+            }
+        };
+        if (journeyData.journey.title == undefined) {
+            delete input.update.title;
+        }
+        if (journeyData.journey.description == undefined) {
+            delete input.update.description;
+        }
+        const resultUpdated = await this.journey.update(input);
 
+        return resultUpdated;
+    }
     async updateJourney(journeyData: JourneyDto, username) {
         console.log(journeyData);
         const experiences = [];

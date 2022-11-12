@@ -20,7 +20,25 @@ export type LocationDto = {
     latitude: number;
     longitude: number;
 };
-
+export type UpdateJourneyDto = {
+    journey?: JourneyDto;
+    poi: PoiDto;
+    updated?: {
+        poi: PoiDto;
+        experience: {
+            title: string;
+            description: string;
+            images: string[];
+            date: string;
+        };
+    }[];
+    deleted?: {
+        poi_ids: string[];
+    };
+    connected?: {
+        poi_ids: string[];
+    };
+};
 export type ExperienceDto = {
     journey?: JourneyDto;
     poi: PoiDto;
@@ -58,6 +76,7 @@ export type ExperienceDto = {
 export type JourneyDto = {
     id?: string;
     title?: string;
+    description?: string;
     start?: LocationDto;
     end?: LocationDto;
     creator?: UserDto;
