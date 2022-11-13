@@ -21,9 +21,9 @@ const typeDefs = gql`
     type Journey {
         id: ID!
         title: String!
-        description: String!
-        start: Location @relationship(type: "START", direction: OUT)
-        end: Location @relationship(type: "END", direction: OUT)
+        description: String
+        start: Location! @relationship(type: "START", direction: OUT)
+        end: Location! @relationship(type: "END", direction: OUT)
         experiences: [POI!]!
             @relationship(
                 type: "EXPERIENCE"

@@ -22,9 +22,8 @@ export type AddressDto = {
 };
 export type UpdateJourneyDto = {
     journey?: JourneyDto;
-    poi: PoiDto;
     updated?: {
-        poi: PoiDto;
+        poi: string;
         experience: {
             title: string;
             description: string;
@@ -36,8 +35,9 @@ export type UpdateJourneyDto = {
         poi_ids: string[];
     };
     connected?: {
-        poi_ids: string[];
-    };
+        order: number;
+        poi_id: string;
+    }[];
 };
 export type ExperienceDto = {
     journey?: JourneyDto;

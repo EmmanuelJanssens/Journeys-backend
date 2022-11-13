@@ -236,19 +236,26 @@ export class JourneyService {
         return created.journeys[0].id;
     }
     async updateJourneyV2(journeyData: UpdateJourneyDto, username: string) {
-        const connected = journeyData.connected.poi_ids;
         const disconnected = journeyData.deleted.poi_ids;
         const experiences = [];
-        experiences.push({
-            connect: [
-                {
-                    where: {
-                        node: {
-                            id_IN: connected
-                        }
+        const connected = [];
+
+        //add all conencted nodes with default order
+        journeyData.connected.forEach((poiConnected) => {
+            connected.push({
+                where: {
+                    node: {
+                        id: poiConnected.poi_id
                     }
+                },
+                edge: {
+                    order: poiConnected.order
                 }
-            ],
+            });
+        });
+
+        experiences.push({
+            connect: connected,
             disconnect: [
                 {
                     where: {
@@ -259,6 +266,8 @@ export class JourneyService {
                 }
             ]
         });
+
+        //add all updated nodes
         journeyData.updated.forEach((update) => {
             experiences.push({
                 update: {
@@ -266,7 +275,7 @@ export class JourneyService {
                 },
                 where: {
                     node: {
-                        id: update.poi.id
+                        id: update.poi
                     }
                 }
             });
@@ -284,10 +293,7 @@ export class JourneyService {
                 }
             }
         };
-        if (journeyData.journey.title == undefined) {
-            delete input.update.title;
-        }
-        if (journeyData.journey.description == undefined) {
+        if (!journeyData.journey.description) {
             delete input.update.description;
         }
         const resultUpdated = await this.journey.update(input);
