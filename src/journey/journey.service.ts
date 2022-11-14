@@ -128,7 +128,6 @@ export class JourneyService {
             selectionSet,
             condition
         );
-
         if (j.length > 1) {
             throw new BadRequestException(
                 "An error occured while fetching journeys"
@@ -136,31 +135,9 @@ export class JourneyService {
         } else if (j.length === 0) {
             throw new NotFoundException("Journey not found");
         } else {
-            const result = {
-                id: j[0].id,
-                title: j[0].title,
-                description: j[0].description,
-                creator: j[0].creator,
-                start: j[0].start,
-                end: j[0].end,
-                experiencesCount: j[0].experiencesAggregate.count,
-                experiences: j[0].experiencesConnection.edges.map(
-                    (experience) => ({
-                        poi: experience.node,
-                        experience: {
-                            title: experience.title,
-                            date: experience.date,
-                            description: experience.description,
-                            images: experience.images,
-                            order: experience.order
-                        },
-                        id: experience.node.id
-                    })
-                ),
-                pageInfo: j[0].experiencesConnection.pageInfo
-            };
-            result.experiences.sort(
-                (a, b) => a.experience.order - b.experience.order
+            const result = j[0] as JourneyDto;
+            result.experiencesConnection.edges.sort(
+                (a, b) => a.order - b.order
             );
             return result;
         }
@@ -235,7 +212,6 @@ export class JourneyService {
                 }
             ]
         };
-        console.log(JSON.stringify(input));
 
         const created = await this.journey.create(input);
         return created.journeys[0].id;
@@ -340,29 +316,31 @@ export class JourneyService {
     }
 
     async updateExperience(journeyData: ExperienceDto, username: string) {
-        console.log(journeyData.experience);
         if (journeyData.journey == undefined) {
             throw new BadRequestException("Journey not included");
         }
+        const node = journeyData.experience.node;
+        delete journeyData.experience.node;
         const updated = await this.journey.update({
             where: {
                 id: journeyData.journey.id,
                 creator: { username: username }
             },
-            connect: {
+            update: {
                 experiences: [
                     {
+                        update: {
+                            edge: journeyData.experience
+                        },
                         where: {
                             node: {
-                                id: journeyData.poi.id
+                                id: node.id
                             }
-                        },
-                        edge: journeyData.experience
+                        }
                     }
                 ]
             }
         });
-
         if (updated.length == 0) {
             throw new BadRequestException();
         }

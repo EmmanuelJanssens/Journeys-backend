@@ -69,6 +69,7 @@ export type ExperienceDto = {
         order: number;
         images: string[];
         date: string;
+        node?: PoiDto;
     };
     id?: number;
 };
@@ -82,6 +83,24 @@ export type JourneyDto = {
     creator?: UserDto;
     experienceCount?: number;
     experiences?: ExperienceDto[];
+    experienceAggregate?: { count: number };
+    experiencesConnection?: {
+        edges: {
+            title: string;
+            date: string;
+            description: string;
+            images: string[];
+            order: number;
+            node: {
+                id: string;
+                name: string;
+                location: {
+                    latitude: number;
+                    longitude: number;
+                };
+            };
+        }[];
+    };
 };
 
 export type UserDto = {

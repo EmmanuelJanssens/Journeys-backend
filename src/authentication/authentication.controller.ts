@@ -13,7 +13,7 @@ import { UserDto } from "src/data/dtos";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { LocalAuthGuard } from "src/guard/local-auth.guard";
 import { AuthenticationService } from "./authentication.service";
-import Jwt from "jsonwebtoken";
+
 @Controller("authentication")
 export class AuthenticationController {
     constructor(private readonly authService: AuthenticationService) {}
