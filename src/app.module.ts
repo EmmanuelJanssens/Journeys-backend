@@ -13,14 +13,18 @@ import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { GraphQLModule } from "@nestjs/graphql";
 import { Neo4jService } from "./neo4j/neo4j.service";
 import { GraphQLSchema } from "graphql";
+import { ConfigModule } from "@nestjs/config";
 @Module({
     imports: [
+        ConfigModule.forRoot({
+            envFilePath: [".env.local"]
+        }),
         Neo4jModule.forRoot({
-            host: "localhost",
-            password: "password",
+            host: process.env.NEO4J_HOST,
+            password: process.env.NEO4J_PWD,
             scheme: "neo4j",
-            port: 7687,
-            username: "neo4j"
+            port: process.env.NEO4J_PORT,
+            username: process.env.NEO4j_USER
         }),
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,

@@ -14,21 +14,22 @@ export class AuthenticationService {
     private user = UserModel(this.neo4jService.getOGM());
 
     async refreshToken(payload: { username: string; refresh: string }) {
-        console.log(`refresh for ${payload.username}`);
         const foundUser: UserDto[] = await this.user.find({
             where: {
                 username: payload.username
             }
         });
         try {
-            this.jwtService.verify(payload.refresh, { secret: "12345" });
+            this.jwtService.verify(payload.refresh, {
+                secret: process.env.JWT_SECRET
+            });
             if (bcrypt.compare(payload.refresh, foundUser[0].refreshToken)) {
                 const token = this.jwtService.sign(
                     {
                         username: foundUser[0].username,
                         refreshToken: payload.refresh
                     },
-                    { secret: "12345" }
+                    { secret: process.env.JWT_SECRET }
                 );
                 return {
                     username: foundUser[0].username,
@@ -73,6 +74,7 @@ export class AuthenticationService {
         const foundUser: UserDto[] = await this.user.find({
             where: { username: username }
         });
+
         if (foundUser.length === 1) {
             // test password
             const validPwd =
