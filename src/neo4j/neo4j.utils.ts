@@ -46,6 +46,7 @@ const typeDefs = gql`
                 direction: OUT
                 properties: "Experience"
             )
+        refreshToken: String
     }
 
     type Location {

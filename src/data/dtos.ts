@@ -90,5 +90,6 @@ export type UserDto = {
     lastName?: string;
     email?: string;
     password?: string;
+    refreshToken?: string;
     token?: string;
 };

@@ -6,12 +6,14 @@ import {
     Body,
     BadRequestException,
     HttpCode,
-    Get
+    Get,
+    Req
 } from "@nestjs/common";
 import { UserDto } from "src/data/dtos";
+import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { LocalAuthGuard } from "src/guard/local-auth.guard";
 import { AuthenticationService } from "./authentication.service";
-
+import Jwt from "jsonwebtoken";
 @Controller("authentication")
 export class AuthenticationController {
     constructor(private readonly authService: AuthenticationService) {}
@@ -31,9 +33,19 @@ export class AuthenticationController {
         return result;
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get("logout")
     async logout(@Request() req) {
-        req.session.destroy();
+        if (!this.authService.logoutUser(req.user.username))
+            throw new Error("Something went wrong");
+
         return { msg: "Loggedout" };
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post("refresh")
+    async refresh(@Request() req) {
+        console.log(req.user);
+        return this.authService.refreshToken(req.user);
     }
 }

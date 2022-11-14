@@ -4,7 +4,6 @@ import { UserModel } from "src/neo4j/neo4j.utils";
 import * as bcrypt from "bcrypt";
 import { UserDto } from "src/data/dtos";
 import { JwtService } from "@nestjs/jwt";
-
 @Injectable()
 export class AuthenticationService {
     constructor(
@@ -14,12 +13,62 @@ export class AuthenticationService {
 
     private user = UserModel(this.neo4jService.getOGM());
 
+    async refreshToken(payload: { username: string; refresh: string }) {
+        console.log(`refresh for ${payload.username}`);
+        const foundUser: UserDto[] = await this.user.find({
+            where: {
+                username: payload.username
+            }
+        });
+        try {
+            this.jwtService.verify(payload.refresh, { secret: "12345" });
+            if (bcrypt.compare(payload.refresh, foundUser[0].refreshToken)) {
+                const token = this.jwtService.sign(
+                    {
+                        username: foundUser[0].username,
+                        refreshToken: payload.refresh
+                    },
+                    { secret: "12345" }
+                );
+                return {
+                    username: foundUser[0].username,
+                    token: token,
+                    refreshtoken: payload.refresh
+                };
+            } else {
+                throw new Error("Authorization error");
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async generateRefreshToken(user: UserDto) {
+        const refresh = this.jwtService.sign(user);
+        return refresh;
+    }
+    async logoutUser(username: string) {
+        const udpated = await this.user.update({
+            where: {
+                username: username
+            },
+            update: {
+                refreshToken: null
+            }
+        });
+        console.log(udpated);
+        if (!udpated) throw Error("Something went wrong");
+
+        return true;
+    }
+
     async validateUser(
         username: string,
         password: string
     ): Promise<{
         username: string;
         token: string;
+        refreshtoken: string;
     }> {
         const foundUser: UserDto[] = await this.user.find({
             where: { username: username }
@@ -31,13 +80,34 @@ export class AuthenticationService {
                 foundUser[0].username === username;
 
             if (validPwd) {
+                const refresh = this.jwtService.sign(
+                    {
+                        username: foundUser[0].username
+                    },
+                    { expiresIn: "30d" }
+                );
+                const encryptedRefreshToken = await bcrypt.hash(refresh, 10);
+                const udpated = await this.user.update({
+                    where: {
+                        username: username
+                    },
+                    update: {
+                        refreshToken: encryptedRefreshToken
+                    }
+                });
+
                 const payload = {
-                    username: foundUser[0].username
+                    username: foundUser[0].username,
+                    refreshToken: refresh
                 };
                 const token = this.jwtService.sign(payload);
+
+                if (!udpated) throw Error("Something went  wrong");
+
                 return {
-                    username,
-                    token
+                    username: username,
+                    token: token,
+                    refreshtoken: refresh
                 };
             }
             throw new Error("Bad credentials");
