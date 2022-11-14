@@ -58,8 +58,8 @@ export class PoiService {
 
         results.forEach((p) => {
             if (
-                p.journeysConnection.edges.length > 0 &&
-                p.journeysConnection.edges[0].images.length > 0
+                p.journeysConnection.edges?.length > 0 &&
+                p.journeysConnection.edges[0].images?.length > 0
             ) {
                 p.thumbnail = p.journeysConnection.edges[0].images[0];
             } else {
@@ -73,6 +73,7 @@ export class PoiService {
             data: results,
             pageInfo: {}
         };
+
         return result;
     }
 

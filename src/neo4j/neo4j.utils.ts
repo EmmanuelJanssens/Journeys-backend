@@ -49,7 +49,8 @@ const typeDefs = gql`
     }
 
     type Location {
-        address: ID @id
+        placeId: ID @id
+        address: String
         latitude: Float!
         longitude: Float!
     }

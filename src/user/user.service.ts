@@ -15,6 +15,7 @@ export class UserService {
                 journeys {
                     id
                     title
+                    description
                     start {
                         address
                         latitude
@@ -63,6 +64,7 @@ export class UserService {
                     }
                     id
                     title
+                    description
                 }
                 experiencesConnection {
                     edges {

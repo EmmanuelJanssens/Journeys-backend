@@ -16,6 +16,7 @@ export type PoiDto = {
 };
 
 export type AddressDto = {
+    placeId: string;
     address?: string;
     latitude: number;
     longitude: number;
@@ -23,7 +24,7 @@ export type AddressDto = {
 export type UpdateJourneyDto = {
     journey?: JourneyDto;
     updated?: {
-        poi: string;
+        poi: PoiDto;
         experience: {
             title: string;
             description: string;
@@ -35,8 +36,7 @@ export type UpdateJourneyDto = {
         poi_ids: string[];
     };
     connected?: {
-        order: number;
-        poi_id: string;
+        experience: ExperienceDto;
     }[];
 };
 export type ExperienceDto = {

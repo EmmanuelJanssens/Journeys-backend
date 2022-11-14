@@ -25,6 +25,7 @@ export class JourneyService {
             {
                 id
                 title
+                description
                 start {
                     address
                     latitude
@@ -64,6 +65,7 @@ export class JourneyService {
                 first: page === 0
             }
         };
+        console.log(result);
         return result;
     }
 
@@ -73,6 +75,7 @@ export class JourneyService {
             {
                 id
                 title
+                description
                 creator {
                   username
                 }
@@ -136,6 +139,7 @@ export class JourneyService {
             const result = {
                 id: j[0].id,
                 title: j[0].title,
+                description: j[0].description,
                 creator: j[0].creator,
                 start: j[0].start,
                 end: j[0].end,
@@ -155,7 +159,6 @@ export class JourneyService {
                 ),
                 pageInfo: j[0].experiencesConnection.pageInfo
             };
-
             result.experiences.sort(
                 (a, b) => a.experience.order - b.experience.order
             );
@@ -189,11 +192,12 @@ export class JourneyService {
                         connectOrCreate: {
                             where: {
                                 node: {
-                                    address: journeyData.start.address
+                                    placeId: journeyData.start.placeId
                                 }
                             },
                             onCreate: {
                                 node: {
+                                    address: journeyData.start.address,
                                     longitude: journeyData.start.longitude,
                                     latitude: journeyData.start.latitude
                                 }
@@ -204,11 +208,12 @@ export class JourneyService {
                         connectOrCreate: {
                             where: {
                                 node: {
-                                    address: journeyData.end.address
+                                    placeId: journeyData.end.placeId
                                 }
                             },
                             onCreate: {
                                 node: {
+                                    address: journeyData.end.address,
                                     longitude: journeyData.end.longitude,
                                     latitude: journeyData.end.latitude
                                 }
@@ -235,6 +240,7 @@ export class JourneyService {
         const created = await this.journey.create(input);
         return created.journeys[0].id;
     }
+    sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
     async updateJourneyV2(journeyData: UpdateJourneyDto, username: string) {
         const disconnected = journeyData.deleted.poi_ids;
         const experiences = [];
@@ -245,12 +251,10 @@ export class JourneyService {
             connected.push({
                 where: {
                     node: {
-                        id: poiConnected.poi_id
+                        id: poiConnected.experience.poi.id
                     }
                 },
-                edge: {
-                    order: poiConnected.order
-                }
+                edge: poiConnected.experience.experience
             });
         });
 
@@ -275,7 +279,7 @@ export class JourneyService {
                 },
                 where: {
                     node: {
-                        id: update.poi
+                        id: update.poi.id
                     }
                 }
             });
@@ -297,8 +301,7 @@ export class JourneyService {
             delete input.update.description;
         }
         const resultUpdated = await this.journey.update(input);
-
-        return resultUpdated;
+        return resultUpdated.journeys[0].id;
     }
     async updateJourney(journeyData: JourneyDto, username) {
         console.log(journeyData);
