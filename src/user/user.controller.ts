@@ -48,12 +48,7 @@ export class UserController {
                     images: exp.images,
                     date: exp.date
                 };
-                experiences.push({
-                    poi: exp.node,
-                    experience: data,
-                    journey: el,
-                    id: experiences.length
-                });
+                experiences.push(data);
             });
         });
 

@@ -23,55 +23,22 @@ export type AddressDto = {
 };
 export type UpdateJourneyDto = {
     journey?: JourneyDto;
-    updated?: {
-        poi: PoiDto;
-        experience: {
-            title: string;
-            description: string;
-            images: string[];
-            date: string;
-        };
-    }[];
+    updated?: ExperienceDto[];
     deleted?: {
         poi_ids: string[];
     };
-    connected?: {
-        experience: ExperienceDto;
-    }[];
+    connected?: ExperienceDto[];
 };
+
+//export typeExperienceDto
 export type ExperienceDto = {
+    title: string;
+    description: string;
+    order: number;
+    images: string[];
+    date: string;
+    node?: PoiDto;
     journey?: JourneyDto;
-    poi: PoiDto;
-    updated?: {
-        poi: PoiDto;
-        experience: {
-            title: string;
-            description: string;
-            images: string[];
-            date: string;
-        };
-    };
-    deleted?: {
-        id: string[];
-    };
-    connected?: {
-        poi: PoiDto;
-        experience: {
-            title: string;
-            description: string;
-            images: string[];
-            date: string;
-        };
-    }[];
-    experience: {
-        title: string;
-        description: string;
-        order: number;
-        images: string[];
-        date: string;
-        node?: PoiDto;
-    };
-    id?: number;
 };
 
 export type JourneyDto = {

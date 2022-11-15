@@ -50,7 +50,6 @@ export class JourneyController {
     @UseGuards(JwtAuthGuard)
     @Post()
     async createOne(@Body() body: JourneyDto, @Request() req): Promise<string> {
-        console.log(body);
         const res = await this.journeyService.addJourney(
             body,
             req.user.username

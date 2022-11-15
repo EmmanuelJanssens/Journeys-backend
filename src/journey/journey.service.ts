@@ -148,17 +148,19 @@ export class JourneyService {
         username: string
     ): Promise<string> {
         const connections = [];
-        journeyData.experiences.forEach((element) => {
+        journeyData.experiencesConnection.edges.forEach((element) => {
+            const id = element.node.id;
+            delete element.node;
+
             connections.push({
                 where: {
                     node: {
-                        id: element.poi.id
+                        id: id
                     }
                 },
-                edge: element.experience
+                edge: element
             });
         });
-
         const input = {
             input: [
                 {
@@ -216,7 +218,6 @@ export class JourneyService {
         const created = await this.journey.create(input);
         return created.journeys[0].id;
     }
-    sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
     async updateJourneyV2(journeyData: UpdateJourneyDto, username: string) {
         const disconnected = journeyData.deleted.poi_ids;
         const experiences = [];
@@ -224,13 +225,15 @@ export class JourneyService {
 
         //add all conencted nodes with default order
         journeyData.connected.forEach((poiConnected) => {
+            const id = poiConnected.node.id;
+            delete poiConnected.node;
             connected.push({
                 where: {
                     node: {
-                        id: poiConnected.experience.poi.id
+                        id: id
                     }
                 },
-                edge: poiConnected.experience.experience
+                edge: poiConnected
             });
         });
 
@@ -249,13 +252,15 @@ export class JourneyService {
 
         //add all updated nodes
         journeyData.updated.forEach((update) => {
+            const id = update.node.id;
+            delete update.node;
             experiences.push({
                 update: {
-                    edge: update.experience
+                    edge: update
                 },
                 where: {
                     node: {
-                        id: update.poi.id
+                        id: id
                     }
                 }
             });
@@ -276,6 +281,7 @@ export class JourneyService {
         if (!journeyData.journey.description) {
             delete input.update.description;
         }
+
         const resultUpdated = await this.journey.update(input);
         return resultUpdated.journeys[0].id;
     }
@@ -287,16 +293,16 @@ export class JourneyService {
             experiences.push({
                 where: {
                     node: {
-                        id: experience.poi.id
+                        id: experience.node.id
                     }
                 },
                 update: {
                     edge: {
-                        title: experience.experience.title,
-                        images: experience.experience.images,
-                        description: experience.experience.description,
-                        order: experience.experience.order,
-                        date: experience.experience.date
+                        title: experience.title,
+                        images: experience.images,
+                        description: experience.description,
+                        order: experience.order,
+                        date: experience.date
                     }
                 }
             });
@@ -319,8 +325,8 @@ export class JourneyService {
         if (journeyData.journey == undefined) {
             throw new BadRequestException("Journey not included");
         }
-        const node = journeyData.experience.node;
-        delete journeyData.experience.node;
+        const node = journeyData.node;
+        delete journeyData.node;
         const updated = await this.journey.update({
             where: {
                 id: journeyData.journey.id,
@@ -330,7 +336,7 @@ export class JourneyService {
                 experiences: [
                     {
                         update: {
-                            edge: journeyData.experience
+                            edge: journeyData
                         },
                         where: {
                             node: {
@@ -361,7 +367,7 @@ export class JourneyService {
                 experiences: {
                     where: {
                         node: {
-                            id: experience.poi.id
+                            id: experience.node.id
                         }
                     }
                 }
@@ -387,10 +393,10 @@ export class JourneyService {
                     {
                         where: {
                             node: {
-                                id: journeyData.poi.id
+                                id: journeyData.node.id
                             }
                         },
-                        edge: journeyData.experience
+                        edge: journeyData
                     }
                 ]
             }
