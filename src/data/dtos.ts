@@ -21,6 +21,7 @@ export type AddressDto = {
     latitude: number;
     longitude: number;
 };
+
 export type UpdateJourneyDto = {
     journey?: JourneyDto;
     updated?: ExperienceDto[];
@@ -30,6 +31,10 @@ export type UpdateJourneyDto = {
     connected?: ExperienceDto[];
 };
 
+export type UpdateExperienceDto = {
+    journey: JourneyDto;
+    experience: ExperienceDto;
+};
 //export typeExperienceDto
 export type ExperienceDto = {
     title: string;

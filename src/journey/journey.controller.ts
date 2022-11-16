@@ -39,12 +39,16 @@ export class JourneyController {
     ): Promise<JourneyDto> {
         const nexp = query.experiences;
         const cursorStr = query.cursor === undefined ? null : query.cursor;
-        const result = await this.journeyService.getJourney(
-            id,
-            cursorStr,
-            nexp
-        );
-        return result;
+        try {
+            const result = await this.journeyService.getJourney(
+                id,
+                cursorStr,
+                nexp
+            );
+            return result;
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     @UseGuards(JwtAuthGuard)

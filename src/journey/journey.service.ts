@@ -65,7 +65,6 @@ export class JourneyService {
                 first: page === 0
             }
         };
-        console.log(result);
         return result;
     }
 
@@ -219,12 +218,11 @@ export class JourneyService {
         return created.journeys[0].id;
     }
     async updateJourneyV2(journeyData: UpdateJourneyDto, username: string) {
-        const disconnected = journeyData.deleted.poi_ids;
+        const disconnected = journeyData.deleted?.poi_ids;
         const experiences = [];
         const connected = [];
-
         //add all conencted nodes with default order
-        journeyData.connected.forEach((poiConnected) => {
+        journeyData.connected?.forEach((poiConnected) => {
             const id = poiConnected.node.id;
             delete poiConnected.node;
             connected.push({
@@ -251,7 +249,7 @@ export class JourneyService {
         });
 
         //add all updated nodes
-        journeyData.updated.forEach((update) => {
+        journeyData.updated?.forEach((update) => {
             const id = update.node.id;
             delete update.node;
             experiences.push({
@@ -279,64 +277,33 @@ export class JourneyService {
             }
         };
         if (!journeyData.journey.description) {
-            delete input.update.description;
+            delete input.update?.description;
         }
 
         const resultUpdated = await this.journey.update(input);
         return resultUpdated.journeys[0].id;
     }
-    async updateJourney(journeyData: JourneyDto, username) {
-        console.log(journeyData);
-        const experiences = [];
 
-        journeyData.experiences.forEach((experience) => {
-            experiences.push({
-                where: {
-                    node: {
-                        id: experience.node.id
-                    }
-                },
-                update: {
-                    edge: {
-                        title: experience.title,
-                        images: experience.images,
-                        description: experience.description,
-                        order: experience.order,
-                        date: experience.date
-                    }
-                }
-            });
-        });
-        const updated = await this.journey.update({
-            where: {
-                id: journeyData.id,
-                creator: { username: username }
-            },
-            update: {
-                title: journeyData.title,
-                experiences: experiences
-            }
-        });
-
-        return updated;
-    }
-
-    async updateExperience(journeyData: ExperienceDto, username: string) {
-        if (journeyData.journey == undefined) {
+    async updateExperience(experienceData: ExperienceDto, username: string) {
+        if (experienceData.journey == undefined) {
             throw new BadRequestException("Journey not included");
         }
-        const node = journeyData.node;
-        delete journeyData.node;
+        const node = experienceData.node;
+        const journeyId = experienceData.journey.id;
+
+        delete experienceData.node;
+        delete experienceData.journey;
+
         const updated = await this.journey.update({
             where: {
-                id: journeyData.journey.id,
+                id: journeyId,
                 creator: { username: username }
             },
             update: {
                 experiences: [
                     {
                         update: {
-                            edge: journeyData
+                            edge: experienceData
                         },
                         where: {
                             node: {
@@ -347,6 +314,7 @@ export class JourneyService {
                 ]
             }
         });
+
         if (updated.length == 0) {
             throw new BadRequestException();
         }
