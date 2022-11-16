@@ -11,7 +11,9 @@ export type PoiDto = {
     name?: string;
     description?: string;
     location?: AddressDto;
-    experiences?: ExperienceDto[];
+    journeysConnection: {
+        edges: ExperienceDto[];
+    };
     thumbnail?: string;
 };
 
@@ -42,7 +44,7 @@ export type ExperienceDto = {
     order: number;
     images: string[];
     date: string;
-    node?: PoiDto;
+    node?: PoiDto | JourneyDto;
     journey?: JourneyDto;
 };
 

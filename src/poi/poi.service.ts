@@ -109,9 +109,23 @@ export class PoiService {
             {
                 id
                 name
+                description
                 location {
                     latitude
                     longitude
+                }
+                journeysConnection {
+                    edges {
+                        date
+                        description
+                        images
+                        node {
+                            id
+                            title
+                        }
+                        title
+                        order
+                    }
                 }
             }
         `;
@@ -124,8 +138,9 @@ export class PoiService {
             selectionSet,
             condition
         );
+        console.log(result);
 
-        return result;
+        return result[0];
     }
     async getRandomThumbnail(poi: PoiDto) {
         const selectionSet = gql`
