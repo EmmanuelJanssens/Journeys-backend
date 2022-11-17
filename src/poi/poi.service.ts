@@ -138,7 +138,6 @@ export class PoiService {
             selectionSet,
             condition
         );
-        console.log(result);
 
         return result[0];
     }

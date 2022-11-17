@@ -39,9 +39,7 @@ export class AuthenticationService {
             } else {
                 throw new Error("Authorization error");
             }
-        } catch (e) {
-            console.log(e);
-        }
+        } catch (e) {}
     }
 
     async generateRefreshToken(user: UserDto) {
@@ -57,7 +55,6 @@ export class AuthenticationService {
                 refreshToken: null
             }
         });
-        console.log(udpated);
         if (!udpated) throw Error("Something went wrong");
 
         return true;

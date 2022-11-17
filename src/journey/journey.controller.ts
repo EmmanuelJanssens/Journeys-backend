@@ -11,7 +11,12 @@ import {
     Delete,
     Patch
 } from "@nestjs/common";
-import { ExperienceDto, JourneyDto, UpdateJourneyDto } from "src/data/dtos";
+import {
+    DeleteExperience,
+    ExperienceDto,
+    JourneyDto,
+    UpdateJourneyDto
+} from "src/data/dtos";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { JourneyService } from "./journey.service";
 
@@ -46,9 +51,7 @@ export class JourneyController {
                 nexp
             );
             return result;
-        } catch (e) {
-            console.log(e);
-        }
+        } catch (e) {}
     }
 
     @UseGuards(JwtAuthGuard)
@@ -98,7 +101,7 @@ export class JourneyController {
 
     @UseGuards(JwtAuthGuard)
     @Patch("experience")
-    async removeExperience(@Body() body: ExperienceDto, @Request() req) {
+    async removeExperience(@Body() body: DeleteExperience, @Request() req) {
         const res = await this.journeyService.removeExperience(
             body,
             req.user.username

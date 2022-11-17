@@ -4,7 +4,12 @@ import {
     NotFoundException
 } from "@nestjs/common";
 import { gql } from "apollo-server-express";
-import { ExperienceDto, JourneyDto, UpdateJourneyDto } from "src/data/dtos";
+import {
+    DeleteExperience,
+    ExperienceDto,
+    JourneyDto,
+    UpdateJourneyDto
+} from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { JourneyModel } from "src/neo4j/neo4j.utils";
 import * as uuid from "uuid";
@@ -214,8 +219,14 @@ export class JourneyService {
             ]
         };
 
+        const selectionSet = gql`
+            {
+                id
+            }
+        `;
         const created = await this.journey.create(input);
-        return created.journeys[0].id;
+        console.log(created);
+        return created.journeys[0];
     }
     async updateJourneyV2(journeyData: UpdateJourneyDto, username: string) {
         const disconnected = journeyData.deleted?.poi_ids;
@@ -281,7 +292,7 @@ export class JourneyService {
         }
 
         const resultUpdated = await this.journey.update(input);
-        return resultUpdated.journeys[0].id;
+        return resultUpdated.journeys[0];
     }
 
     async updateExperience(experienceData: ExperienceDto, username: string) {
@@ -321,8 +332,9 @@ export class JourneyService {
         return updated.journeys[0];
     }
 
-    async removeExperience(experience: ExperienceDto, username: string) {
-        if (experience.journey == undefined) {
+    async removeExperience(experience: DeleteExperience, username: string) {
+        console.log(experience);
+        if (experience.journey == undefined || experience.poi == undefined) {
             throw new BadRequestException("Journey not included");
         }
 
@@ -335,7 +347,7 @@ export class JourneyService {
                 experiences: {
                     where: {
                         node: {
-                            id: experience.node.id
+                            id: experience.poi.id
                         }
                     }
                 }

@@ -32,7 +32,10 @@ export type UpdateJourneyDto = {
     };
     connected?: ExperienceDto[];
 };
-
+export type DeleteExperience = {
+    poi: PoiDto;
+    journey: JourneyDto;
+};
 export type UpdateExperienceDto = {
     journey: JourneyDto;
     experience: ExperienceDto;
