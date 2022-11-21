@@ -1,9 +1,16 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+    BadRequestException,
+    Injectable,
+    Put,
+    UnauthorizedException,
+    UseGuards
+} from "@nestjs/common";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { UserModel } from "src/neo4j/neo4j.utils";
 import * as bcrypt from "bcrypt";
 import { UserDto } from "src/data/dtos";
 import { JwtService } from "@nestjs/jwt";
+import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 @Injectable()
 export class AuthenticationService {
     constructor(
@@ -12,6 +19,39 @@ export class AuthenticationService {
     ) {}
 
     private user = UserModel(this.neo4jService.getOGM());
+
+    async updatePasswords(
+        data: { oldPassword: string; newPassword: string; public: boolean },
+        username: string
+    ) {
+        const foundUser: UserDto[] = await this.user.find({
+            where: {
+                username: username
+            }
+        });
+        if (foundUser.length != 1)
+            throw new BadRequestException("Error finding user");
+        console.log(data);
+        if (!(await bcrypt.compare(data.oldPassword, foundUser[0].password))) {
+            console.log("sadf");
+            throw new UnauthorizedException("Passwords do not match");
+        }
+
+        const hash = await bcrypt.hash(data.newPassword, 10);
+        const updated: { users: UserDto[] } = await this.user.update({
+            where: {
+                username: username
+            },
+            update: {
+                password: hash,
+                public: data.public
+            }
+        });
+
+        if (updated.users.length != 1)
+            throw new BadRequestException("could not update");
+        return updated.users[0];
+    }
 
     async refreshToken(payload: { username: string; refresh: string }) {
         const foundUser: UserDto[] = await this.user.find({

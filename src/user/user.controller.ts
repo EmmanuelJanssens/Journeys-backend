@@ -1,5 +1,15 @@
-import { Controller, Get, Param, Request, UseGuards } from "@nestjs/common";
-import { ExperienceDto } from "src/data/dtos";
+import {
+    Body,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Put,
+    Req,
+    Request,
+    UseGuards
+} from "@nestjs/common";
+import { ExperienceDto, UpdateUserDto, UserDto } from "src/data/dtos";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { UserService } from "./user.service";
 
@@ -21,6 +31,38 @@ export class UserController {
             req.user.username
         );
         return this.transform(result);
+    }
+
+    @Get()
+    @UseGuards(JwtAuthGuard)
+    async getMyProfile(@Request() req) {
+        const result = await this.userService.getMyProfile(req.user.username);
+        return result;
+    }
+
+    @Post("/username")
+    @UseGuards(JwtAuthGuard)
+    async checkUser(@Body() user: UpdateUserDto) {
+        try {
+            const result = await this.userService.checkUsername(user);
+            return true;
+        } catch (e) {
+            console.log(e);
+            return false;
+        }
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Put()
+    async updateProfile(@Body() user: UpdateUserDto, @Request() req) {
+        console.log(user);
+
+        if (user.oldUsername == req.user.username) {
+            const result = await this.userService.updateProfile(user);
+            return result;
+        } else {
+            return null;
+        }
     }
 
     @Get(":username/journeys")

@@ -80,6 +80,10 @@ export type JourneyDto = {
     };
 };
 
+export type UpdateUserDto = {
+    user: UserDto;
+    oldUsername: string;
+};
 export type UserDto = {
     username?: string;
     firstName?: string;
@@ -88,4 +92,13 @@ export type UserDto = {
     password?: string;
     refreshToken?: string;
     token?: string;
+    public?: boolean;
+    citation?: string;
+    banner?: string[];
+    journeysAggregate?: {
+        count: number;
+    };
+    journeysConnection?: {
+        edges: [{ node: { experiencesAggregate: { count: number } } }];
+    };
 };

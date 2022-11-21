@@ -7,7 +7,8 @@ import {
     BadRequestException,
     HttpCode,
     Get,
-    Req
+    Req,
+    Put
 } from "@nestjs/common";
 import { UserDto } from "src/data/dtos";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
@@ -46,5 +47,25 @@ export class AuthenticationController {
     @Get("refresh")
     async refresh(@Request() req) {
         return this.authService.refreshToken(req.user);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Put("update")
+    async updatePassword(
+        @Body()
+        body: { oldPassword: string; newPassword: string; public: boolean },
+        @Request() req
+    ) {
+        try {
+            const res = await this.authService.updatePasswords(
+                body,
+                req.user.username
+            );
+            console.log(res);
+            return res;
+        } catch (e) {
+            console.log(e);
+            return undefined;
+        }
     }
 }
