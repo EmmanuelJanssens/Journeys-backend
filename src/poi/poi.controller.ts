@@ -67,7 +67,6 @@ export class PoiController {
             );
             return result;
         } catch (e) {
-            console.log(e);
             return undefined;
         }
     }

@@ -106,7 +106,6 @@ export class PoiService {
             },
             selectionSet: selectionSet
         });
-        console.log(res);
         return res[0];
     }
 
@@ -231,7 +230,6 @@ export class PoiService {
                 id: id
             }
         });
-        console.log(pois[0].journeysConnection.edges);
         if (pois.length > 1) {
             throw new BadRequestException(
                 "An error occured while fetching pois"

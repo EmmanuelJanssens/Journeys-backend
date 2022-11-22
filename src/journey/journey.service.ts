@@ -219,8 +219,6 @@ export class JourneyService {
                 }
             ]
         };
-        console.log(input);
-        console.log(JSON.stringify(input));
 
         const created = await this.journey.create(input);
 
@@ -244,18 +242,20 @@ export class JourneyService {
             });
         });
 
-        experiences.push({
-            connect: connected,
-            disconnect: [
-                {
-                    where: {
-                        node: {
-                            id_IN: disconnected
+        if (journeyData.deleted) {
+            experiences.push({
+                connect: connected,
+                disconnect: [
+                    {
+                        where: {
+                            node: {
+                                id_IN: disconnected
+                            }
                         }
                     }
-                }
-            ]
-        });
+                ]
+            });
+        }
 
         //add all updated nodes
         journeyData.updated?.forEach((update) => {
