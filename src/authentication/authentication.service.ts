@@ -31,9 +31,7 @@ export class AuthenticationService {
         });
         if (foundUser.length != 1)
             throw new BadRequestException("Error finding user");
-        console.log(data);
         if (!(await bcrypt.compare(data.oldPassword, foundUser[0].password))) {
-            console.log("sadf");
             throw new UnauthorizedException("Passwords do not match");
         }
 

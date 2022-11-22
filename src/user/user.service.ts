@@ -2,13 +2,13 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { gql } from "apollo-server-express";
 import { PoiDto, UpdateUserDto, UserDto } from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
-import { UserModel } from "src/neo4j/neo4j.utils";
+import { JourneyModel, UserModel } from "src/neo4j/neo4j.utils";
 
 @Injectable()
 export class UserService {
     constructor(private neo4jService: Neo4jService) {}
     private user = UserModel(this.neo4jService.getOGM());
-
+    private journey = JourneyModel(this.neo4jService.getOGM());
     async checkUsername(newUser: UpdateUserDto) {
         const result = await this.user.find({
             where: {
@@ -77,34 +77,35 @@ export class UserService {
     async getMyJourneys(username: string) {
         const selectionSet = gql`
             {
-                journeys {
-                    id
-                    title
-                    description
-                    start {
-                        address
-                        latitude
-                        longitude
-                    }
-                    end {
-                        address
-                        latitude
-                        longitude
-                    }
-                    creator {
-                        username
-                    }
+                id
+                title
+                description
+                thumbnail
+                start {
+                    address
+                    latitude
+                    longitude
+                }
+                end {
+                    address
+                    latitude
+                    longitude
+                }
+                creator {
+                    username
                 }
             }
         `;
-        const condition = { username: username };
 
-        const result = await this.neo4jService.readGql<PoiDto[]>(
-            this.user,
+        const condition = { creator: { username: username } };
+
+        const result = await this.neo4jService.readGql(
+            this.journey,
             selectionSet,
             condition
         );
-        return result[0];
+
+        return result;
     }
 
     async getMyExperiences(username: string) {

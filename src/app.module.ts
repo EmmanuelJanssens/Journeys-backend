@@ -22,7 +22,7 @@ import { ConfigModule } from "@nestjs/config";
         Neo4jModule.forRoot({
             host: process.env.NEO4J_HOST,
             password: process.env.NEO4J_PWD,
-            scheme: "neo4j",
+            scheme: process.env.NEO4J_SCHEME,
             port: process.env.NEO4J_PORT,
             username: process.env.NEO4j_USER
         }),

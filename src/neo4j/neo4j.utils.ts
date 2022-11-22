@@ -8,9 +8,6 @@ const typeDefs = gql`
     type POI {
         id: ID!
         name: String!
-        citation: String
-        banner: [String]
-        description: String
         location: Point!
         poi: [POI!]! @relationship(type: "CREATED", direction: OUT)
         journeys: [Journey!]!
@@ -27,6 +24,7 @@ const typeDefs = gql`
         description: String
         start: Location! @relationship(type: "START", direction: OUT)
         end: Location! @relationship(type: "END", direction: OUT)
+        thumbnail: String
         experiences: [POI!]!
             @relationship(
                 type: "EXPERIENCE"

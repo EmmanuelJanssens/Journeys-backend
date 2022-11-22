@@ -47,7 +47,6 @@ export class UserController {
             const result = await this.userService.checkUsername(user);
             return true;
         } catch (e) {
-            console.log(e);
             return false;
         }
     }
@@ -55,8 +54,6 @@ export class UserController {
     @UseGuards(JwtAuthGuard)
     @Put()
     async updateProfile(@Body() user: UpdateUserDto, @Request() req) {
-        console.log(user);
-
         if (user.oldUsername == req.user.username) {
             const result = await this.userService.updateProfile(user);
             return result;

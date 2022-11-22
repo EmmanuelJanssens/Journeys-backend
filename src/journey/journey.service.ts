@@ -80,6 +80,7 @@ export class JourneyService {
                 id
                 title
                 description
+                thumbnail
                 creator {
                   username
                 }
@@ -218,14 +219,11 @@ export class JourneyService {
                 }
             ]
         };
+        console.log(input);
+        console.log(JSON.stringify(input));
 
-        const selectionSet = gql`
-            {
-                id
-            }
-        `;
         const created = await this.journey.create(input);
-        console.log(created);
+
         return created.journeys[0];
     }
     async updateJourneyV2(journeyData: UpdateJourneyDto, username: string) {
@@ -278,7 +276,8 @@ export class JourneyService {
             update: {
                 experiences: experiences,
                 title: journeyData.journey.title,
-                description: journeyData.journey.description
+                description: journeyData.journey.description,
+                thumbnail: journeyData.journey.thumbnail
             },
             where: {
                 id: journeyData.journey.id,
@@ -333,7 +332,6 @@ export class JourneyService {
     }
 
     async removeExperience(experience: DeleteExperience, username: string) {
-        console.log(experience);
         if (experience.journey == undefined || experience.poi == undefined) {
             throw new BadRequestException("Journey not included");
         }

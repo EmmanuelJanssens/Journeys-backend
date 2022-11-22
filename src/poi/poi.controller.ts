@@ -29,7 +29,7 @@ export class PoiController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    async createPoi(poiData) {
+    async createPoi(@Body() poiData: PoiDto) {
         const result = await this.poiService.addPoi(poiData);
         return result;
     }
@@ -49,13 +49,26 @@ export class PoiController {
 
     @Get("/:id")
     async findOne(@Param("id") id: string) {
-        const result = await this.poiService.getPoi(id);
-        return result;
+        try {
+            const result = await this.poiService.getPoi(id);
+            return result;
+        } catch (e) {
+            return undefined;
+        }
     }
 
     @Get("/:id/experiences")
     async findPoiExperiences(@Param("id") id: string) {
-        const result = await this.poiService.getPoiExperiences(id, null, 10);
-        return result;
+        try {
+            const result = await this.poiService.getPoiExperiences(
+                id,
+                null,
+                10
+            );
+            return result;
+        } catch (e) {
+            console.log(e);
+            return undefined;
+        }
     }
 }

@@ -9,7 +9,6 @@ export type SearchPoiDto = {
 export type PoiDto = {
     id?: string;
     name?: string;
-    description?: string;
     location?: AddressDto;
     journeysConnection: {
         edges: ExperienceDto[];
@@ -57,6 +56,7 @@ export type JourneyDto = {
     description?: string;
     start?: AddressDto;
     end?: AddressDto;
+    thumbnail?: string;
     creator?: UserDto;
     experienceCount?: number;
     experiences?: ExperienceDto[];

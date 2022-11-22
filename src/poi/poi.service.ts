@@ -3,7 +3,7 @@ import { gql } from "apollo-server-express";
 import { ExperienceDto, JourneyDto, PoiDto, UserDto } from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { PoiModel } from "src/neo4j/neo4j.utils";
-import uuid from "uuid";
+import * as uuid from "uuid";
 @Injectable()
 export class PoiService {
     constructor(private readonly neo4jService: Neo4jService) {}
@@ -26,7 +26,6 @@ export class PoiService {
             {
                 id
                 name
-                description
                 location {
                     longitude
                     latitude
@@ -77,11 +76,22 @@ export class PoiService {
         return result;
     }
 
-    async addPoi(poiData) {
+    async addPoi(poiData: PoiDto) {
+        const selectionSet = gql`
+            {
+                id
+                name
+                location {
+                    longitude
+                    latitude
+                }
+            }
+        `;
+        const id = uuid.v4();
         const created = await this.poi.create({
             input: [
                 {
-                    id: uuid.v4(),
+                    id: id,
                     name: poiData.name,
                     location: {
                         latitude: poiData.location.latitude,
@@ -90,7 +100,14 @@ export class PoiService {
                 }
             ]
         });
-        return created;
+        const res = await this.poi.find({
+            where: {
+                id: id
+            },
+            selectionSet: selectionSet
+        });
+        console.log(res);
+        return res[0];
     }
 
     async updatePoi(poiData) {
@@ -109,12 +126,13 @@ export class PoiService {
             {
                 id
                 name
-                description
                 location {
                     latitude
                     longitude
                 }
-                journeysConnection {
+                journeysConnection(
+                    where: { node: { creator: { public: true } } }
+                ) {
                     edges {
                         date
                         description
@@ -184,7 +202,7 @@ export class PoiService {
                 journeysAggregate{
                     count
                 }
-                journeysConnection(first:${pageSize}, after:  ${cursor} ){
+                journeysConnection(where: {node :{ creator: {public : true}}}, first:${pageSize}, after:  ${cursor} ){
                     edges{
                         date
                         description
@@ -209,10 +227,11 @@ export class PoiService {
             `;
         const pois = await this.poi.find({
             selectionSet,
-            where: { id }
+            where: {
+                id: id
+            }
         });
-
-        // make sure there is only one poi
+        console.log(pois[0].journeysConnection.edges);
         if (pois.length > 1) {
             throw new BadRequestException(
                 "An error occured while fetching pois"

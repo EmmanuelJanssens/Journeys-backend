@@ -61,10 +61,8 @@ export class AuthenticationController {
                 body,
                 req.user.username
             );
-            console.log(res);
             return res;
         } catch (e) {
-            console.log(e);
             return undefined;
         }
     }
