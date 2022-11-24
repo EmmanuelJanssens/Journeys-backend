@@ -10,7 +10,7 @@ import {
     UseGuards
 } from "@nestjs/common";
 import { PoiDto, SearchPoiDto } from "src/data/dtos";
-import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
+import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
 import { PoiService } from "./poi.service";
 
 @Controller("poi")
@@ -27,14 +27,14 @@ export class PoiController {
         return result;
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(FirebaseAuthGuard)
     @Post()
     async createPoi(@Body() poiData: PoiDto) {
         const result = await this.poiService.addPoi(poiData);
         return result;
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(FirebaseAuthGuard)
     @Put()
     async updatePoi(poiData) {
         const result = await this.poiService.updatePoi(poiData);

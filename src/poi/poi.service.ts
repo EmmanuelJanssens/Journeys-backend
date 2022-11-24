@@ -130,7 +130,7 @@ export class PoiService {
                     longitude
                 }
                 journeysConnection(
-                    where: { node: { creator: { public: true } } }
+                    where: { node: { creator: { visibility: "public" } } }
                 ) {
                     edges {
                         date
@@ -201,7 +201,7 @@ export class PoiService {
                 journeysAggregate{
                     count
                 }
-                journeysConnection(where: {node :{ creator: {public : true}}}, first:${pageSize}, after:  ${cursor} ){
+                journeysConnection(where: {node :{ creator: {visibility: "public"}}}, first:${pageSize}, after:  ${cursor} ){
                     edges{
                         date
                         description

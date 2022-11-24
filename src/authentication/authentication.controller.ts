@@ -8,7 +8,7 @@ import {
 import { UserDto } from "src/data/dtos";
 
 import { AuthenticationService } from "./authentication.service";
-
+import { User } from "@firebase/auth-types";
 @Controller("authentication")
 export class AuthenticationController {
     constructor(private readonly authService: AuthenticationService) {}
@@ -25,6 +25,16 @@ export class AuthenticationController {
             throw new BadRequestException("Fields missing");
         try {
             const result = this.authService.register(data);
+            return result;
+        } catch (e) {
+            return undefined;
+        }
+    }
+
+    @Post("provider")
+    async registerWithProvider(@Body() user: User) {
+        try {
+            const result = await this.authService.registerWithProvider(user);
             return result;
         } catch (e) {
             return undefined;

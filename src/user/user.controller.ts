@@ -33,7 +33,6 @@ export class UserController {
     async getMyProfile(@Request() req) {
         try {
             const user = req.user as UserInfo;
-            console.log(user);
             const result = await this.userService.getMyProfile(user);
             return result;
         } catch (er) {

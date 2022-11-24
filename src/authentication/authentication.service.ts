@@ -6,6 +6,7 @@ import { JwtService } from "@nestjs/jwt";
 
 import { FirebaseService } from "src/firebase/firebase.service";
 import { Authenticated } from "./dto/Authenticated.interface";
+import { User } from "@firebase/auth-types";
 @Injectable()
 export class AuthenticationService {
     constructor(
@@ -33,6 +34,38 @@ export class AuthenticationService {
         throw new Error("Something went wrong");
     }
 
+    async registerWithProvider(user: User) {
+        const fbUser = await this.fbService
+            .getApp()
+            .auth()
+            .getUserByEmail(user.email);
+
+        const result: UserDto[] = await this.user.find({
+            where: { uid: fbUser.uid }
+        });
+        if (result.length == 0) {
+            const created: { users: UserDto[] } = await this.user.create({
+                input: [
+                    {
+                        uid: user.uid,
+                        username: user.email,
+                        visibility: "public"
+                    }
+                ]
+            });
+            if (created.users.length > 1 || created.users.length == 0)
+                throw new BadRequestException();
+            const result: Authenticated = {
+                username: user.email,
+                email: user.email,
+                uid: user.uid
+            };
+            return result;
+        } else {
+            return fbUser;
+        }
+    }
+
     async register(userData: UserDto) {
         const result: UserDto[] = await this.user.find({
             where: { username: userData.username }
@@ -54,8 +87,7 @@ export class AuthenticationService {
                         username: userData.username,
                         firstName: userData.firstName,
                         lastName: userData.lastName,
-                        email: userData.email,
-                        public: true
+                        visibility: "public"
                     }
                 ]
             });
@@ -63,12 +95,7 @@ export class AuthenticationService {
             if (created.users.length > 1 || created.users.length == 0)
                 throw new BadRequestException();
 
-            const result: Authenticated = {
-                username: userData.username,
-                email: userData.email,
-                uid: fbUser.uid
-            };
-            return result;
+            return fbUser;
         }
     }
 }

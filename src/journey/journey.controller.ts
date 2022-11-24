@@ -19,7 +19,6 @@ import {
     UpdateJourneyDto
 } from "src/data/dtos";
 import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
-import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { JourneyService } from "./journey.service";
 
 @Controller("journey")
