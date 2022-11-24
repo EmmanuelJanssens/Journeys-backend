@@ -67,7 +67,10 @@ export class AuthenticationService {
                         username: foundUser[0].username,
                         refreshToken: payload.refresh
                     },
-                    { secret: process.env.JWT_SECRET }
+                    {
+                        secret: process.env.JWT_SECRET,
+                        expiresIn: process.env.JWT_TOKEN_DURATION
+                    }
                 );
                 return {
                     username: foundUser[0].username,
