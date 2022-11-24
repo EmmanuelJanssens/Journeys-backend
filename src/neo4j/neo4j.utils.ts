@@ -35,22 +35,21 @@ const typeDefs = gql`
     }
 
     type User {
-        email: String!
-        firstName: String!
-        lastName: String!
-        password: String!
-        banner: [String!]
+        uid: ID!
         username: String!
-        journeys: [Journey!]! @relationship(type: "CREATED", direction: OUT)
-        public: Boolean
+        firstName: String
+        lastName: String
+        banner: [String!]
+        visibility: String
         citation: String
+        journeys: [Journey!]! @relationship(type: "CREATED", direction: OUT)
+
         experiences: [POI!]!
             @relationship(
                 type: "EXPERIENCE"
                 direction: OUT
                 properties: "Experience"
             )
-        refreshToken: String
     }
 
     type Location {

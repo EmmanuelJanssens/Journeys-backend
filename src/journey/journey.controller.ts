@@ -11,12 +11,14 @@ import {
     Delete,
     Patch
 } from "@nestjs/common";
+import { UserInfo } from "@firebase/auth-types";
 import {
     DeleteExperience,
     ExperienceDto,
     JourneyDto,
     UpdateJourneyDto
 } from "src/data/dtos";
+import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
 import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
 import { JourneyService } from "./journey.service";
 
@@ -54,62 +56,56 @@ export class JourneyController {
         } catch (e) {}
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(FirebaseAuthGuard)
     @Post()
     async createOne(@Body() body: JourneyDto, @Request() req): Promise<string> {
-        const res = await this.journeyService.addJourney(
-            body,
-            req.user.username
-        );
+        const user = req.user as UserInfo;
+        const res = await this.journeyService.addJourney(body, user.uid);
         return res;
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(FirebaseAuthGuard)
     @Put()
     async updateOne(
         @Body() body: UpdateJourneyDto,
         @Request() req
     ): Promise<JourneyDto> {
-        const res = await this.journeyService.updateJourneyV2(
-            body,
-            req.user.username
-        );
+        const user = req.user as UserInfo;
+
+        const res = await this.journeyService.updateJourneyV2(body, user.uid);
         return res;
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(FirebaseAuthGuard)
     @Post("experience")
     async addExperience(@Body() body: ExperienceDto, @Request() req) {
         try {
-            const res = await this.journeyService.addExperience(
-                body,
-                req.user.username
-            );
+            const user = req.user as UserInfo;
+
+            const res = await this.journeyService.addExperience(body, user.uid);
             return res;
         } catch (error) {}
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(FirebaseAuthGuard)
     @Put("experience")
     async updateExperience(@Body() body: ExperienceDto, @Request() req) {
-        const res = await this.journeyService.updateExperience(
-            body,
-            req.user.username
-        );
+        const user = req.user as UserInfo;
+
+        const res = await this.journeyService.updateExperience(body, user.uid);
         return res;
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(FirebaseAuthGuard)
     @Patch("experience")
     async removeExperience(@Body() body: DeleteExperience, @Request() req) {
-        const res = await this.journeyService.removeExperience(
-            body,
-            req.user.username
-        );
+        const user = req.user as UserInfo;
+
+        const res = await this.journeyService.removeExperience(body, user.uid);
         return res;
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(FirebaseAuthGuard)
     @Delete(":id")
     async deleteJourney(@Param("id") id: string) {
         const res = await this.journeyService.deleteJourney(id);

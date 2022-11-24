@@ -5,92 +5,74 @@ import {
     Param,
     Post,
     Put,
-    Req,
     Request,
     UseGuards
 } from "@nestjs/common";
-import { ExperienceDto, UpdateUserDto, UserDto } from "src/data/dtos";
-import { JwtAuthGuard } from "src/guard/jwt-auth.guard";
+import { UpdateUserDto } from "./dto/User.update.dto";
+import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
 import { UserService } from "./user.service";
-
+import { UserInfo } from "@firebase/auth-types";
 @Controller("user")
 export class UserController {
     constructor(private userService: UserService) {}
 
-    @UseGuards(JwtAuthGuard)
     @Get("journeys")
+    @UseGuards(FirebaseAuthGuard)
     async getMyJourneys(@Request() req) {
-        const result = await this.userService.getMyJourneys(req.user.username);
-        return result;
-    }
-    @UseGuards(JwtAuthGuard)
-    @Get("experiences")
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    async getMyExperiences(@Request() req) {
-        const result = await this.userService.getMyExperiences(
-            req.user.username
-        );
-        return this.transform(result);
-    }
-
-    @Get()
-    @UseGuards(JwtAuthGuard)
-    async getMyProfile(@Request() req) {
-        const result = await this.userService.getMyProfile(req.user.username);
-        return result;
-    }
-
-    @Post("/username")
-    @UseGuards(JwtAuthGuard)
-    async checkUser(@Body() user: UpdateUserDto) {
         try {
-            const result = await this.userService.checkUsername(user);
-            return true;
-        } catch (e) {
-            return false;
+            const user = req.user as UserInfo;
+            const result = await this.userService.getMyJourneys(user.uid);
+            return result;
+        } catch (er) {
+            return undefined;
         }
     }
 
-    @UseGuards(JwtAuthGuard)
-    @Put()
-    async updateProfile(@Body() user: UpdateUserDto, @Request() req) {
-        if (user.oldUsername == req.user.username) {
-            const result = await this.userService.updateProfile(user);
+    @Get()
+    @UseGuards(FirebaseAuthGuard)
+    async getMyProfile(@Request() req) {
+        try {
+            const user = req.user as UserInfo;
+            console.log(user);
+            const result = await this.userService.getMyProfile(user);
             return result;
-        } else {
-            return null;
+        } catch (er) {
+            return undefined;
+        }
+    }
+
+    @Put()
+    @UseGuards(FirebaseAuthGuard)
+    async updateProfile(@Body() newUserData: UpdateUserDto, @Request() req) {
+        try {
+            const user = req.user as UserInfo;
+            const result = await this.userService.updateProfile(
+                newUserData,
+                user.uid
+            );
+            return result;
+        } catch (er) {
+            return undefined;
+        }
+    }
+
+    @Post("/username")
+    async checkUser(@Body() user: string) {
+        try {
+            const result = await this.userService.checkUsername(user);
+            return result;
+        } catch (e) {
+            return undefined;
         }
     }
 
     @Get(":username/journeys")
     async getUserJourneys(@Param("username") username: string) {
-        const result = await this.userService.getMyJourneys(username);
-        return result;
-    }
-
-    @Get(":username/experiences")
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    async getUserExperiences(@Param("username") username: string) {
-        const result = await this.userService.getMyExperiences(username);
-        return this.transform(result);
-    }
-
-    transform(request) {
-        const experiences: ExperienceDto[] = [];
-        request.journeys.forEach((el) => {
-            el.experiencesConnection.edges.forEach((exp) => {
-                delete el.experiencesConnection;
-                const data = {
-                    title: exp.title,
-                    description: exp.description,
-                    order: exp.order,
-                    images: exp.images,
-                    date: exp.date
-                };
-                experiences.push(data);
-            });
-        });
-
-        return experiences;
+        try {
+            const result = await this.userService.getMyJourneys(username);
+            return result;
+        } catch (er) {
+            return undefined;
+        }
     }
 }

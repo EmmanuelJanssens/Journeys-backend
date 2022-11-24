@@ -85,6 +85,7 @@ export type UpdateUserDto = {
     oldUsername: string;
 };
 export type UserDto = {
+    uid: string;
     username?: string;
     firstName?: string;
     lastName?: string;

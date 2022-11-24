@@ -14,6 +14,7 @@ import { GraphQLModule } from "@nestjs/graphql";
 import { Neo4jService } from "./neo4j/neo4j.service";
 import { GraphQLSchema } from "graphql";
 import { ConfigModule } from "@nestjs/config";
+import { FirebaseModule } from "./firebase/firebase.module";
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -36,6 +37,11 @@ import { ConfigModule } from "@nestjs/config";
                 playground: true
             }),
             inject: [Neo4jService]
+        }),
+        FirebaseModule.forRoot({
+            clientEmail: process.env.FB_CLIENT_EMAIL,
+            privateKey: process.env.FB_PRIVATE_KEY,
+            projectId: process.env.GOOGLE_PROJECT_ID
         }),
         PoiModule,
         JourneyModule,

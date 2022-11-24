@@ -42,6 +42,7 @@ export class JourneyService {
                     longitude
                 }
                 creator {
+                    uid
                     username
                 }
             }
@@ -82,6 +83,7 @@ export class JourneyService {
                 description
                 thumbnail
                 creator {
+                    uid
                   username
                 }
                 start{
@@ -150,7 +152,7 @@ export class JourneyService {
 
     async addJourney(
         journeyData: JourneyDto,
-        username: string
+        user_uid: string
     ): Promise<string> {
         const connections = [];
         journeyData.experiencesConnection.edges.forEach((element) => {
@@ -211,7 +213,7 @@ export class JourneyService {
                         connect: {
                             where: {
                                 node: {
-                                    username: username
+                                    uid: user_uid
                                 }
                             }
                         }
@@ -224,7 +226,7 @@ export class JourneyService {
 
         return created.journeys[0];
     }
-    async updateJourneyV2(journeyData: UpdateJourneyDto, username: string) {
+    async updateJourneyV2(journeyData: UpdateJourneyDto, user_uid: string) {
         const disconnected = journeyData.deleted?.poi_ids;
         const experiences = [];
         const connected = [];
@@ -282,7 +284,7 @@ export class JourneyService {
             where: {
                 id: journeyData.journey.id,
                 creator: {
-                    username: username
+                    uid: user_uid
                 }
             }
         };
@@ -294,7 +296,7 @@ export class JourneyService {
         return resultUpdated.journeys[0];
     }
 
-    async updateExperience(experienceData: ExperienceDto, username: string) {
+    async updateExperience(experienceData: ExperienceDto, user_uid: string) {
         if (experienceData.journey == undefined) {
             throw new BadRequestException("Journey not included");
         }
@@ -307,7 +309,7 @@ export class JourneyService {
         const updated = await this.journey.update({
             where: {
                 id: journeyId,
-                creator: { username: username }
+                creator: { user_uid: user_uid }
             },
             update: {
                 experiences: [
@@ -331,7 +333,7 @@ export class JourneyService {
         return updated.journeys[0];
     }
 
-    async removeExperience(experience: DeleteExperience, username: string) {
+    async removeExperience(experience: DeleteExperience, user_uid: string) {
         if (experience.journey == undefined || experience.poi == undefined) {
             throw new BadRequestException("Journey not included");
         }
@@ -339,7 +341,7 @@ export class JourneyService {
         const updated = await this.journey.update({
             where: {
                 id: experience.journey.id,
-                creator: { username: username }
+                creator: { uid: user_uid }
             },
             disconnect: {
                 experiences: {
@@ -356,7 +358,7 @@ export class JourneyService {
         }
         return updated.journeys[0];
     }
-    async addExperience(journeyData: ExperienceDto, username: string) {
+    async addExperience(journeyData: ExperienceDto, user_uid: string) {
         if (journeyData.journey == undefined) {
             throw new BadRequestException("Journey not included");
         }
@@ -364,7 +366,7 @@ export class JourneyService {
         const added = await this.journey.update({
             where: {
                 id: journeyData.journey.id,
-                creator: { username: username }
+                creator: { uid: user_uid }
             },
             update: {
                 experiences: [

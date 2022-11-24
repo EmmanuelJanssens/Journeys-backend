@@ -1,38 +1,38 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { gql } from "apollo-server-express";
-import { PoiDto, UpdateUserDto, UserDto } from "src/data/dtos";
+import { UserDto } from "src/data/dtos";
+import { UpdateUserDto } from "./dto/User.update.dto";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { JourneyModel, UserModel } from "src/neo4j/neo4j.utils";
+import { UserInfo } from "@firebase/auth-types";
 
 @Injectable()
 export class UserService {
     constructor(private neo4jService: Neo4jService) {}
     private user = UserModel(this.neo4jService.getOGM());
     private journey = JourneyModel(this.neo4jService.getOGM());
-    async checkUsername(newUser: UpdateUserDto) {
+    async checkUsername(username: string) {
         const result = await this.user.find({
             where: {
-                username: newUser.user.username
+                username: username
             }
         });
         if (result.length > 0) {
             throw new BadRequestException("user already exists");
         }
-        return true;
+        return username;
     }
-    async updateProfile(newUser: UpdateUserDto) {
+    async updateProfile(newUser: UpdateUserDto, uid: string) {
         const input = {
             update: {
-                username: newUser.user.username,
-                lastName: newUser.user.lastName,
-                firstName: newUser.user.firstName,
-                email: newUser.user.email,
-                banner: newUser.user.banner,
-                citation: newUser.user.citation,
-                public: newUser.user.public
+                lastName: newUser.lastName,
+                firstName: newUser.firstName,
+                banner: newUser.banner,
+                citation: newUser.citation,
+                visibility: newUser.visibility
             },
             where: {
-                username: newUser.oldUsername
+                uid: uid
             }
         };
 
@@ -40,14 +40,12 @@ export class UserService {
         if (result.users.length == 1) return result.users[0];
         else throw new BadRequestException("Could not create user");
     }
-    async getMyProfile(username: string) {
+    async getMyProfile(username: UserInfo) {
         const selectionSet = gql`
             {
-                username
                 firstName
                 lastName
-                email
-                public
+                visibility
                 banner
                 citation
                 journeysAggregate {
@@ -65,8 +63,8 @@ export class UserService {
             }
         `;
 
-        const condition = { username: username };
-        const result = await this.neo4jService.readGql<UserDto[]>(
+        const condition = { uid: username.uid };
+        const result = await this.neo4jService.readGql<UpdateUserDto[]>(
             this.user,
             selectionSet,
             condition
@@ -74,7 +72,7 @@ export class UserService {
 
         return result[0];
     }
-    async getMyJourneys(username: string) {
+    async getMyJourneys(user_uid: string) {
         const selectionSet = gql`
             {
                 id
@@ -97,7 +95,7 @@ export class UserService {
             }
         `;
 
-        const condition = { creator: { username: username } };
+        const condition = { creator: { uid: user_uid } };
 
         const result = await this.neo4jService.readGql(
             this.journey,
