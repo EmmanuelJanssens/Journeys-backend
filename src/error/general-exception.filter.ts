@@ -1,9 +1,11 @@
 import {
     ArgumentsHost,
+    BadRequestException,
     Catch,
     ExceptionFilter,
     HttpException,
-    HttpStatus
+    HttpStatus,
+    Logger
 } from "@nestjs/common";
 import { Request, Response } from "express";
 
@@ -17,9 +19,15 @@ export class GeneralExceptionFilter implements ExceptionFilter {
             exception instanceof HttpException
                 ? exception.getStatus()
                 : HttpStatus.INTERNAL_SERVER_ERROR;
+        const message =
+            exception instanceof HttpException
+                ? (exception as HttpException).message
+                : "Unexpected Error";
+
         response.status(status).json({
             statusCode: status,
             timestamp: new Date().toISOString(),
+            message: message,
             path: request.url
         });
     }

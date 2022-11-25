@@ -1,11 +1,15 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+    BadRequestException,
+    Injectable,
+    UnauthorizedException
+} from "@nestjs/common";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { UserModel } from "src/neo4j/neo4j.utils";
 import { UserDto } from "src/data/dtos";
 import { JwtService } from "@nestjs/jwt";
 
 import { FirebaseService } from "src/firebase/firebase.service";
-import { Authenticated } from "./dto/Authenticated.interface";
+import { Authenticated, Register } from "./dto/Authenticated.interface";
 import { User } from "@firebase/auth-types";
 @Injectable()
 export class AuthenticationService {
@@ -16,7 +20,6 @@ export class AuthenticationService {
     ) {}
 
     private user = UserModel(this.neo4jService.getOGM());
-
     async validateUser(username: string): Promise<Authenticated> {
         const foundUser: UserDto = (
             await this.user.find({
@@ -31,25 +34,23 @@ export class AuthenticationService {
             };
             return result;
         }
-        throw new Error("Something went wrong");
+        throw new UnauthorizedException("Something went wrong");
     }
 
-    async registerWithProvider(user: User) {
-        const fbUser = await this.fbService
-            .getApp()
-            .auth()
-            .getUserByEmail(user.email);
-
+    async registerWithProvider(user: Register) {
         const result: UserDto[] = await this.user.find({
-            where: { uid: fbUser.uid }
+            where: { uid: user.uid }
         });
         if (result.length == 0) {
             const created: { users: UserDto[] } = await this.user.create({
                 input: [
                     {
                         uid: user.uid,
-                        username: user.email,
-                        visibility: "public"
+                        username: user.username,
+                        firstName: user.firstname,
+                        lastName: user.lastName,
+                        visibility: "public",
+                        completed: false
                     }
                 ]
             });
@@ -62,7 +63,7 @@ export class AuthenticationService {
             };
             return result;
         } else {
-            return fbUser;
+            return user;
         }
     }
 
@@ -87,7 +88,8 @@ export class AuthenticationService {
                         username: userData.username,
                         firstName: userData.firstName,
                         lastName: userData.lastName,
-                        visibility: "public"
+                        visibility: "public",
+                        completed: true
                     }
                 ]
             });

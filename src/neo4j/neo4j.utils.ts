@@ -42,8 +42,8 @@ const typeDefs = gql`
         banner: [String!]
         visibility: String
         citation: String
+        completed: Boolean
         journeys: [Journey!]! @relationship(type: "CREATED", direction: OUT)
-
         experiences: [POI!]!
             @relationship(
                 type: "EXPERIENCE"

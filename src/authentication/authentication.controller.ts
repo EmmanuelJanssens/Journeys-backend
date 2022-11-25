@@ -3,12 +3,13 @@ import {
     Post,
     Body,
     BadRequestException,
-    HttpCode
+    HttpCode,
+    Logger
 } from "@nestjs/common";
 import { UserDto } from "src/data/dtos";
 
 import { AuthenticationService } from "./authentication.service";
-import { User } from "@firebase/auth-types";
+import { Register } from "./dto/Authenticated.interface";
 @Controller("authentication")
 export class AuthenticationController {
     constructor(private readonly authService: AuthenticationService) {}
@@ -27,12 +28,12 @@ export class AuthenticationController {
             const result = this.authService.register(data);
             return result;
         } catch (e) {
-            return undefined;
+            throw e;
         }
     }
 
     @Post("provider")
-    async registerWithProvider(@Body() user: User) {
+    async registerWithProvider(@Body() user: Register) {
         try {
             const result = await this.authService.registerWithProvider(user);
             return result;

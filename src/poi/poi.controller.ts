@@ -52,8 +52,8 @@ export class PoiController {
         try {
             const result = await this.poiService.getPoi(id);
             return result;
-        } catch (e) {
-            return undefined;
+        } catch (er) {
+            throw er;
         }
     }
 
@@ -66,8 +66,8 @@ export class PoiController {
                 10
             );
             return result;
-        } catch (e) {
-            return undefined;
+        } catch (er) {
+            throw er;
         }
     }
 }

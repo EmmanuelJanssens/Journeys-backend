@@ -1,7 +1,9 @@
 import {
+    BadRequestException,
     Body,
     Controller,
     Get,
+    HttpException,
     Param,
     Post,
     Put,
@@ -12,6 +14,7 @@ import { UpdateUserDto } from "./dto/User.update.dto";
 import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
 import { UserService } from "./user.service";
 import { UserInfo } from "@firebase/auth-types";
+import { Logger } from "@nestjs/common/services";
 @Controller("user")
 export class UserController {
     constructor(private userService: UserService) {}
@@ -24,11 +27,11 @@ export class UserController {
             const result = await this.userService.getMyJourneys(user.uid);
             return result;
         } catch (er) {
-            return undefined;
+            throw er;
         }
     }
 
-    @Get()
+    @Get("/profile")
     @UseGuards(FirebaseAuthGuard)
     async getMyProfile(@Request() req) {
         try {
@@ -36,7 +39,19 @@ export class UserController {
             const result = await this.userService.getMyProfile(user);
             return result;
         } catch (er) {
-            return undefined;
+            throw er;
+        }
+    }
+
+    @Get()
+    @UseGuards(FirebaseAuthGuard)
+    async getData(@Request() req) {
+        try {
+            const user = req.user as UserInfo;
+            const result = await this.userService.getData(user);
+            return result;
+        } catch (er) {
+            throw er;
         }
     }
 
@@ -51,17 +66,16 @@ export class UserController {
             );
             return result;
         } catch (er) {
-            return undefined;
+            throw er;
         }
     }
 
     @Post("/username")
-    async checkUser(@Body() user: string) {
+    async checkUser(@Body() user: { username: string }) {
         try {
-            const result = await this.userService.checkUsername(user);
-            return result;
-        } catch (e) {
-            return undefined;
+            return await this.userService.checkUsername(user.username);
+        } catch (er) {
+            throw er;
         }
     }
 
@@ -71,7 +85,7 @@ export class UserController {
             const result = await this.userService.getMyJourneys(username);
             return result;
         } catch (er) {
-            return undefined;
+            throw er;
         }
     }
 }

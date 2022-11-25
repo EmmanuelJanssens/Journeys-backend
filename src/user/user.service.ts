@@ -20,7 +20,7 @@ export class UserService {
         if (result.length > 0) {
             throw new BadRequestException("user already exists");
         }
-        return username;
+        return true;
     }
     async updateProfile(newUser: UpdateUserDto, uid: string) {
         const input = {
@@ -43,11 +43,6 @@ export class UserService {
     async getMyProfile(username: UserInfo) {
         const selectionSet = gql`
             {
-                firstName
-                lastName
-                visibility
-                banner
-                citation
                 journeysAggregate {
                     count
                 }
@@ -60,6 +55,29 @@ export class UserService {
                         }
                     }
                 }
+            }
+        `;
+
+        const condition = { uid: username.uid };
+        const result = await this.neo4jService.readGql<UpdateUserDto[]>(
+            this.user,
+            selectionSet,
+            condition
+        );
+
+        return result[0];
+    }
+
+    async getData(username: UserInfo) {
+        const selectionSet = gql`
+            {
+                username
+                firstName
+                lastName
+                banner
+                citation
+                visibility
+                completed
             }
         `;
 

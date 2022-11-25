@@ -52,7 +52,9 @@ export class JourneyController {
                 nexp
             );
             return result;
-        } catch (e) {}
+        } catch (er) {
+            throw er;
+        }
     }
 
     @UseGuards(FirebaseAuthGuard)
@@ -83,7 +85,9 @@ export class JourneyController {
 
             const res = await this.journeyService.addExperience(body, user.uid);
             return res;
-        } catch (error) {}
+        } catch (er) {
+            throw er;
+        }
     }
 
     @UseGuards(FirebaseAuthGuard)

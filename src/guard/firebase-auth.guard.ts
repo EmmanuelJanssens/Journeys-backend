@@ -1,10 +1,16 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import {
+    CanActivate,
+    ExecutionContext,
+    Injectable,
+    Logger
+} from "@nestjs/common";
 import { Observable } from "rxjs";
 import { FirebaseService } from "src/firebase/firebase.service";
 import { Request } from "express";
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
+    logger = new Logger(FirebaseAuthGuard.name);
     constructor(private fb: FirebaseService) {}
     canActivate(
         context: ExecutionContext
@@ -19,8 +25,10 @@ export class FirebaseAuthGuard implements CanActivate {
                 request.user = decoded;
                 return true;
             })
-            .catch(() => {
+            .catch((e) => {
                 //log error
+                this.logger.error(e.message);
+                this.logger.debug(e.stack);
                 return false;
             });
     }
