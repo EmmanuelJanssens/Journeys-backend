@@ -34,7 +34,6 @@ export class PoiService {
             condition
         );
 
-        console.log((req as any[]).length);
         result = (req as any[]).length;
         return result;
     }
