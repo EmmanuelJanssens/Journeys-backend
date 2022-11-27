@@ -24,13 +24,7 @@ export class UserService {
     }
     async updateProfile(newUser: UpdateUserDto, uid: string) {
         const input = {
-            update: {
-                lastName: newUser.lastName,
-                firstName: newUser.firstName,
-                banner: newUser.banner,
-                citation: newUser.citation,
-                visibility: newUser.visibility
-            },
+            update: newUser,
             where: {
                 uid: uid
             }

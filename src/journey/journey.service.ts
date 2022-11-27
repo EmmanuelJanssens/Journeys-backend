@@ -309,7 +309,7 @@ export class JourneyService {
         const updated = await this.journey.update({
             where: {
                 id: journeyId,
-                creator: { user_uid: user_uid }
+                creator: { uid: user_uid }
             },
             update: {
                 experiences: [

@@ -10,6 +10,34 @@ export class PoiService {
 
     private poi = PoiModel(this.neo4jService.getOGM());
 
+    async getPoisCountBetween(lat: number, lng: number, radius: number) {
+        let result = 0;
+
+        const selectionSet = gql`
+            {
+                id
+            }
+        `;
+
+        const condition = {
+            location_LT: {
+                point: {
+                    latitude: lat,
+                    longitude: lng
+                },
+                distance: radius
+            }
+        };
+        const req = await this.neo4jService.readGql(
+            this.poi,
+            selectionSet,
+            condition
+        );
+
+        console.log((req as any[]).length);
+        result = (req as any[]).length;
+        return result;
+    }
     async getPois(
         radius: number,
         lat: number,

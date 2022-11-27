@@ -17,6 +17,15 @@ import { PoiService } from "./poi.service";
 export class PoiController {
     constructor(private readonly poiService: PoiService) {}
 
+    @Get("count")
+    async getPoisCountBetween(@Query() query: SearchPoiDto) {
+        const result = await this.poiService.getPoisCountBetween(
+            Number(query.lat),
+            Number(query.lng),
+            Number(query.radius)
+        );
+        return result;
+    }
     @Get()
     async getPois(@Query() query: SearchPoiDto) {
         const result = await this.poiService.getPois(

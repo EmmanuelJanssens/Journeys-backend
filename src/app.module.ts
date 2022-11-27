@@ -18,7 +18,7 @@ import { FirebaseModule } from "./firebase/firebase.module";
 @Module({
     imports: [
         ConfigModule.forRoot({
-            envFilePath: [".env.local"]
+            envFilePath: [".env"]
         }),
         Neo4jModule.forRoot({
             host: process.env.NEO4J_HOST,

@@ -29,7 +29,6 @@ export class AuthenticationService {
         if (foundUser) {
             const result: Authenticated = {
                 username: foundUser.username,
-                email: foundUser.email,
                 uid: foundUser.uid
             };
             return result;
@@ -58,7 +57,6 @@ export class AuthenticationService {
                 throw new BadRequestException();
             const result: Authenticated = {
                 username: user.email,
-                email: user.email,
                 uid: user.uid
             };
             return result;
