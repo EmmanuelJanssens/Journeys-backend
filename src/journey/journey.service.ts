@@ -1,6 +1,7 @@
 import {
     BadRequestException,
     Injectable,
+    Logger,
     NotFoundException
 } from "@nestjs/common";
 import { gql } from "apollo-server-express";
@@ -19,6 +20,7 @@ export class JourneyService {
 
     private journey = JourneyModel(this.neo4jService.getOGM());
 
+    private logger = new Logger(JourneyService.name);
     async getJourneys(page, pageSize) {
         // limit by then by default
         const options = {
@@ -143,8 +145,10 @@ export class JourneyService {
             throw new NotFoundException("Journey not found");
         } else {
             const result = j[0] as JourneyDto;
+
             result.experiencesConnection.edges.sort(
-                (a, b) => a.order - b.order
+                (a, b) =>
+                    new Date(a.date).getTime() - new Date(b.date).getTime()
             );
             return result;
         }
@@ -226,11 +230,14 @@ export class JourneyService {
 
         return created.journeys[0];
     }
-    async updateJourneyV2(journeyData: UpdateJourneyDto, user_uid: string) {
+    async updateJourneyV2(
+        journeyData: UpdateJourneyDto,
+        user_uid: string,
+        journey_id: string
+    ) {
         const disconnected = journeyData.deleted?.poi_ids;
         const experiences = [];
         const connected = [];
-        //add all conencted nodes with default order
         journeyData.connected?.forEach((poiConnected) => {
             const id = poiConnected.node.id;
             delete poiConnected.node;
@@ -259,44 +266,71 @@ export class JourneyService {
             });
         }
 
-        //add all updated nodes
-        journeyData.updated?.forEach((update) => {
-            const id = update.node.id;
-            delete update.node;
-            experiences.push({
-                update: {
-                    edge: update
-                },
-                where: {
-                    node: {
-                        id: id
-                    }
-                }
-            });
-        });
         const input = {
             update: {
-                experiences: experiences,
-                title: journeyData.journey.title,
-                description: journeyData.journey.description,
-                thumbnail: journeyData.journey.thumbnail
+                experiences: experiences
             },
             where: {
-                id: journeyData.journey.id,
+                id: journey_id,
                 creator: {
                     uid: user_uid
                 }
             }
         };
-        if (!journeyData.journey.description) {
-            delete input.update?.description;
-        }
 
         const resultUpdated = await this.journey.update(input);
         return resultUpdated.journeys[0];
     }
 
+    async updateJourneys(journey: JourneyDto, user_uid: string) {
+        const selectionSet = gql`
+            {
+                journeys {
+                    id
+                    title
+                    description
+                    thumbnail
+                    creator {
+                        uid
+                        username
+                    }
+                    start {
+                        address
+                        latitude
+                        longitude
+                    }
+                    end {
+                        address
+                        latitude
+                        longitude
+                    }
+                    experiencesAggregate {
+                        count
+                    }
+                }
+            }
+        `;
+
+        const input = {
+            selectionSet: selectionSet,
+            update: {
+                title: journey.title,
+                description: journey.description,
+                thumbnail: journey.thumbnail
+            },
+            where: {
+                id: journey.id,
+                creator: {
+                    uid: user_uid
+                }
+            }
+        };
+        const resultUpdated = await this.journey.update(input);
+        return resultUpdated;
+    }
     async updateExperience(experienceData: ExperienceDto, user_uid: string) {
+        this.logger.debug("fu");
+        console.log(experienceData);
         if (experienceData.journey == undefined) {
             throw new BadRequestException("Journey not included");
         }
@@ -306,6 +340,7 @@ export class JourneyService {
         delete experienceData.node;
         delete experienceData.journey;
 
+        console.log(experienceData);
         const updated = await this.journey.update({
             where: {
                 id: journeyId,
@@ -326,6 +361,7 @@ export class JourneyService {
                 ]
             }
         });
+        console.log(updated);
 
         if (updated.length == 0) {
             throw new BadRequestException();
@@ -338,7 +374,52 @@ export class JourneyService {
             throw new BadRequestException("Journey not included");
         }
 
+        const selectionSet = gql`
+            {
+                journeys {
+                    id
+                    title
+                    description
+                    thumbnail
+                    creator {
+                        uid
+                        username
+                    }
+                    start {
+                        address
+                        latitude
+                        longitude
+                    }
+                    end {
+                        address
+                        latitude
+                        longitude
+                    }
+                    experiencesAggregate {
+                        count
+                    }
+                    experiencesConnection {
+                        edges {
+                            title
+                            date
+                            description
+                            images
+                            order
+                            node {
+                                id
+                                name
+                                location {
+                                    latitude
+                                    longitude
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        `;
         const updated = await this.journey.update({
+            selectionSet: selectionSet,
             where: {
                 id: experience.journey.id,
                 creator: { uid: user_uid }

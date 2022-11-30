@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { gql } from "apollo-server-express";
 import { ExperienceDto, JourneyDto, PoiDto, UserDto } from "src/data/dtos";
 import { Neo4jService } from "src/neo4j/neo4j.service";
@@ -10,6 +10,7 @@ export class PoiService {
 
     private poi = PoiModel(this.neo4jService.getOGM());
 
+    private logger = new Logger(PoiService.name);
     async getPoisCountBetween(lat: number, lng: number, radius: number) {
         let result = 0;
 
@@ -33,7 +34,7 @@ export class PoiService {
             selectionSet,
             condition
         );
-
+        this.logger.debug(req);
         result = (req as any[]).length;
         return result;
     }

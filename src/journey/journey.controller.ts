@@ -9,7 +9,8 @@ import {
     Request,
     Put,
     Delete,
-    Patch
+    Patch,
+    Logger
 } from "@nestjs/common";
 import { UserInfo } from "@firebase/auth-types";
 import {
@@ -66,14 +67,31 @@ export class JourneyController {
     }
 
     @UseGuards(FirebaseAuthGuard)
-    @Put()
+    @Put("/experiences/:id")
     async updateOne(
         @Body() body: UpdateJourneyDto,
+        @Param("id") id: string,
         @Request() req
     ): Promise<JourneyDto> {
         const user = req.user as UserInfo;
 
-        const res = await this.journeyService.updateJourneyV2(body, user.uid);
+        const res = await this.journeyService.updateJourneyV2(
+            body,
+            user.uid,
+            id
+        );
+        return res;
+    }
+
+    @UseGuards(FirebaseAuthGuard)
+    @Patch()
+    async updateDetails(
+        @Body() body: JourneyDto,
+        @Request() req
+    ): Promise<JourneyDto> {
+        const user = req.user as UserInfo;
+
+        const res = await this.journeyService.updateJourneys(body, user.uid);
         return res;
     }
 
@@ -94,7 +112,7 @@ export class JourneyController {
     @Put("experience")
     async updateExperience(@Body() body: ExperienceDto, @Request() req) {
         const user = req.user as UserInfo;
-
+        new Logger().debug(body);
         const res = await this.journeyService.updateExperience(body, user.uid);
         return res;
     }
