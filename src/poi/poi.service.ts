@@ -34,7 +34,6 @@ export class PoiService {
             selectionSet,
             condition
         );
-        this.logger.debug(req);
         result = (req as any[]).length;
         return result;
     }
@@ -115,6 +114,7 @@ export class PoiService {
                 }
             }
         `;
+        console.log(poiData);
         const id = uuid.v4();
         const created = await this.poi.create({
             input: [

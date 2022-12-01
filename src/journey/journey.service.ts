@@ -329,8 +329,6 @@ export class JourneyService {
         return resultUpdated;
     }
     async updateExperience(experienceData: ExperienceDto, user_uid: string) {
-        this.logger.debug("fu");
-        console.log(experienceData);
         if (experienceData.journey == undefined) {
             throw new BadRequestException("Journey not included");
         }
@@ -340,7 +338,6 @@ export class JourneyService {
         delete experienceData.node;
         delete experienceData.journey;
 
-        console.log(experienceData);
         const updated = await this.journey.update({
             where: {
                 id: journeyId,
@@ -361,7 +358,6 @@ export class JourneyService {
                 ]
             }
         });
-        console.log(updated);
 
         if (updated.length == 0) {
             throw new BadRequestException();
@@ -469,6 +465,40 @@ export class JourneyService {
         return added;
     }
 
+    async setImage(
+        exp: {
+            journey: string;
+            poi: string;
+            url: string;
+        },
+        user: string
+    ) {
+        const input = {
+            update: {
+                experiences: {
+                    update: {
+                        edge: {
+                            images_PUSH: exp.url
+                        }
+                    },
+                    where: {
+                        node: {
+                            id: exp.poi
+                        }
+                    }
+                }
+            },
+            where: {
+                id: exp.journey,
+                creator: {
+                    uid: user
+                }
+            }
+        };
+
+        const result = await this.journey.update(input);
+        return result.journeys[0];
+    }
     async deleteJourney(id: string) {
         if (id === undefined || id === "")
             throw new BadRequestException("Journey not found");
