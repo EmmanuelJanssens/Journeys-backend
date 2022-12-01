@@ -22,9 +22,10 @@ const typeDefs = gql`
         id: ID!
         title: String!
         description: String
-        start: Location! @relationship(type: "START", direction: OUT)
-        end: Location! @relationship(type: "END", direction: OUT)
+        start: Point!
+        end: Point!
         thumbnail: String
+        visibility: String!
         experiences: [POI!]!
             @relationship(
                 type: "EXPERIENCE"
@@ -52,12 +53,6 @@ const typeDefs = gql`
             )
     }
 
-    type Location {
-        placeId: ID @id
-        address: String
-        latitude: Float!
-        longitude: Float!
-    }
     interface Experience @relationshipProperties {
         title: String
         date: DateTime

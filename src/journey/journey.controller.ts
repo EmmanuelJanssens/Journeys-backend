@@ -22,7 +22,9 @@ import {
 } from "src/data/dtos";
 import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
 import { JourneyService } from "./journey.service";
-
+import { ApiCreatedResponse } from "@nestjs/swagger";
+import { Journey } from "src/model/Journey";
+import { CreateJourneyDto } from "./dto/CreateJourneyDto";
 @Controller("journey")
 export class JourneyController {
     constructor(private journeyService: JourneyService) {}
@@ -61,7 +63,11 @@ export class JourneyController {
 
     @UseGuards(FirebaseAuthGuard)
     @Post()
-    async createOne(@Body() body: JourneyDto, @Request() req): Promise<string> {
+    @ApiCreatedResponse({
+        description: "The journey has been successfully created",
+        type: Journey
+    })
+    async createOne(@Body() body: CreateJourneyDto, @Request() req) {
         const user = req.user as UserInfo;
         const res = await this.journeyService.addJourney(body, user.uid);
         return res;
@@ -97,12 +103,20 @@ export class JourneyController {
     }
 
     @UseGuards(FirebaseAuthGuard)
-    @Post("experience")
-    async addExperience(@Body() body: ExperienceDto, @Request() req) {
+    @Post("id/experience")
+    async addExperience(
+        @Body() body: ExperienceDto,
+        @Param("id") id: string,
+        @Request() req
+    ) {
         try {
             const user = req.user as UserInfo;
 
-            const res = await this.journeyService.addExperience(body, user.uid);
+            const res = await this.journeyService.addExperience(
+                body,
+                user.uid,
+                id
+            );
             return res;
         } catch (er) {
             throw er;
@@ -110,15 +124,23 @@ export class JourneyController {
     }
 
     @UseGuards(FirebaseAuthGuard)
-    @Put("experience")
-    async updateExperience(@Body() body: ExperienceDto, @Request() req) {
+    @Put(":id/experience")
+    async updateExperience(
+        @Body() body: ExperienceDto,
+        @Param("id") id: string,
+        @Request() req
+    ) {
         const user = req.user as UserInfo;
-        const res = await this.journeyService.updateExperience(body, user.uid);
+        const res = await this.journeyService.updateExperience(
+            body,
+            user.uid,
+            id
+        );
         return res;
     }
 
     @UseGuards(FirebaseAuthGuard)
-    @Patch("experience")
+    @Patch(":id/experience")
     async removeExperience(@Body() body: DeleteExperience, @Request() req) {
         const user = req.user as UserInfo;
 

@@ -1,3 +1,7 @@
+import { Experience } from "src/model/Experience";
+import { Locality } from "src/model/Locality";
+import { PointOfInterest } from "src/model/PointOfInterest";
+
 export type SearchPoiDto = {
     lat: number;
     lng: number;
@@ -46,19 +50,21 @@ export type ExperienceDto = {
     images: string[];
     date: string;
     node?: PoiDto | JourneyDto;
-    journey?: JourneyDto;
 };
 
 export type JourneyDto = {
     id?: string;
     title?: string;
     description?: string;
-    start?: AddressDto;
-    end?: AddressDto;
+    start?: Locality;
+    end?: Locality;
     thumbnail?: string;
     creator?: UserDto;
     experienceCount?: number;
-    experiences?: ExperienceDto[];
+    experiences?: {
+        data: Experience;
+        poi: PointOfInterest;
+    }[];
     experienceAggregate?: { count: number };
     experiencesConnection?: {
         edges: {

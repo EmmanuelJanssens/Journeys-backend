@@ -11,9 +11,11 @@ import {
     JourneyDto,
     UpdateJourneyDto
 } from "src/data/dtos";
+import { Journey } from "src/model/Journey";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { JourneyModel } from "src/neo4j/neo4j.utils";
 import * as uuid from "uuid";
+import { CreateJourneyDto } from "./dto/CreateJourneyDto";
 @Injectable()
 export class JourneyService {
     constructor(private readonly neo4jService: Neo4jService) {}
@@ -155,21 +157,18 @@ export class JourneyService {
     }
 
     async addJourney(
-        journeyData: JourneyDto,
+        journeyData: CreateJourneyDto,
         user_uid: string
-    ): Promise<string> {
+    ): Promise<Journey> {
         const connections = [];
-        journeyData.experiencesConnection.edges.forEach((element) => {
-            const id = element.node.id;
-            delete element.node;
-
+        journeyData.experiences?.forEach((experience) => {
             connections.push({
                 where: {
                     node: {
-                        id: id
+                        id: experience.poi.uid
                     }
                 },
-                edge: element
+                edge: experience.data
             });
         });
         const input = {
@@ -178,37 +177,14 @@ export class JourneyService {
                     id: uuid.v4(),
                     title: journeyData.title,
                     description: journeyData.description,
+                    visibility: journeyData.visibility,
                     start: {
-                        connectOrCreate: {
-                            where: {
-                                node: {
-                                    placeId: journeyData.start.placeId
-                                }
-                            },
-                            onCreate: {
-                                node: {
-                                    address: journeyData.start.address,
-                                    longitude: journeyData.start.longitude,
-                                    latitude: journeyData.start.latitude
-                                }
-                            }
-                        }
+                        longitude: journeyData.start.longitude,
+                        latitude: journeyData.start.latitude
                     },
                     end: {
-                        connectOrCreate: {
-                            where: {
-                                node: {
-                                    placeId: journeyData.end.placeId
-                                }
-                            },
-                            onCreate: {
-                                node: {
-                                    address: journeyData.end.address,
-                                    longitude: journeyData.end.longitude,
-                                    latitude: journeyData.end.latitude
-                                }
-                            }
-                        }
+                        longitude: journeyData.end.longitude,
+                        latitude: journeyData.end.latitude
                     },
                     experiences: {
                         connect: connections
@@ -328,19 +304,18 @@ export class JourneyService {
         const resultUpdated = await this.journey.update(input);
         return resultUpdated;
     }
-    async updateExperience(experienceData: ExperienceDto, user_uid: string) {
-        if (experienceData.journey == undefined) {
-            throw new BadRequestException("Journey not included");
-        }
+    async updateExperience(
+        experienceData: ExperienceDto,
+        user_uid: string,
+        journey_id: string
+    ) {
         const node = experienceData.node;
-        const journeyId = experienceData.journey.id;
 
         delete experienceData.node;
-        delete experienceData.journey;
 
         const updated = await this.journey.update({
             where: {
-                id: journeyId,
+                id: journey_id,
                 creator: { uid: user_uid }
             },
             update: {
@@ -435,14 +410,14 @@ export class JourneyService {
         }
         return updated.journeys[0];
     }
-    async addExperience(journeyData: ExperienceDto, user_uid: string) {
-        if (journeyData.journey == undefined) {
-            throw new BadRequestException("Journey not included");
-        }
-
+    async addExperience(
+        journeyData: ExperienceDto,
+        user_uid: string,
+        journey_id: string
+    ) {
         const added = await this.journey.update({
             where: {
-                id: journeyData.journey.id,
+                id: journey_id,
                 creator: { uid: user_uid }
             },
             update: {
