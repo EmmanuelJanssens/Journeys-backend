@@ -4,6 +4,7 @@ import { UpdateUserDto } from "./dto/User.update.dto";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { JourneyModel, UserModel } from "src/neo4j/neo4j.utils";
 import { UserInfo } from "@firebase/auth-types";
+import { Journey } from "src/model/Journey";
 
 @Injectable()
 export class UserService {
@@ -86,32 +87,52 @@ export class UserService {
     async getMyJourneys(user_uid: string) {
         const selectionSet = gql`
             {
-                id
-                title
-                description
-                thumbnail
-                start {
-                    latitude
-                    longitude
-                }
-                end {
-                    latitude
-                    longitude
+                username
+                journeysConnection {
+                    edges {
+                        node {
+                            id
+                            title
+                            description
+                            thumbnail
+                            start {
+                                latitude
+                                longitude
+                            }
+                            end {
+                                latitude
+                                longitude
+                            }
+                        }
+                    }
                 }
             }
         `;
 
-        const condition = { creator: { uid: user_uid } };
+        const condition = { uid: user_uid };
 
-        const result = await this.neo4jService.readGql(
-            this.journey,
+        const result: any = await this.neo4jService.readGql(
+            this.user,
             selectionSet,
             condition
         );
+        const journeys: Journey[] = [];
+        if (result && result.length > 0) {
+            result[0].journeysConnection.edges.forEach((edge) => {
+                journeys.push(edge.node);
+            });
+        }
 
-        return result;
+        return journeys;
     }
 
+    async getMyPois(username: string) {
+        const selectionSet = gql`
+        {
+
+        }
+        `;
+    }
     async getMyExperiences(username: string) {
         const selectionSet = gql`
             {

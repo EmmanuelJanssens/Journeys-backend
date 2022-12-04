@@ -7,7 +7,8 @@ import {
     Post,
     Put,
     Query,
-    UseGuards
+    UseGuards,
+    Request
 } from "@nestjs/common";
 import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
 import { PointOfInterest } from "src/model/PointOfInterest";
@@ -33,8 +34,8 @@ export class PoiController {
 
     @UseGuards(FirebaseAuthGuard)
     @Post()
-    async createPoi(@Body() poiData: PointOfInterest) {
-        const result = await this.poiService.addPoi(poiData);
+    async createPoi(@Body() poiData: PointOfInterest, @Request() req) {
+        const result = await this.poiService.addPoi(poiData, req.user.uid);
         return result;
     }
 

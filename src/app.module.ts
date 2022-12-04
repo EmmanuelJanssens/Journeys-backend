@@ -15,6 +15,7 @@ import { Neo4jService } from "./neo4j/neo4j.service";
 import { GraphQLSchema } from "graphql";
 import { ConfigModule } from "@nestjs/config";
 import { FirebaseModule } from "./firebase/firebase.module";
+import { TagModule } from "./tag/tag.module";
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -46,7 +47,8 @@ import { FirebaseModule } from "./firebase/firebase.module";
         PoiModule,
         JourneyModule,
         UserModule,
-        AuthenticationModule
+        AuthenticationModule,
+        TagModule
     ],
     controllers: [AuthenticationController],
     providers: [

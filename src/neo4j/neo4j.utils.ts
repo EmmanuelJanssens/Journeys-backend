@@ -17,6 +17,7 @@ const typeDefs = gql`
                 properties: "Experience"
             )
         tags: [Tag!]! @relationship(type: "IS_TYPE", direction: OUT)
+        creator: [User!]! @relationship(type: "CREATED", direction: IN)
     }
 
     type Journey {
@@ -46,6 +47,7 @@ const typeDefs = gql`
         citation: String
         completed: Boolean
         journeys: [Journey!]! @relationship(type: "CREATED", direction: OUT)
+        pois: [POI!]! @relationship(type: "CREATED", direction: OUT)
         experiences: [POI!]!
             @relationship(
                 type: "EXPERIENCE"

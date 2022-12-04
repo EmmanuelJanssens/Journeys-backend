@@ -81,7 +81,7 @@ export class PoiService {
         return results;
     }
 
-    async addPoi(poiData: PointOfInterest) {
+    async addPoi(poiData: PointOfInterest, userUid: string) {
         const selectionSet = gql`
             {
                 id
@@ -92,7 +92,6 @@ export class PoiService {
                 }
             }
         `;
-        console.log(poiData);
         const id = uuid.v4();
 
         const connectOrCreate = [];
@@ -110,13 +109,23 @@ export class PoiService {
                 }
             });
         });
-        const created = await this.poi.create({
+        await this.poi.create({
+            selectionSet: selectionSet,
             input: [
                 {
                     id: id,
                     name: poiData.name,
                     location: poiData.location,
-                    tags: { connectOrCreate }
+                    tags: { connectOrCreate },
+                    creator: {
+                        connect: {
+                            where: {
+                                node: {
+                                    uid: userUid
+                                }
+                            }
+                        }
+                    }
                 }
             ]
         });
