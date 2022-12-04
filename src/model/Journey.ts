@@ -1,10 +1,11 @@
-import { User } from "@firebase/auth-types";
 import { ApiProperty } from "@nestjs/swagger";
+import { Experience } from "./Experience";
 import { Locality } from "./Locality";
-
+import { PointOfInterest } from "./PointOfInterest";
+import { User } from "./User";
 export class Journey {
     @ApiProperty()
-    uid: string;
+    id: string;
 
     @ApiProperty()
     title: string;
@@ -23,4 +24,16 @@ export class Journey {
 
     @ApiProperty()
     end: Locality;
+
+    // @ApiProperty()
+    // nbExperiences: number;
+
+    @ApiProperty()
+    experiences: {
+        data: Experience;
+        poi: PointOfInterest;
+    }[];
+
+    @ApiProperty()
+    creator: string;
 }

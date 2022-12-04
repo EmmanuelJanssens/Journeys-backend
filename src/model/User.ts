@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PickType } from "@nestjs/swagger";
 
 export class User {
     @ApiProperty()
@@ -12,4 +12,12 @@ export class User {
 
     @ApiProperty()
     lastname: string;
+
+    @ApiProperty()
+    completed: boolean;
 }
+
+export class Authenticated extends PickType(User, [
+    "username",
+    "uid"
+] as const) {}

@@ -5,12 +5,11 @@ import {
 } from "@nestjs/common";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { UserModel } from "src/neo4j/neo4j.utils";
-import { UserDto } from "src/data/dtos";
 import { JwtService } from "@nestjs/jwt";
 
 import { FirebaseService } from "src/firebase/firebase.service";
-import { Authenticated, Register } from "./dto/Authenticated.interface";
-import { User } from "@firebase/auth-types";
+import { User, Authenticated } from "src/model/User";
+import { RegisterUserDo } from "./dto/RegisterUserDto";
 @Injectable()
 export class AuthenticationService {
     constructor(
@@ -21,7 +20,7 @@ export class AuthenticationService {
 
     private user = UserModel(this.neo4jService.getOGM());
     async validateUser(username: string): Promise<Authenticated> {
-        const foundUser: UserDto = (
+        const foundUser: User = (
             await this.user.find({
                 where: { username: username }
             })
@@ -36,18 +35,18 @@ export class AuthenticationService {
         throw new UnauthorizedException("Something went wrong");
     }
 
-    async registerWithProvider(user: Register) {
-        const result: UserDto[] = await this.user.find({
+    async registerWithProvider(user: User) {
+        const result: User[] = await this.user.find({
             where: { uid: user.uid }
         });
         if (result.length == 0) {
-            const created: { users: UserDto[] } = await this.user.create({
+            const created: { users: User[] } = await this.user.create({
                 input: [
                     {
                         uid: user.uid,
                         username: user.username,
                         firstName: user.firstname,
-                        lastName: user.lastName,
+                        lastName: user.lastname,
                         visibility: "public",
                         completed: false
                     }
@@ -56,7 +55,7 @@ export class AuthenticationService {
             if (created.users.length > 1 || created.users.length == 0)
                 throw new BadRequestException();
             const result: Authenticated = {
-                username: user.email,
+                username: user.username,
                 uid: user.uid
             };
             return result;
@@ -65,29 +64,22 @@ export class AuthenticationService {
         }
     }
 
-    async register(userData: UserDto) {
-        const result: UserDto[] = await this.user.find({
-            where: { username: userData.username }
+    async register(user: RegisterUserDo) {
+        const result: User[] = await this.user.find({
+            where: { username: user.username }
         });
         if (result.length >= 1) {
             throw new Error("User already exists");
         } else {
-            const fbUser = await this.fbService.getApp().auth().createUser({
-                email: userData.email,
-                emailVerified: false,
-                displayName: userData.username,
-                password: userData.password
-            });
-
-            const created: { users: UserDto[] } = await this.user.create({
+            const created: { users: User[] } = await this.user.create({
                 input: [
                     {
-                        uid: fbUser.uid,
-                        username: userData.username,
-                        firstName: userData.firstName,
-                        lastName: userData.lastName,
+                        uid: user.uid,
+                        username: user.username,
+                        firstName: user.firstname,
+                        lastName: user.lastname,
                         visibility: "public",
-                        completed: true
+                        completed: user.completed
                     }
                 ]
             });
@@ -95,7 +87,7 @@ export class AuthenticationService {
             if (created.users.length > 1 || created.users.length == 0)
                 throw new BadRequestException();
 
-            return fbUser;
+            return created.users[0];
         }
     }
 }

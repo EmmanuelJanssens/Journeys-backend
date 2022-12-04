@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { gql } from "apollo-server-express";
-import { UserDto } from "src/data/dtos";
 import { UpdateUserDto } from "./dto/User.update.dto";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { JourneyModel, UserModel } from "src/neo4j/neo4j.utils";
@@ -92,17 +91,12 @@ export class UserService {
                 description
                 thumbnail
                 start {
-                    address
                     latitude
                     longitude
                 }
                 end {
-                    address
                     latitude
                     longitude
-                }
-                creator {
-                    username
                 }
             }
         `;

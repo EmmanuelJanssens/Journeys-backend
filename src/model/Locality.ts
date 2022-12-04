@@ -6,10 +6,4 @@ export class Locality {
 
     @ApiProperty()
     latitude: number;
-
-    @ApiProperty()
-    name: string;
-
-    @ApiProperty()
-    uid: string;
 }

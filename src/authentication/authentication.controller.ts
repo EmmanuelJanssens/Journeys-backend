@@ -4,12 +4,14 @@ import {
     Body,
     BadRequestException,
     HttpCode,
+    UseGuards,
     Logger
 } from "@nestjs/common";
-import { UserDto } from "src/data/dtos";
+import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
+import { User } from "src/model/User";
 
 import { AuthenticationService } from "./authentication.service";
-import { Register } from "./dto/Authenticated.interface";
+import { RegisterUserDo } from "./dto/RegisterUserDto";
 @Controller("authentication")
 export class AuthenticationController {
     constructor(private readonly authService: AuthenticationService) {}
@@ -21,24 +23,25 @@ export class AuthenticationController {
 
     @HttpCode(201)
     @Post("register")
-    async register(@Body() data: UserDto) {
-        if (data.username == undefined || data.password == undefined)
+    async register(@Body() data: RegisterUserDo) {
+        if (data.username == undefined || data.uid == undefined)
             throw new BadRequestException("Fields missing");
         try {
             const result = this.authService.register(data);
             return result;
         } catch (e) {
+            Logger.debug(e);
             throw e;
         }
     }
 
-    @Post("provider")
-    async registerWithProvider(@Body() user: Register) {
-        try {
-            const result = await this.authService.registerWithProvider(user);
-            return result;
-        } catch (e) {
-            return undefined;
-        }
-    }
+    // @Post("provider")
+    // async registerWithProvider(@Body() user: Register) {
+    //     try {
+    //         const result = await this.authService.registerWithProvider(user);
+    //         return result;
+    //     } catch (e) {
+    //         return undefined;
+    //     }
+    // }
 }

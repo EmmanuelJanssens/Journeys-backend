@@ -3,7 +3,7 @@ export type Authenticated = {
     uid: string;
 };
 
-export type Register = {
+export type RegisterUserDo = {
     username: string;
     email: string;
     uid: string;

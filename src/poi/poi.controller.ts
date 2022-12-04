@@ -9,36 +9,31 @@ import {
     Query,
     UseGuards
 } from "@nestjs/common";
-import { PoiDto, SearchPoiDto } from "src/data/dtos";
 import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
+import { PointOfInterest } from "src/model/PointOfInterest";
+import { FindPoisArroundDto } from "./dto/SearchPoiDto";
 import { PoiService } from "./poi.service";
 
 @Controller("poi")
 export class PoiController {
     constructor(private readonly poiService: PoiService) {}
 
-    @Get("count")
-    async getPoisCountBetween(@Query() query: SearchPoiDto) {
-        const result = await this.poiService.getPoisCountBetween(
-            Number(query.lat),
-            Number(query.lng),
-            Number(query.radius)
-        );
+    @Get("search/:query/count")
+    async getPoisCountBetween(@Param("query") params: string) {
+        const query = JSON.parse(params) as FindPoisArroundDto;
+        const result = await this.poiService.getPoisCountBetween(query);
         return result;
     }
-    @Get()
-    async getPois(@Query() query: SearchPoiDto) {
-        const result = await this.poiService.getPois(
-            Number(query.radius),
-            Number(query.lat),
-            Number(query.lng)
-        );
+    @Get("search/:query")
+    async getPoisBetweeen(@Param("query") params: string) {
+        const query = JSON.parse(params) as FindPoisArroundDto;
+        const result = await this.poiService.getPois(query);
         return result;
     }
 
     @UseGuards(FirebaseAuthGuard)
     @Post()
-    async createPoi(@Body() poiData: PoiDto) {
+    async createPoi(@Body() poiData: PointOfInterest) {
         const result = await this.poiService.addPoi(poiData);
         return result;
     }
@@ -51,7 +46,7 @@ export class PoiController {
     }
 
     @Post("/thumbnail")
-    async getThumbnail(@Body() poiData: PoiDto) {
+    async getThumbnail(@Body() poiData: PointOfInterest) {
         const result = await this.poiService.getRandomThumbnail(poiData);
         return result;
     }

@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { gql } from "apollo-server-express";
-import { ExperienceDto, JourneyDto, PoiDto, UserDto } from "src/data/dtos";
+import { UpdateJourneyDto } from "src/journey/dto/UpdateJourneyDto";
+import { PointOfInterest } from "src/model/PointOfInterest";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { PoiModel } from "src/neo4j/neo4j.utils";
 import * as uuid from "uuid";
+import { FindPoisArroundDto } from "./dto/SearchPoiDto";
 @Injectable()
 export class PoiService {
     constructor(private readonly neo4jService: Neo4jService) {}
@@ -11,7 +13,7 @@ export class PoiService {
     private poi = PoiModel(this.neo4jService.getOGM());
 
     private logger = new Logger(PoiService.name);
-    async getPoisCountBetween(lat: number, lng: number, radius: number) {
+    async getPoisCountBetween(pois: FindPoisArroundDto) {
         let result = 0;
 
         const selectionSet = gql`
@@ -22,11 +24,8 @@ export class PoiService {
 
         const condition = {
             location_LT: {
-                point: {
-                    latitude: lat,
-                    longitude: lng
-                },
-                distance: radius
+                point: pois.location,
+                distance: pois.radius
             }
         };
         const req = await this.neo4jService.readGql(
@@ -37,18 +36,7 @@ export class PoiService {
         result = (req as any[]).length;
         return result;
     }
-    async getPois(
-        radius: number,
-        lat: number,
-        lng: number,
-        page?: number,
-        pageSize?: number
-    ) {
-        const options = {
-            limit: pageSize,
-            offset: page
-        };
-
+    async getPois(search: FindPoisArroundDto) {
         const selectionSet = gql`
             {
                 id
@@ -67,19 +55,15 @@ export class PoiService {
 
         const condition = {
             location_LT: {
-                point: {
-                    latitude: lat,
-                    longitude: lng
-                },
-                distance: radius
+                point: search.location,
+                distance: search.radius
             }
         };
 
         const results = await this.neo4jService.readGql<any[]>(
             this.poi,
             selectionSet,
-            condition,
-            options
+            condition
         );
 
         results.forEach((p) => {
@@ -89,21 +73,15 @@ export class PoiService {
             ) {
                 p.thumbnail = p.journeysConnection.edges[0].images[0];
             } else {
-                p.thumbnail =
-                    "https://firebasestorage.googleapis.com/v0/b/journeys-v2/o/images%2Fplaceholder.png?alt=media";
+                p.thumbnail = "/assets/placeholder.png";
             }
             delete p.journeysConnection;
         });
 
-        const result = {
-            data: results,
-            pageInfo: {}
-        };
-
-        return result;
+        return results;
     }
 
-    async addPoi(poiData: PoiDto) {
+    async addPoi(poiData: PointOfInterest) {
         const selectionSet = gql`
             {
                 id
@@ -116,15 +94,29 @@ export class PoiService {
         `;
         console.log(poiData);
         const id = uuid.v4();
+
+        const connectOrCreate = [];
+        poiData.tags.forEach((tag) => {
+            connectOrCreate.push({
+                where: {
+                    node: {
+                        type: tag
+                    }
+                },
+                onCreate: {
+                    node: {
+                        _emptyInput: false
+                    }
+                }
+            });
+        });
         const created = await this.poi.create({
             input: [
                 {
                     id: id,
                     name: poiData.name,
-                    location: {
-                        latitude: poiData.location.latitude,
-                        longitude: poiData.location.longitude
-                    }
+                    location: poiData.location,
+                    tags: { connectOrCreate }
                 }
             ]
         });
@@ -172,21 +164,31 @@ export class PoiService {
                         order
                     }
                 }
+                tags {
+                    type
+                }
             }
         `;
 
         const condition = {
             id
         };
-        const result = await this.neo4jService.readGql<PoiDto>(
+        const result = await this.neo4jService.readGql(
             this.poi,
             selectionSet,
             condition
         );
+        const poi = result[0];
 
-        return result[0];
+        poi.experiences = [];
+        result[0].journeysConnection.edges.forEach((experience) => {
+            delete experience.node;
+            poi.experiences.push(experience);
+        });
+        delete poi.journeysConnection;
+        return poi;
     }
-    async getRandomThumbnail(poi: PoiDto) {
+    async getRandomThumbnail(poi: PointOfInterest) {
         const selectionSet = gql`
             {
                 journeysConnection {
@@ -274,7 +276,7 @@ export class PoiService {
                             id: experience.node.id,
                             title: experience.node.title,
                             creator: experience.node.creator
-                        } as JourneyDto,
+                        } as UpdateJourneyDto,
                         experience: {
                             date: experience.date,
                             description: experience.description,

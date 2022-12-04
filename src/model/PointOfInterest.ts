@@ -3,11 +3,14 @@ import { Locality } from "./Locality";
 
 export class PointOfInterest {
     @ApiProperty()
-    uid: string;
+    id: string;
 
     @ApiProperty()
     name: string;
 
     @ApiProperty()
     location: Locality;
+
+    @ApiProperty()
+    tags: string[];
 }

@@ -1,9 +1,7 @@
 import {
-    BadRequestException,
     Body,
     Controller,
     Get,
-    HttpException,
     Param,
     Post,
     Put,
@@ -14,7 +12,6 @@ import { UpdateUserDto } from "./dto/User.update.dto";
 import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
 import { UserService } from "./user.service";
 import { UserInfo } from "@firebase/auth-types";
-import { Logger } from "@nestjs/common/services";
 @Controller("user")
 export class UserController {
     constructor(private userService: UserService) {}

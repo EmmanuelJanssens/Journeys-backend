@@ -16,6 +16,7 @@ const typeDefs = gql`
                 direction: IN
                 properties: "Experience"
             )
+        tags: [Tag!]! @relationship(type: "IS_TYPE", direction: OUT)
     }
 
     type Journey {
@@ -32,7 +33,7 @@ const typeDefs = gql`
                 direction: OUT
                 properties: "Experience"
             )
-        creator: User! @relationship(type: "CREATED", direction: IN)
+        creator: User @relationship(type: "CREATED", direction: IN)
     }
 
     type User {
@@ -53,9 +54,14 @@ const typeDefs = gql`
             )
     }
 
+    type Tag {
+        type: ID! @id
+        pois: [POI!]! @relationship(type: "IS_TYPE", direction: IN)
+    }
+
     interface Experience @relationshipProperties {
         title: String
-        date: DateTime
+        date: DateTime!
         description: String
         images: [String]
         order: Int
@@ -91,3 +97,4 @@ export const createDriver = async (config: Neo4jConfig): Promise<AppConfig> => {
 export const PoiModel = (ogm: OGM) => ogm.model("POI");
 export const JourneyModel = (ogm: OGM) => ogm.model("Journey");
 export const UserModel = (ogm: OGM) => ogm.model("User");
+export const TagModel = (ogm: OGM) => ogm.model("Tag");
