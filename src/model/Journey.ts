@@ -28,6 +28,7 @@ export class Journey {
     // @ApiProperty()
     // nbExperiences: number;
 
+    nExperiences: number;
     @ApiProperty()
     experiences: {
         data: Experience;

@@ -16,6 +16,7 @@ import { UpdateJourneyDto } from "./dto/UpdateJourneyDto";
 import { Experience } from "src/model/Experience";
 import { PointOfInterest } from "src/model/PointOfInterest";
 import { Point } from "neo4j-driver";
+import { create } from "domain";
 @Injectable()
 export class JourneyService {
     constructor(private readonly neo4jService: Neo4jService) {}
@@ -177,6 +178,7 @@ export class JourneyService {
         user_uid: string
     ): Promise<Journey> {
         const connections = [];
+
         journey.experiences.forEach((experience) => {
             connections.push({
                 where: {

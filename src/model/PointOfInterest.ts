@@ -1,5 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { gql } from "apollo-server-core";
+import { Point } from "neo4j-driver";
 import { Experience } from "./Experience";
 import { Locality } from "./Locality";
 
@@ -16,9 +17,14 @@ export class PointOfInterest {
     @ApiProperty()
     tags: string[];
 
+    nExperiences: number;
+
     experiences: Experience[];
+
+    thumbnail: string;
 }
 
+export class PartialPOI extends PartialType(PointOfInterest) {}
 type PoiResponse = {
     id: string;
     name: string;

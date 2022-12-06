@@ -1,7 +1,12 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { gql } from "apollo-server-express";
 import { UpdateJourneyDto } from "src/journey/dto/UpdateJourneyDto";
-import { PointOfInterest } from "src/model/PointOfInterest";
+import { Experience } from "src/model/Experience";
+import {
+    PartialPOI,
+    PointOfInterest,
+    transformPoiResponse
+} from "src/model/PointOfInterest";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { PoiModel } from "src/neo4j/neo4j.utils";
 import * as uuid from "uuid";
@@ -50,6 +55,9 @@ export class PoiService {
                         images
                     }
                 }
+                tags {
+                    type
+                }
             }
         `;
 
@@ -65,8 +73,9 @@ export class PoiService {
             selectionSet,
             condition
         );
-
         results.forEach((p) => {
+            const tags = [];
+
             if (
                 p.journeysConnection.edges?.length > 0 &&
                 p.journeysConnection.edges[0].images?.length > 0
@@ -75,7 +84,11 @@ export class PoiService {
             } else {
                 p.thumbnail = "/assets/placeholder.png";
             }
+            p.tags.forEach((t) => {
+                tags.push(t.type);
+            });
             delete p.journeysConnection;
+            p.tags = tags;
         });
 
         return results;
@@ -89,6 +102,9 @@ export class PoiService {
                 location {
                     longitude
                     latitude
+                }
+                tags {
+                    type
                 }
             }
         `;
@@ -110,7 +126,6 @@ export class PoiService {
             });
         });
         await this.poi.create({
-            selectionSet: selectionSet,
             input: [
                 {
                     id: id,
@@ -135,7 +150,8 @@ export class PoiService {
             },
             selectionSet: selectionSet
         });
-        return res[0];
+
+        return transformPoiResponse(res[0]);
     }
 
     async updatePoi(poiData) {
@@ -153,11 +169,6 @@ export class PoiService {
         const selectionSet = gql`
             {
                 id
-                name
-                location {
-                    latitude
-                    longitude
-                }
                 journeysConnection(
                     where: { node: { creator: { visibility: "public" } } }
                 ) {
@@ -165,16 +176,8 @@ export class PoiService {
                         date
                         description
                         images
-                        node {
-                            id
-                            title
-                        }
                         title
-                        order
                     }
-                }
-                tags {
-                    type
                 }
             }
         `;
@@ -187,17 +190,13 @@ export class PoiService {
             selectionSet,
             condition
         );
-        const poi = result[0];
-
-        poi.experiences = [];
+        const experiences: Experience[] = [];
         result[0].journeysConnection.edges.forEach((experience) => {
-            delete experience.node;
-            poi.experiences.push(experience);
+            experiences.push(experience);
         });
-        delete poi.journeysConnection;
-        return poi;
+        return experiences;
     }
-    async getRandomThumbnail(poi: PointOfInterest) {
+    async getRandomThumbnail(poi: PartialPOI) {
         const selectionSet = gql`
             {
                 journeysConnection {

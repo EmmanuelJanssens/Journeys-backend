@@ -10,6 +10,12 @@ const typeDefs = gql`
         name: String!
         location: Point!
         poi: [POI!]! @relationship(type: "CREATED", direction: OUT)
+        experiences: [Journey!]!
+            @relationship(
+                type: "EXPERIENCE"
+                direction: IN
+                properties: "Experience"
+            )
         journeys: [Journey!]!
             @relationship(
                 type: "EXPERIENCE"
@@ -43,7 +49,7 @@ const typeDefs = gql`
         firstName: String
         lastName: String
         banner: [String!]
-        visibility: String
+        visibility: String!
         citation: String
         completed: Boolean
         journeys: [Journey!]! @relationship(type: "CREATED", direction: OUT)

@@ -5,6 +5,7 @@ import {
     Param,
     Post,
     Put,
+    Query,
     Request,
     UseGuards
 } from "@nestjs/common";
@@ -18,10 +19,20 @@ export class UserController {
 
     @Get("journeys")
     @UseGuards(FirebaseAuthGuard)
-    async getMyJourneys(@Request() req) {
+    async getMyJourneys(@Request() req, @Query() query) {
         try {
             const user = req.user as UserInfo;
-            const result = await this.userService.getMyJourneys(user.uid);
+            const pages = Number(query.pages);
+            const cursor =
+                query.cursor.length == 0 || query.cursor == "undefined"
+                    ? null
+                    : query.cursor;
+
+            const result = await this.userService.getMyJourneys(
+                user.uid,
+                pages,
+                cursor
+            );
             return result;
         } catch (er) {
             throw er;
@@ -40,6 +51,21 @@ export class UserController {
         }
     }
 
+    @Get("/stats")
+    @UseGuards(FirebaseAuthGuard)
+    async getMyStats(@Request() req) {
+        const user = req.user as UserInfo;
+        const result = await this.userService.getStats(user.uid);
+        return result;
+    }
+
+    @Get("pois")
+    @UseGuards(FirebaseAuthGuard)
+    async getMyPois(@Request() req) {
+        const user = req.user as UserInfo;
+        const result = await this.userService.getMyCreatedPois(user.uid);
+        return result;
+    }
     @Get()
     @UseGuards(FirebaseAuthGuard)
     async getData(@Request() req) {
@@ -76,13 +102,13 @@ export class UserController {
         }
     }
 
-    @Get(":username/journeys")
-    async getUserJourneys(@Param("username") username: string) {
-        try {
-            const result = await this.userService.getMyJourneys(username);
-            return result;
-        } catch (er) {
-            throw er;
-        }
-    }
+    // @Get(":username/journeys")
+    // async getUserJourneys(@Param("username") username: string) {
+    //     try {
+    //         const result = await this.userService.getMyJourneys(username);
+    //         return result;
+    //     } catch (er) {
+    //         throw er;
+    //     }
+    // }
 }

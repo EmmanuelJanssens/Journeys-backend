@@ -1,4 +1,4 @@
-import { ApiProperty, PickType } from "@nestjs/swagger";
+import { ApiProperty, PartialType, PickType } from "@nestjs/swagger";
 import { Journey } from "./Journey";
 import { PointOfInterest } from "./PointOfInterest";
 
@@ -18,10 +18,15 @@ export class User {
     @ApiProperty()
     completed: boolean;
 
+    nJourneys: number;
+    nExperiences: number;
+    nPois: number;
+
     journeys: Journey[];
     pois: PointOfInterest[];
 }
 
+export class PartialUser extends PartialType(User) {}
 export class Authenticated extends PickType(User, [
     "username",
     "uid"
