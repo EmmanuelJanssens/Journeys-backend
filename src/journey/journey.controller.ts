@@ -59,17 +59,10 @@ export class JourneyController {
 
     @Get(":id")
     async getJourneyExperiences(
-        @Param("id") id: string,
-        @Query() query: any
+        @Param("id") id: string
     ): Promise<JourneyExperiences> {
-        const nexp = query.experiences;
-        const cursorStr = query.cursor === undefined ? null : query.cursor;
         try {
-            const result = await this.journeyService.getJourneyExperiences(
-                id,
-                cursorStr,
-                nexp
-            );
+            const result = await this.journeyService.getJourneyExperiences(id);
             return result;
         } catch (er) {
             throw er;

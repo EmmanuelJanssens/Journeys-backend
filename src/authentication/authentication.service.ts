@@ -19,21 +19,6 @@ export class AuthenticationService {
     ) {}
 
     private user = UserModel(this.neo4jService.getOGM());
-    async validateUser(username: string): Promise<Authenticated> {
-        const foundUser: User = (
-            await this.user.find({
-                where: { username: username }
-            })
-        )[0];
-        if (foundUser) {
-            const result: Authenticated = {
-                username: foundUser.username,
-                uid: foundUser.uid
-            };
-            return result;
-        }
-        throw new UnauthorizedException("Something went wrong");
-    }
 
     async registerWithProvider(user: User) {
         const result: User[] = await this.user.find({
@@ -66,7 +51,7 @@ export class AuthenticationService {
 
     async register(user: RegisterUserDo) {
         const result: User[] = await this.user.find({
-            where: { username: user.username }
+            where: { uid: user.uid }
         });
         if (result.length >= 1) {
             throw new Error("User already exists");

@@ -22,11 +22,19 @@ export class UserController {
     async getMyJourneys(@Request() req, @Query() query) {
         try {
             const user = req.user as UserInfo;
-            const pages = Number(query.pages);
-            const cursor =
-                query.cursor.length == 0 || query.cursor == "undefined"
-                    ? null
-                    : query.cursor;
+            let pages = null;
+            let cursor = null;
+            console.log(query);
+            if (query.pages)
+                pages =
+                    query.pages == "undefined"
+                        ? undefined
+                        : Number(query.pages);
+            if (query.cursor)
+                cursor =
+                    query.cursor == "undefined" || query.cursor.length == 0
+                        ? null
+                        : query.cursor;
 
             const result = await this.userService.getMyJourneys(
                 user.uid,

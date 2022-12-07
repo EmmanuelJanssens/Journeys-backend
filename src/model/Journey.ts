@@ -16,6 +16,8 @@ export class Journey {
     @ApiProperty()
     thumbnail: string;
 
+    thumbnails: string[];
+
     @ApiProperty()
     visibility: "public" | "private";
 

@@ -16,11 +16,6 @@ import { RegisterUserDo } from "./dto/RegisterUserDto";
 export class AuthenticationController {
     constructor(private readonly authService: AuthenticationService) {}
 
-    @Post("login")
-    async login(@Body() user) {
-        return this.authService.validateUser(user.username);
-    }
-
     @HttpCode(201)
     @Post("register")
     async register(@Body() data: RegisterUserDo) {

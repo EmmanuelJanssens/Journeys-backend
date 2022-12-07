@@ -9,23 +9,19 @@ import { Journey } from "src/model/Journey";
 import { JourneyExperiences } from "src/model/JourneyExperiences";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { JourneyModel } from "src/neo4j/neo4j.utils";
-import * as uuid from "uuid";
 import { CreateJourneyDto } from "./dto/CreateJourneyDto";
 import { UpdateJourneyExperiencesDto } from "./dto/UpdateJourneyExperiencesDto";
 import { UpdateJourneyDto } from "./dto/UpdateJourneyDto";
 import { Experience } from "src/model/Experience";
 import { PointOfInterest } from "src/model/PointOfInterest";
-import { Point } from "neo4j-driver";
-import { create } from "domain";
+
 @Injectable()
 export class JourneyService {
     constructor(private readonly neo4jService: Neo4jService) {}
 
     private journey = JourneyModel(this.neo4jService.getOGM());
 
-    private logger = new Logger(JourneyService.name);
     async getJourneys(page, pageSize) {
-        // limit by then by default
         const options = {
             limit: pageSize,
             offset: page
@@ -78,12 +74,8 @@ export class JourneyService {
         };
         return result;
     }
-    async getJourneyExperiences(
-        id,
-        cursor,
-        experiences
-    ): Promise<JourneyExperiences> {
-        const nexp = Number(experiences) ? Number(experiences) : 10;
+
+    async getJourneyExperiences(id): Promise<JourneyExperiences> {
         const selectionSet = gql`
             {
                 id
@@ -324,7 +316,8 @@ export class JourneyService {
             }
         };
         const resultUpdated = await this.journey.update(input);
-        return resultUpdated;
+        console.log(resultUpdated);
+        return resultUpdated.journeys[0];
     }
 
     async updateExperience(

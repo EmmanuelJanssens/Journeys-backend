@@ -6,8 +6,7 @@ import { JourneyModel, UserModel } from "src/neo4j/neo4j.utils";
 import { UserInfo } from "@firebase/auth-types";
 import { Journey } from "src/model/Journey";
 import { PoiService } from "src/poi/poi.service";
-import { PartialPOI, PointOfInterest } from "src/model/PointOfInterest";
-import { stringify } from "querystring";
+import { PartialPOI } from "src/model/PointOfInterest";
 
 @Injectable()
 export class UserService {
@@ -119,18 +118,27 @@ export class UserService {
             selectionSet,
             where
         });
-        let experiences = 0;
-        const pois = result[0].poisAggregate.count;
-        const journeys = result[0].journeysAggregate.count;
-        result[0].journeysConnection.edges.forEach((edge) => {
-            experiences += edge.node.experiencesAggregate.count;
-        });
 
-        return {
-            experiences,
-            pois,
-            journeys
-        };
+        if (result.length > 0) {
+            let experiences = 0;
+            const pois = result[0].poisAggregate.count;
+            const journeys = result[0].journeysAggregate.count;
+            result[0].journeysConnection.edges.forEach((edge) => {
+                experiences += edge.node.experiencesAggregate.count;
+            });
+
+            return {
+                experiences,
+                pois,
+                journeys
+            };
+        } else {
+            return {
+                experiences: 0,
+                pois: 0,
+                journeys: 0
+            };
+        }
     }
     async getMyJourneys(user_uid: string, pages: number, cursor: string) {
         const selectionSet = gql`
@@ -160,6 +168,12 @@ export class UserService {
                             experiencesAggregate{
                                 count
                             }
+                            experiencesConnection{
+                                edges{
+                                        images
+                                }
+
+                            }
                         }
                     }
                     pageInfo {
@@ -178,33 +192,50 @@ export class UserService {
             selectionSet,
             condition
         );
-
-        const journeys: Journey[] = [];
-        let totalExperiences = 0;
-        if (result && result.length > 0) {
-            result[0].journeysConnection.edges.forEach((edge) => {
-                totalExperiences += edge.node.experiencesAggregate.count;
-                edge.node.nExperiences = edge.node.experiencesAggregate.count;
-                journeys.push(edge.node);
-            });
-        }
-        const paged: {
-            total: number;
-            totalExperiences: number;
-            journeys: Journey[];
-            pageInfo: {
-                hasNextPage: boolean;
-                hasPreviousPage: boolean;
-                startCursor: string;
-                endCursor: string;
+        if (result.length > 0) {
+            const journeys: Journey[] = [];
+            let totalExperiences = 0;
+            if (result && result.length > 0) {
+                result[0].journeysConnection.edges.forEach((edge) => {
+                    totalExperiences += edge.node.experiencesAggregate.count;
+                    edge.node.nExperiences =
+                        edge.node.experiencesAggregate.count;
+                    edge.node.thumbnails = [];
+                    edge.node.experiencesConnection.edges.forEach((exp) => {
+                        edge.node.thumbnails = edge.node.thumbnails.concat(
+                            ...exp.images
+                        );
+                    });
+                    journeys.push(edge.node);
+                });
+            }
+            const paged: {
+                total: number;
+                totalExperiences: number;
+                journeys: Journey[];
+                pageInfo: {
+                    hasNextPage: boolean;
+                    hasPreviousPage: boolean;
+                    startCursor: string;
+                    endCursor: string;
+                };
+            } = {
+                total: result[0].journeysAggregate.count,
+                totalExperiences,
+                journeys,
+                pageInfo: result[0].journeysConnection.pageInfo
             };
-        } = {
-            total: result[0].journeysAggregate.count,
-            totalExperiences,
-            journeys,
-            pageInfo: result[0].journeysConnection.pageInfo
+            return paged;
+        }
+        return {
+            total: 0,
+            totalExperiences: 0,
+            journeys: [],
+            pageInfo: {
+                hasNextPage: false,
+                hasPreviousPage: false
+            }
         };
-        return paged;
     }
 
     async getMyCreatedPois(userUid: string) {
