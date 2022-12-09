@@ -3,6 +3,28 @@ import { Neo4jConfig } from "./neo4j-config.interface";
 import { OGM } from "@neo4j/graphql-ogm";
 import { Neo4jGraphQL } from "@neo4j/graphql";
 import { gql } from "apollo-server-express";
+import { Field, ID, ObjectType } from "@nestjs/graphql";
+
+@ObjectType()
+export class Location {
+    @Field((type) => Number)
+    latitude: number;
+
+    @Field((type) => Number)
+    longitude: number;
+}
+
+@ObjectType()
+export class POI {
+    @Field((type) => ID)
+    id: number;
+
+    @Field()
+    name: string;
+
+    @Field()
+    location: Location;
+}
 
 const typeDefs = gql`
     type POI {
@@ -78,11 +100,9 @@ const typeDefs = gql`
 
 export type AppConfig = {
     driver: Driver;
-    ogm: OGM;
-    schema: Neo4jGraphQL;
 };
 
-export const createDriver = async (config: Neo4jConfig): Promise<AppConfig> => {
+export const createDriver = async (config: Neo4jConfig): Promise<Driver> => {
     //create neo4j driver
     const driver: Driver = neo4j.driver(
         `${config.scheme}://${config.host}:${config.port}`,
@@ -90,16 +110,7 @@ export const createDriver = async (config: Neo4jConfig): Promise<AppConfig> => {
     );
     await driver.getServerInfo();
 
-    //create OGM
-    const ogm = new OGM({ typeDefs, driver });
-    await ogm.init();
-
-    //create neo4j schema
-    const neo4j_scheme = new Neo4jGraphQL({
-        typeDefs,
-        driver
-    });
-    return { driver, ogm, schema: neo4j_scheme };
+    return driver;
 };
 
 export const PoiModel = (ogm: OGM) => ogm.model("POI");

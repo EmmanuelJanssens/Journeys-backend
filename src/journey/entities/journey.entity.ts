@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Experience } from "./Experience";
-import { Locality } from "./Locality";
-import { PointOfInterest } from "./PointOfInterest";
-import { User } from "./User";
+import { Locality } from "src/entities/Locality";
+import { PointOfInterest } from "src/point-of-interest/entities/point-of-interest.entity";
+import { Experience } from "src/entities/experience.entity";
+
 export class Journey {
     @ApiProperty()
     id: string;
@@ -27,16 +27,12 @@ export class Journey {
     @ApiProperty()
     end: Locality;
 
-    // @ApiProperty()
-    // nbExperiences: number;
-
-    nExperiences: number;
-    @ApiProperty()
-    experiences: {
-        data: Experience;
-        poi: PointOfInterest;
-    }[];
-
     @ApiProperty()
     creator: string;
+
+    @ApiProperty()
+    experiences: {
+        experience: Experience;
+        poi: PointOfInterest;
+    }[];
 }

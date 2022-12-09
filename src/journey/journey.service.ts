@@ -1,465 +1,91 @@
-import {
-    BadRequestException,
-    Injectable,
-    Logger,
-    NotFoundException
-} from "@nestjs/common";
-import { gql } from "apollo-server-express";
-import { Journey } from "src/model/Journey";
-import { JourneyExperiences } from "src/model/JourneyExperiences";
+import { Injectable } from "@nestjs/common";
 import { Neo4jService } from "src/neo4j/neo4j.service";
-import { JourneyModel } from "src/neo4j/neo4j.utils";
-import { CreateJourneyDto } from "./dto/CreateJourneyDto";
-import { UpdateJourneyExperiencesDto } from "./dto/UpdateJourneyExperiencesDto";
-import { UpdateJourneyDto } from "./dto/UpdateJourneyDto";
-import { Experience } from "src/model/Experience";
-import { PointOfInterest } from "src/model/PointOfInterest";
+import { JourneyRepository } from "./journey.repository";
+import { Journey } from "./entities/journey.entity";
+import { Experience } from "src/entities/experience.entity";
+import { CreateJourneyDto } from "./dto/create-journey.dto";
+import { PointOfInterest } from "src/point-of-interest/entities/point-of-interest.entity";
 
 @Injectable()
 export class JourneyService {
-    constructor(private readonly neo4jService: Neo4jService) {}
+    private journeyRepository: JourneyRepository;
 
-    private journey = JourneyModel(this.neo4jService.getOGM());
+    constructor(private readonly neo4jService: Neo4jService) {
+        this.journeyRepository = new JourneyRepository(this.neo4jService);
+    }
 
-    async getJourneys(page, pageSize) {
-        const options = {
-            limit: pageSize,
-            offset: page
+    private transformPos(journey: any): Journey {
+        journey.start = {
+            latitude: journey.start.x,
+            longitude: journey.start.y
         };
 
-        const selectionSet = gql`
-            {
-                id
-                title
-                description
-                start {
-                    address
-                    latitude
-                    longitude
-                }
-                end {
-                    address
-                    latitude
-                    longitude
-                }
-                creator {
-                    uid
-                    username
-                }
-            }
-        `;
-
-        const count = await this.journey.aggregate({
-            aggregate: {
-                count: 1
-            }
-        });
-        const journeys: Journey[] = await this.journey.find({
-            selectionSet,
-            options
-        });
-
-        if (journeys.length <= 0) {
-            throw new BadRequestException();
-        }
-        const result = {
-            data: journeys,
-            pageInfo: {
-                totalCount: count.count,
-                pageCount: Math.ceil(count.count / pageSize),
-                currentPage: page,
-                hasNextPage: (page + 1) * pageSize < count.count,
-                first: page === 0
-            }
+        journey.end = {
+            latitude: journey.end.x,
+            longitude: journey.end.y
         };
+
+        return journey;
+    }
+
+    async findOne(id: string) {
+        const result = await this.journeyRepository.get(id);
+
+        return this.transformPos(result);
+    }
+
+    async create(user: string, createJourney: CreateJourneyDto) {
+        const result = await this.journeyRepository.create(user, createJourney);
+        return this.transformPos(result);
+    }
+
+    async update(user: string, journey: Journey) {
+        const result = await this.journeyRepository.update(user, journey);
+        return this.transformPos(result);
+    }
+
+    async delete(user: string, journey: string) {
+        const result = await this.journeyRepository.delete(user, journey);
         return result;
     }
 
-    async getJourneyExperiences(id): Promise<JourneyExperiences> {
-        const selectionSet = gql`
-            {
-                id
-                title
-                description
-                thumbnail
-                creator {
-                    uid
-                    username
-                }
-                start {
-                    latitude
-                    longitude
-                }
-                end {
-                    latitude
-                    longitude
-                }
-                experiencesAggregate {
-                    count
-                }
-                experiencesConnection {
-                    edges {
-                        title
-                        date
-                        description
-                        images
-                        order
-                        node {
-                            id
-                            name
-                            location {
-                                latitude
-                                longitude
-                            }
-                        }
-                    }
-                    pageInfo {
-                        startCursor
-                        endCursor
-                        hasNextPage
-                        hasPreviousPage
-                    }
-                }
-                experiencesAggregate {
-                    count
-                }
-            }
-        `;
-
-        const condition = { id };
-        const response: any[] = await this.neo4jService.readGql(
-            this.journey,
-            selectionSet,
-            condition
-        );
-        if (response.length > 1) {
-            throw new BadRequestException(
-                "An error occured while fetching journeys"
-            );
-        } else if (response.length === 0) {
-            throw new NotFoundException("Journey not found");
-        } else {
-            const result = new JourneyExperiences();
-            result.nbExperiences = response[0].experiencesAggregate.count;
-            result.start = response[0].start;
-            result.end = response[0].end;
-            result.thumbnail = response[0].thumbnail;
-            result.title = response[0].title;
-            result.id = response[0].id;
-            result.experiences = [];
-            response[0].experiencesConnection.edges.forEach((edge) => {
-                const node = edge.node;
-                delete edge.node;
-                result.experiences.push({
-                    data: edge,
-                    poi: node
-                });
-            });
-
-            result.experiences.sort(
-                (a, b) =>
-                    new Date(a.data.date).getTime() -
-                    new Date(b.data.date).getTime()
-            );
-            return result;
-        }
+    async getExperiences(user: string, journey: string) {
+        const result = await this.journeyRepository.getExperiences(journey);
+        return this.transformPos(result);
     }
 
-    async addJourney(
-        journey: CreateJourneyDto,
-        user_uid: string
-    ): Promise<Journey> {
-        const connections = [];
-
-        journey.experiences.forEach((experience) => {
-            connections.push({
-                where: {
-                    node: {
-                        id: experience.poi.id
-                    }
-                },
-                edge: experience.data
-            });
-        });
-        const input = {
-            input: [
-                {
-                    id: journey.id,
-                    title: journey.title,
-                    description: journey.description,
-                    visibility: journey.visibility,
-                    start: journey.start,
-                    end: journey.end,
-                    experiences: {
-                        connect: connections
-                    },
-                    creator: {
-                        connect: {
-                            where: {
-                                node: {
-                                    uid: user_uid
-                                }
-                            }
-                        }
-                    }
-                }
-            ]
-        };
-        const created = await this.journey.create(input);
-        return created.journeys[0];
-    }
-    async updateJourneyExperiences(
-        data: UpdateJourneyExperiencesDto,
-        userId: string,
-        journeyId: string
-    ) {
-        const experiences = [];
-        const connected = [];
-        const updated = [];
-
-        if (data.connected?.length > 0) {
-            data.connected?.forEach((poiConnected) => {
-                connected.push({
-                    where: {
-                        node: {
-                            id: poiConnected.poi.id
-                        }
-                    },
-                    edge: poiConnected.data
-                });
-            });
-        }
-
-        experiences.push({
-            connect: connected,
-            disconnect: [
-                {
-                    where: {
-                        node: {
-                            id_IN: data.deleted
-                        }
-                    }
-                }
-            ],
-            update: updated
-        });
-
-        if (data.updated?.length > 0) {
-            data.updated.forEach((poiUpdated) => {
-                experiences.push({
-                    update: {
-                        edge: poiUpdated.data
-                    },
-                    where: {
-                        node: {
-                            id: poiUpdated.poi.id
-                        }
-                    }
-                });
-            });
-        }
-
-        const input = {
-            update: {
-                experiences: experiences,
-                title: data.journey.title,
-                description: data.journey.description,
-                thumbnail: data.journey.thumbnail
-            },
-            where: {
-                id: journeyId,
-                creator: {
-                    uid: userId
-                }
-            }
-        };
-
-        const resultUpdated = await this.journey.update(input);
-        return resultUpdated.journeys[0];
+    async getExperience(journey: string, poi: string) {
+        const result = await this.journeyRepository.getExperience(journey, poi);
+        return result;
     }
 
-    async updateJourney(
-        journey: UpdateJourneyDto,
-        user_uid: string
-    ): Promise<UpdateJourneyDto> {
-        const selectionSet = gql`
-            {
-                journeys {
-                    id
-                    title
-                    description
-                    thumbnail
-                    start {
-                        latitude
-                        longitude
-                    }
-                    end {
-                        latitude
-                        longitude
-                    }
-                }
-            }
-        `;
-
-        const input = {
-            selectionSet: selectionSet,
-            update: {
-                title: journey.title,
-                description: journey.description,
-                thumbnail: journey.thumbnail
-            },
-            where: {
-                id: journey.id,
-                creator: {
-                    uid: user_uid
-                }
-            }
-        };
-        const resultUpdated = await this.journey.update(input);
-        console.log(resultUpdated);
-        return resultUpdated.journeys[0];
-    }
-
-    async updateExperience(
-        data: Experience,
-        poi: string,
-        journey_id: string,
-        user_uid: string
-    ) {
-        const updated = await this.journey.update({
-            where: {
-                id: journey_id,
-                creator: { uid: user_uid }
-            },
-            update: {
-                experiences: [
-                    {
-                        update: {
-                            edge: data
-                        },
-                        where: {
-                            node: {
-                                id: poi
-                            }
-                        }
-                    }
-                ]
-            }
-        });
-
-        if (updated.length == 0) {
-            throw new BadRequestException();
-        }
-        return updated.journeys[0];
-    }
-
-    async removeExperience(id: string, poi: string, user_uid: string) {
-        const selectionSet = gql`
-            {
-                journeys {
-                    id
-                    title
-                    description
-                    thumbnail
-                    start {
-                        latitude
-                        longitude
-                    }
-                    end {
-                        latitude
-                        longitude
-                    }
-                }
-            }
-        `;
-        const updated = await this.journey.update({
-            selectionSet: selectionSet,
-            where: {
-                id: id,
-                creator: { uid: user_uid }
-            },
-            disconnect: {
-                experiences: {
-                    where: {
-                        node: {
-                            id: poi
-                        }
-                    }
-                }
-            }
-        });
-        if (updated.length == 0) {
-            throw new BadRequestException();
-        }
-        return updated.journeys[0];
-    }
     async addExperience(
-        body: {
-            data: Experience;
-            poi: PointOfInterest;
-        },
-        user_uid: string,
-        journey_id: string
+        user: string,
+        journey: string,
+        poi: string,
+        experience: Experience
     ) {
-        const added = await this.journey.update({
-            where: {
-                id: journey_id,
-                creator: { uid: user_uid }
-            },
-            update: {
-                experiences: [
-                    {
-                        where: {
-                            node: {
-                                id: body.poi.id
-                            }
-                        },
-                        edge: body.data
-                    }
-                ]
-            }
-        });
+        const result = await this.journeyRepository.addExperience(
+            user,
+            journey,
+            poi,
+            experience
+        );
 
-        if (added.length == 0) {
-            throw new BadRequestException();
-        }
-        return added;
+        return result;
     }
 
-    async setImage(journey: string, poi: string, img: string, user: string) {
-        const input = {
-            update: {
-                experiences: {
-                    update: {
-                        edge: {
-                            images_PUSH: img
-                        }
-                    },
-                    where: {
-                        node: {
-                            id: poi
-                        }
-                    }
-                }
-            },
-            where: {
-                id: journey,
-                creator: {
-                    uid: user
-                }
-            }
-        };
-
-        const result = await this.journey.update(input);
-        return result.journeys[0];
-    }
-    async deleteJourney(id: string) {
-        if (id === undefined || id === "")
-            throw new BadRequestException("Journey not found");
-        const deleted = await this.journey.delete({
-            where: { id: id }
-        });
-
-        return deleted;
+    async addExperiences(
+        journey: string,
+        experiences: {
+            experience: Experience;
+            poi: PointOfInterest;
+        }[]
+    ) {
+        const result = await this.journeyRepository.addExperiences(
+            journey,
+            experiences
+        );
+        return this.transformPos(result);
     }
 }

@@ -11,134 +11,91 @@ import {
     Delete,
     Patch
 } from "@nestjs/common";
-import { UserInfo } from "@firebase/auth-types";
-import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
+import { Experience } from "src/entities/experience.entity";
+import { PointOfInterest } from "src/point-of-interest/entities/point-of-interest.entity";
 import { JourneyService } from "./journey.service";
-import { ApiBody, ApiCreatedResponse } from "@nestjs/swagger";
-import { Journey } from "src/model/Journey";
-import { CreateJourneyDto } from "./dto/CreateJourneyDto";
-import { UpdateJourneyExperiencesDto } from "./dto/UpdateJourneyExperiencesDto";
-import { JourneyExperiences } from "src/model/JourneyExperiences";
-import { UpdateJourneyDto } from "./dto/UpdateJourneyDto";
-import { Experience } from "src/model/Experience";
+
 @Controller("journey")
 export class JourneyController {
     constructor(private journeyService: JourneyService) {}
 
-    @UseGuards(FirebaseAuthGuard)
-    @Post()
-    @ApiCreatedResponse({
-        description: "The journey has been successfully created",
-        type: Journey
-    })
-    @ApiBody({ description: "creating a journey", type: CreateJourneyDto })
-    async createOne(@Body() body: CreateJourneyDto, @Request() req) {
-        const user = req.user as UserInfo;
-        const res = await this.journeyService.addJourney(body, user.uid);
-        return res;
-    }
-
-    @UseGuards(FirebaseAuthGuard)
-    @Patch()
-    async updateDetails(
-        @Body() body: Journey,
-        @Request() req
-    ): Promise<UpdateJourneyDto> {
-        const user = req.user as UserInfo;
-
-        const res = await this.journeyService.updateJourney(body, user.uid);
-        return res;
-    }
-
-    @UseGuards(FirebaseAuthGuard)
-    @Delete(":id")
-    async deleteJourney(@Param("id") id: string) {
-        const res = await this.journeyService.deleteJourney(id);
-        return res;
-    }
-
     @Get(":id")
-    async getJourneyExperiences(
-        @Param("id") id: string
-    ): Promise<JourneyExperiences> {
-        try {
-            const result = await this.journeyService.getJourneyExperiences(id);
-            return result;
-        } catch (er) {
-            throw er;
-        }
+    async findOne(@Param("id") id: string) {
+        console.log(id);
+        const result = await this.journeyService.findOne(id);
+        return result;
     }
 
-    @UseGuards(FirebaseAuthGuard)
-    @Put(":id/experiences")
-    async updateJourneysExperiences(
-        @Body() body: UpdateJourneyExperiencesDto,
-        @Param("id") id: string,
-        @Request() req
-    ): Promise<Journey> {
-        const user = req.user as UserInfo;
+    @Post()
+    async createOne(@Body() journey, @Request() req) {
+        const result = await this.journeyService.create(
+            "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
+            journey
+        );
+        return result;
+    }
 
-        const res = await this.journeyService.updateJourneyExperiences(
-            body,
-            user.uid,
+    @Patch()
+    async update(@Body() journey, @Request() req) {
+        const result = await this.journeyService.update(
+            "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
+            journey
+        );
+        return result;
+    }
+
+    @Delete(":id")
+    async remove(@Param("id") id: string, @Request() req) {
+        const result = await this.journeyService.delete(
+            "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
             id
         );
-        return res;
+
+        return result;
     }
 
-    @UseGuards(FirebaseAuthGuard)
-    @Put(":id/experience/:poi")
-    async updateExperience(
-        @Body() body: Experience,
+    @Get(":id/experiences")
+    async getExperiences(@Param("id") id: string) {
+        const result = await this.journeyService.getExperiences("", id);
+        return result;
+    }
+
+    @Post(":id/experiences")
+    async addExperiences(
         @Param("id") id: string,
-        @Param("poi") poi: string,
-        @Request() req
-    ) {
-        const user = req.user as UserInfo;
-        const res = await this.journeyService.updateExperience(
-            body,
-            poi,
-            id,
-            user.uid
-        );
-        return res;
-    }
-
-    @UseGuards(FirebaseAuthGuard)
-    @Delete(":id/experience/:poi")
-    async removeExperience(
-        @Param("id") id: string,
-        @Param("poi") poi: string,
-        @Request() req
-    ) {
-        const user = req.user as UserInfo;
-
-        const res = await this.journeyService.removeExperience(
-            id,
-            poi,
-            user.uid
-        );
-        return res;
-    }
-
-    @Put(":id/experience/:poi/image")
-    @UseGuards(FirebaseAuthGuard)
-    async setImage(
         @Body()
-        body: {
-            url: string;
-        },
-        @Param("id") journey: string,
+        experiences: {
+            experience: Experience;
+            poi: PointOfInterest;
+        }[]
+    ) {
+        console.log(experiences);
+        const result = await this.journeyService.addExperiences(
+            id,
+            experiences
+        );
+        return result;
+    }
+
+    @Post(":id/experience/:poi")
+    async addExperience(
+        @Param("id") id: string,
         @Param("poi") poi: string,
+        @Body() experience: Experience,
         @Request() req
     ) {
-        const user = req.user as UserInfo;
-        const res = await this.journeyService.setImage(
-            journey,
+        const result = await this.journeyService.addExperience(
+            "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
+            id,
             poi,
-            body.url,
-            user.uid
+            experience
         );
-        return res;
+        return result;
+    }
+
+    @Get(":id/experience/:poi")
+    async getExperience(@Param("id") id: string, @Param("poi") poi: string) {
+        const result = await this.journeyService.getExperience(id, poi);
+        return result;
     }
 }
