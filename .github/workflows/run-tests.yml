@@ -1,0 +1,9 @@
+name: Run Unit tests
+run-name: ${{github.actor}} is executing Unit tests
+on: [push]
+jobs:
+    Unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+        - run: npm run lint
+        - run: npm run test
