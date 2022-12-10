@@ -5,11 +5,15 @@ import { PointOfInterestService } from "./point-of-interest.service";
 describe("PointOfInterestController", () => {
     let controller: PointOfInterestController;
 
+    const mockPOIService = {};
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             controllers: [PointOfInterestController],
             providers: [PointOfInterestService]
-        }).compile();
+        })
+            .overrideProvider(PointOfInterestService)
+            .useValue(mockPOIService)
+            .compile();
 
         controller = module.get<PointOfInterestController>(
             PointOfInterestController

@@ -9,6 +9,7 @@ describe("JourneyService", () => {
     let neo4jService: Neo4jService;
     let testingModule: TestingModule;
 
+    const mockNeo4jService = {};
     const mockRepository = {
         create: jest.fn().mockImplementation((user, dto) => {
             return {
@@ -76,28 +77,18 @@ describe("JourneyService", () => {
 
     beforeAll(async () => {
         testingModule = await Test.createTestingModule({
-            imports: [
-                Neo4jModule.forRoot({
-                    host: "localhost",
-                    password: "password",
-                    scheme: "neo4j",
-                    port: 7687,
-                    username: "neo4j"
-                })
-            ],
             providers: [JourneyService, Neo4jService, JourneyRepository]
         })
             .overrideProvider(JourneyRepository)
             .useValue(mockRepository)
+            .overrideProvider(Neo4jService)
+            .useValue(mockNeo4jService)
             .compile();
 
         service = await testingModule.resolve<JourneyService>(JourneyService);
         neo4jService = await testingModule.resolve<Neo4jService>(Neo4jService);
     });
 
-    afterAll(() => {
-        neo4jService.getDriver().close();
-    });
     it("should be defined", () => {
         expect(service).toBeDefined();
         expect(service.getRepository()).toBeDefined();

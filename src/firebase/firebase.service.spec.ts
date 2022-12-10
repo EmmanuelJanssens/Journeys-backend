@@ -7,7 +7,10 @@ describe("FirebaseService", () => {
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [FirebaseService]
-        }).compile();
+        })
+            .overrideProvider(FirebaseService)
+            .useValue({})
+            .compile();
 
         service = module.get<FirebaseService>(FirebaseService);
     });

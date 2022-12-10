@@ -4,12 +4,15 @@ import { JourneyService } from "./journey.service";
 
 describe("JourneyController", () => {
     let controller: JourneyController;
-
+    const mockJourneyService = {};
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             controllers: [JourneyController],
             providers: [JourneyService]
-        }).compile();
+        })
+            .overrideProvider(JourneyService)
+            .useValue(mockJourneyService)
+            .compile();
 
         controller = module.get<JourneyController>(JourneyController);
     });
