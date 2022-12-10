@@ -30,6 +30,8 @@ export class Journey {
     @ApiProperty()
     creator: string;
 
+    experiencesAggregate: { count: number };
+
     @ApiProperty()
     experiences: {
         experience: Experience;

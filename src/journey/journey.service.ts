@@ -5,6 +5,7 @@ import { Journey } from "./entities/journey.entity";
 import { Experience } from "src/entities/experience.entity";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { PointOfInterest } from "src/point-of-interest/entities/point-of-interest.entity";
+import { UpdateJourneyDto } from "./dto/update-journey.dto";
 
 @Injectable()
 export class JourneyService {
@@ -39,7 +40,13 @@ export class JourneyService {
         return this.transformPos(result);
     }
 
-    async update(user: string, journey: Journey) {
+    async update(user: string, journey: UpdateJourneyDto) {
+        const found = await this.findOne(journey.id);
+        journey.description = journey.description || found.description;
+        journey.title = journey.title || found.title;
+        journey.thumbnail = journey.thumbnail || found.thumbnail;
+        journey.visibility = journey.visibility || found.visibility;
+
         const result = await this.journeyRepository.update(user, journey);
         return this.transformPos(result);
     }

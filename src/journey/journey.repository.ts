@@ -16,22 +16,37 @@ export class JourneyRepository extends IRepository<JourneyDto> {
         super();
     }
 
-    get(id: string): Promise<Journey | undefined> {
-        return this.neo4jService
-            .read(
-                "MATCH(journey:Journey{id: $id})-[:CREATED]-(user:User) RETURN journey, user",
-                {
-                    id: id
-                }
-            )
-            .then((result: QueryResult) => {
-                if (result.records.length == 0) throw Error("Nothing found");
-                const journey = result.records[0].get("journey").properties;
-                journey.creator =
-                    result.records[0].get("user").properties.username;
-                journey.experiences = [];
+    async get(journey: string): Promise<Journey | undefined> {
+        const getJourneyQuery = `
+            MATCH (journey:Journey{id: $journey})-[:CREATED]-(user:User) RETURN journey, user.username AS creator`;
+        const getExpCountQuery = `
+            MATCH (journey:Journey{id: $journey})-[n:EXPERIENCE]->(:POI) RETURN COUNT(n) as count`;
+        const params = { journey };
+
+        const session = this.neo4jService.getReadSession();
+
+        let transaction: Journey;
+        try {
+            transaction = await session.executeRead(async (tw) => {
+                const journeyResult = await tw.run(getJourneyQuery, params);
+                const journey = journeyResult.records[0].get("journey")
+                    .properties as Journey;
+                const creator = journeyResult.records[0].get("creator");
+                journey.creator = creator;
+                const countResult = await tw.run(getExpCountQuery, params);
+                const count = Number(countResult.records[0].get("count"));
+                journey.experiencesAggregate = {
+                    count: count
+                };
                 return journey;
             });
+
+            session.close();
+            return transaction;
+        } catch (e) {
+            this.logger.debug(e.message);
+            throw Error("could not get journey");
+        }
     }
 
     async create(user: string, journey: CreateJourneyDto): Promise<JourneyDto> {
@@ -111,6 +126,9 @@ export class JourneyRepository extends IRepository<JourneyDto> {
                 }
 
                 createdJourney.experiences = experiences;
+                createdJourney.experiencesAggregate = {
+                    count: experiences.length
+                };
                 return createdJourney;
             });
 
@@ -129,8 +147,9 @@ export class JourneyRepository extends IRepository<JourneyDto> {
             UNWIND $journey as updated
             MATCH (journey:Journey{id: updated.id})<-[:CREATED]-(user: User{uid: $user})
                 SET journey.title = updated.title,
-                SET journey.description = updated.description,
-                SET journey.thumbnail = updated.thumbnail
+                 journey.description = updated.description,
+                 journey.thumbnail = updated.thumbnail,
+                 journey.visibility = updated.visibility
             RETURN journey
     `;
 
@@ -212,7 +231,7 @@ export class JourneyRepository extends IRepository<JourneyDto> {
     getExperiences(journey: string): Promise<Journey | undefined> {
         const query = `
             MATCH(journey: Journey{id : $journey})-[experience:EXPERIENCE]-(poi:POI)
-            RETURN  journey, experience, poi
+            RETURN  journey, experience, poi, COUNT(Experiences) as count
         `;
 
         return this.neo4jService
@@ -278,7 +297,7 @@ export class JourneyRepository extends IRepository<JourneyDto> {
             MATCH (user:User{uid: $user})-[:CREATED]-(journey: Journey{id: $journey})-[rel]-() DELETE rel
         `;
 
-        const delCreatorRelationQuery = `MATCH (user:User{uid: $user})-[:CREATED]-(journey: Journey{id: $journey})`;
+        const delCreatorRelationQuery = `MATCH (user:User{uid: $user})-[rel:CREATED]-(journey: Journey{id: $journey}) DELETE rel`;
 
         const deleteQuery = `MATCH (journey: Journey{id: $journey}) DELETE journey`;
 

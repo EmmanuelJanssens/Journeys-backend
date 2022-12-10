@@ -13,6 +13,7 @@ import {
 } from "@nestjs/common";
 import { Experience } from "src/entities/experience.entity";
 import { PointOfInterest } from "src/point-of-interest/entities/point-of-interest.entity";
+import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyService } from "./journey.service";
 
 @Controller("journey")
@@ -36,7 +37,7 @@ export class JourneyController {
     }
 
     @Patch()
-    async update(@Body() journey, @Request() req) {
+    async update(@Body() journey: UpdateJourneyDto, @Request() req) {
         const result = await this.journeyService.update(
             "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
             journey
