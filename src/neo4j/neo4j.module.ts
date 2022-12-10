@@ -22,7 +22,7 @@ export class Neo4jModule {
                     useFactory: async () => createDriver(config)
                 }
             ],
-            exports: [Neo4jService]
+            exports: [Neo4jService, NEO4J_CONFIG, NEO4J_DRIVER]
         };
     }
 }

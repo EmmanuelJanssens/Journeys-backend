@@ -1,21 +1,22 @@
 import { Injectable } from "@nestjs/common";
-import { Neo4jService } from "src/neo4j/neo4j.service";
+import { Neo4jService } from "neo4j/neo4j.service";
 import { JourneyRepository } from "./journey.repository";
 import { Journey } from "./entities/journey.entity";
-import { Experience } from "src/entities/experience.entity";
+import { Experience } from "entities/experience.entity";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
-import { PointOfInterest } from "src/point-of-interest/entities/point-of-interest.entity";
+import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
+import { JourneyDto } from "./dto/journey.dto";
+import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
 
 @Injectable()
 export class JourneyService {
-    private journeyRepository: JourneyRepository;
+    constructor(private journeyRepository: JourneyRepository) {}
 
-    constructor(private readonly neo4jService: Neo4jService) {
-        this.journeyRepository = new JourneyRepository(this.neo4jService);
+    getRepository() {
+        return this.journeyRepository;
     }
-
-    private transformPos(journey: any): Journey {
+    transformPos(journey: any): JourneyDto {
         journey.start = {
             latitude: journey.start.x,
             longitude: journey.start.y
@@ -40,6 +41,13 @@ export class JourneyService {
         return this.transformPos(result);
     }
 
+    /**
+     * updates a journey, first find journey and set appropriate fields that have to be
+     * updated
+     * @param user
+     * @param journey
+     * @returns
+     */
     async update(user: string, journey: UpdateJourneyDto) {
         const found = await this.findOne(journey.id);
         journey.description = journey.description || found.description;
@@ -78,7 +86,7 @@ export class JourneyService {
             poi,
             experience
         );
-
+        delete result.images;
         return result;
     }
 
@@ -86,7 +94,7 @@ export class JourneyService {
         journey: string,
         experiences: {
             experience: Experience;
-            poi: PointOfInterest;
+            poi: PointOfInterestDto;
         }[]
     ) {
         const result = await this.journeyRepository.addExperiences(

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Experience } from "src/entities/experience.entity";
-import { Locality } from "src/entities/Locality";
+import { Experience } from "entities/experience.entity";
+import { Locality } from "entities/Locality";
 
 export class PointOfInterest {
     @ApiProperty()

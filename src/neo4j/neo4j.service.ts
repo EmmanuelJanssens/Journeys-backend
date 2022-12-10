@@ -1,7 +1,4 @@
-import { Neo4jGraphQL } from "@neo4j/graphql";
-import { Model, OGM } from "@neo4j/graphql-ogm";
 import { Inject, Injectable } from "@nestjs/common";
-import { DocumentNode } from "graphql";
 import {
     Driver,
     QueryResult,
@@ -12,7 +9,6 @@ import {
 } from "neo4j-driver";
 import { Neo4jConfig } from "./neo4j-config.interface";
 import { NEO4J_CONFIG, NEO4J_DRIVER } from "./neo4j.constants";
-import { AppConfig } from "./neo4j.utils";
 
 @Injectable()
 export class Neo4jService {
@@ -68,7 +64,6 @@ export class Neo4jService {
             .run(cypher, params)
             .catch((e) => {
                 session.close();
-                console.log(e);
                 throw new Error("could not write to session");
             })
             .finally(() => session.close());

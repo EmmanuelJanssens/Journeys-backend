@@ -11,8 +11,8 @@ import {
     Delete,
     Patch
 } from "@nestjs/common";
-import { Experience } from "src/entities/experience.entity";
-import { PointOfInterest } from "src/point-of-interest/entities/point-of-interest.entity";
+import { Experience } from "entities/experience.entity";
+import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyService } from "./journey.service";
 
@@ -22,7 +22,6 @@ export class JourneyController {
 
     @Get(":id")
     async findOne(@Param("id") id: string) {
-        console.log(id);
         const result = await this.journeyService.findOne(id);
         return result;
     }
@@ -70,7 +69,6 @@ export class JourneyController {
             poi: PointOfInterest;
         }[]
     ) {
-        console.log(experiences);
         const result = await this.journeyService.addExperiences(
             id,
             experiences

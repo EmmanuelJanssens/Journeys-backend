@@ -1,22 +1,25 @@
 import { QueryResult } from "neo4j-driver";
-import { Experience } from "src/entities/experience.entity";
-import { Neo4jService } from "src/neo4j/neo4j.service";
-import { IRepository } from "src/repository/IRepository";
+import { Experience } from "entities/experience.entity";
+import { Neo4jService } from "neo4j/neo4j.service";
+import { IRepository } from "repository/IRepository";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { JourneyDto } from "./dto/journey.dto";
 import { Journey } from "./entities/journey.entity";
 import * as uuid from "uuid";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
-import { PointOfInterest } from "src/point-of-interest/entities/point-of-interest.entity";
+import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
 import { Logger } from "@nestjs/common/services";
+import { Injectable } from "@nestjs/common/decorators";
+import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
 
+@Injectable()
 export class JourneyRepository extends IRepository<JourneyDto> {
     logger = new Logger(JourneyRepository.name);
     constructor(private readonly neo4jService: Neo4jService) {
         super();
     }
 
-    async get(journey: string): Promise<Journey | undefined> {
+    async get(journey: string): Promise<JourneyDto | undefined> {
         const getJourneyQuery = `
             MATCH (journey:Journey{id: $journey})-[:CREATED]-(user:User) RETURN journey, user.username AS creator`;
         const getExpCountQuery = `
@@ -25,12 +28,12 @@ export class JourneyRepository extends IRepository<JourneyDto> {
 
         const session = this.neo4jService.getReadSession();
 
-        let transaction: Journey;
+        let transaction: JourneyDto;
         try {
             transaction = await session.executeRead(async (tw) => {
                 const journeyResult = await tw.run(getJourneyQuery, params);
                 const journey = journeyResult.records[0].get("journey")
-                    .properties as Journey;
+                    .properties as JourneyDto;
                 const creator = journeyResult.records[0].get("creator");
                 journey.creator = creator;
                 const countResult = await tw.run(getExpCountQuery, params);
@@ -78,7 +81,7 @@ export class JourneyRepository extends IRepository<JourneyDto> {
 
         const session = this.neo4jService.getWriteSession();
 
-        let transaction: Journey;
+        let transaction: JourneyDto;
 
         try {
             //start simple write transaction
@@ -94,7 +97,7 @@ export class JourneyRepository extends IRepository<JourneyDto> {
                     throw Error("Could not create Journey");
                 const createdJourney = createdJourneyResult.records[0].get(
                     "journey"
-                ).properties as Journey;
+                ).properties as JourneyDto;
 
                 const experiences = [];
                 //add experiences to newly created journey
@@ -114,7 +117,7 @@ export class JourneyRepository extends IRepository<JourneyDto> {
                         throw Error("Could not create Experiences");
                     const journeyWithExperiences =
                         journeyWithExperiencesResult.records[0].get("journey")
-                            .properties as Journey;
+                            .properties as JourneyDto;
 
                     journeyWithExperiences.experiences = [];
 
@@ -142,7 +145,7 @@ export class JourneyRepository extends IRepository<JourneyDto> {
         }
     }
 
-    update(user: string, journey: UpdateJourneyDto): Promise<Journey> {
+    update(user: string, journey: UpdateJourneyDto): Promise<JourneyDto> {
         const query = `
             UNWIND $journey as updated
             MATCH (journey:Journey{id: updated.id})<-[:CREATED]-(user: User{uid: $user})
@@ -261,7 +264,7 @@ export class JourneyRepository extends IRepository<JourneyDto> {
         journey: string,
         experiences: {
             experience: Experience;
-            poi: PointOfInterest;
+            poi: PointOfInterestDto;
         }[]
     ): Promise<Journey | undefined> {
         const query = `
