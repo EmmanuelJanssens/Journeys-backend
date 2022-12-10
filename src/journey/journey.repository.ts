@@ -7,18 +7,25 @@ import { JourneyDto } from "./dto/journey.dto";
 import { Journey } from "./entities/journey.entity";
 import * as uuid from "uuid";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
-import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
 import { Logger } from "@nestjs/common/services";
 import { Injectable } from "@nestjs/common/decorators";
 import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
 
+import { BadInputError, CreationError, NotFoundError } from "errors/Errors";
 @Injectable()
 export class JourneyRepository extends IRepository<JourneyDto> {
     logger = new Logger(JourneyRepository.name);
+
     constructor(private readonly neo4jService: Neo4jService) {
         super();
     }
 
+    /**
+     *
+     * @param journey
+     * @returns data object representing a journey
+     * @throws BadInputError, NotFoundError, Error
+     */
     async get(journey: string): Promise<JourneyDto | undefined> {
         const getJourneyQuery = `
             MATCH (journey:Journey{id: $journey})-[:CREATED]-(user:User) RETURN journey, user.username AS creator`;
@@ -27,17 +34,39 @@ export class JourneyRepository extends IRepository<JourneyDto> {
         const params = { journey };
 
         const session = this.neo4jService.getReadSession();
+        if (!session) throw new Error("could not create read session");
+        if (journey.length == 0) throw new BadInputError();
 
         let transaction: JourneyDto;
         try {
             transaction = await session.executeRead(async (tw) => {
                 const journeyResult = await tw.run(getJourneyQuery, params);
+
+                if (journeyResult.records.length == 0)
+                    throw new NotFoundError("Journey not found");
+                if (journeyResult.records.length > 1)
+                    throw new BadInputError("Returned multiple journeys");
+
+                const records = journeyResult.records[0];
+
+                if (
+                    !records.get("journey") ||
+                    !records.get("creator") ||
+                    !records.get("count")
+                )
+                    throw new Error(
+                        "Error requesting fields journey|creator|count"
+                    );
+
                 const journey = journeyResult.records[0].get("journey")
                     .properties as JourneyDto;
                 const creator = journeyResult.records[0].get("creator");
+
                 journey.creator = creator;
+
                 const countResult = await tw.run(getExpCountQuery, params);
                 const count = Number(countResult.records[0].get("count"));
+
                 journey.experiencesAggregate = {
                     count: count
                 };
@@ -48,7 +77,7 @@ export class JourneyRepository extends IRepository<JourneyDto> {
             return transaction;
         } catch (e) {
             this.logger.debug(e.message);
-            throw Error("could not get journey");
+            throw e;
         }
     }
 
@@ -94,7 +123,10 @@ export class JourneyRepository extends IRepository<JourneyDto> {
                 });
 
                 if (createdJourneyResult.records.length == 0)
-                    throw Error("Could not create Journey");
+                    throw new CreationError("Could not create Journey");
+                if (!createdJourneyResult.records[0].get("journey"))
+                    throw new Error("Could not request fields journey");
+
                 const createdJourney = createdJourneyResult.records[0].get(
                     "journey"
                 ).properties as JourneyDto;
@@ -114,7 +146,21 @@ export class JourneyRepository extends IRepository<JourneyDto> {
                     );
 
                     if (journeyWithExperiencesResult.records.length == 0)
-                        throw Error("Could not create Experiences");
+                        throw new CreationError(
+                            "Could not create experiences for journey"
+                        );
+                    if (
+                        !journeyWithExperiencesResult.records[0].get(
+                            "journey"
+                        ) ||
+                        !journeyWithExperiencesResult.records[0].get(
+                            "experience"
+                        )
+                    )
+                        throw new Error(
+                            "Could not request fields journey | experience"
+                        );
+
                     const journeyWithExperiences =
                         journeyWithExperiencesResult.records[0].get("journey")
                             .properties as JourneyDto;
@@ -141,7 +187,7 @@ export class JourneyRepository extends IRepository<JourneyDto> {
         } catch (e) {
             this.logger.debug((e as Error).stack);
             session.close();
-            throw Error("Error while creating, transaction aborted");
+            throw e;
         }
     }
 
@@ -162,7 +208,8 @@ export class JourneyRepository extends IRepository<JourneyDto> {
                 user
             })
             .then((result: QueryResult) => {
-                if (result.records.length == 0) throw Error("could not create");
+                if (result.records.length == 0)
+                    throw new CreationError("could not update");
                 const props = result.records[0].get("journey").properties;
 
                 //transform coordinates properly
@@ -184,14 +231,12 @@ export class JourneyRepository extends IRepository<JourneyDto> {
                 poi
             })
             .then((result: QueryResult) => {
+                if (result.records.length == 0)
+                    throw new NotFoundError("could not find experience");
                 if (result.records.length > 0) {
                     throw Error("bad operation, too many records");
                 }
-                if (result.records.length == 1) {
-                    return result.records[0].get("experince").properties;
-                } else {
-                    return undefined;
-                }
+                return result.records[0].get("experince").properties;
             });
     }
 
@@ -221,8 +266,11 @@ export class JourneyRepository extends IRepository<JourneyDto> {
                 experience
             })
             .then((result: QueryResult) => {
+                if (result.records.length == 0)
+                    throw new CreationError("Could not create experience");
+                if (result.records.length > 1)
+                    throw new Error("Bad request created too many experiences");
                 const props = result.records[0].get("experience");
-
                 return props as Experience;
             });
     }
@@ -240,9 +288,17 @@ export class JourneyRepository extends IRepository<JourneyDto> {
         return this.neo4jService
             .read(query, { journey })
             .then((result: QueryResult) => {
+                if (result.records[0].length == 0)
+                    throw new NotFoundError(
+                        "Could not find anything for journeys|experiences"
+                    );
+                if (!result.records[0].get("journey"))
+                    throw new Error("could not access journey");
                 const journey = result.records[0].get("journey").properties;
                 journey.experiences = [];
                 for (const record of result.records) {
+                    if (!record.get("experience") || !record.get("poi"))
+                        throw new Error("could not access poi|experiences");
                     const experience = record.get("experience").properties;
                     experience.date = new Date(experience.date).toISOString();
                     const poi = record.get("poi").properties;
@@ -285,9 +341,15 @@ export class JourneyRepository extends IRepository<JourneyDto> {
                 experiences
             })
             .then((result: QueryResult) => {
+                if (result.records.length == 0)
+                    throw new CreationError("could not add experiences");
+                if (!result.records[0].get("journey"))
+                    throw new Error("could not access journey");
                 const journey = result.records[0].get("journey").properties;
                 journey.experiences = [];
                 for (const record of result.records) {
+                    if (!record.get("experience"))
+                        throw new Error("could not access poi|experiences");
                     const experience = record.get("experience").properties;
                     journey.experiences.push(experience);
                 }

@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { Neo4jModule } from "./neo4j/neo4j.module";
 import { JwtService } from "@nestjs/jwt";
 import { APP_FILTER } from "@nestjs/core";
-import { GeneralExceptionFilter } from "./error/general-exception.filter";
+import { GeneralExceptionFilter } from "./exceptions/general-exception.filter";
 import { ConfigModule } from "@nestjs/config";
 import { FirebaseModule } from "./firebase/firebase.module";
 import { PointOfInterestModule } from "./point-of-interest/point-of-interest.module";
