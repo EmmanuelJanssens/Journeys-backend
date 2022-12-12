@@ -15,6 +15,7 @@ import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
 import { UserInfo } from "firebase-admin/lib/auth/user-record";
 import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
 import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
+import { EditJourneyExperiencesDto } from "./dto/edit-journey-dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyService } from "./journey.service";
 
@@ -77,6 +78,21 @@ export class JourneyController {
         return result;
     }
 
+    @UseGuards(FirebaseAuthGuard)
+    @Patch(":id/experiences")
+    async updateJourneysExperiences(
+        @Param("id") id: string,
+        @Body() editDto: EditJourneyExperiencesDto,
+        @Request() req
+    ) {
+        const user = req.user as UserInfo;
+        const result = this.journeyService.editJourneysExperiences(
+            user.uid,
+            id,
+            editDto
+        );
+        return result;
+    }
     @Get(":id/experience/:poi")
     async getExperience(@Param("id") id: string, @Param("poi") poi: string) {
         const result = await this.journeyService.getExperience(id, poi);

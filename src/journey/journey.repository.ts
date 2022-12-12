@@ -7,7 +7,7 @@ import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { Logger } from "@nestjs/common/services";
 import { Injectable } from "@nestjs/common/decorators";
 import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
-
+import { EditJourneyExperiencesDto } from "./dto/edit-journey-dto";
 @Injectable()
 export class JourneyRepository {
     logger = new Logger(JourneyRepository.name);
@@ -47,8 +47,8 @@ export class JourneyRepository {
                     id:apoc.create.uuid(),
                     title: new.title,
                     description: new.description,
-                    start: point({srid:4326,x: new.start.latitude, y: new.start.longitude}),
-                    end: point({srid:4326,x: new.end.latitude, y: new.end.longitude})
+                    start: point({srid:4326,x: new.start.longitude, y: new.start.latitude}),
+                    end: point({srid:4326,x: new.end.longitude, y: new.end.latitude})
                 })<-[:CREATED]-(user)
         WITH journey
             UNWIND $experiences as data
@@ -211,5 +211,72 @@ export class JourneyRepository {
         `;
         const params = { user, journey };
         return this.neo4jService.write(delExpRelationQuery, params);
+    }
+
+    editJourneysExperiences(
+        userUid: string,
+        journey: string,
+        editDto: EditJourneyExperiencesDto
+    ) {
+        const session = this.neo4jService.getWriteSession();
+
+        return session
+            .executeWrite(async (tx) => {
+                let journeyResult = await this.getExperiences(journey);
+
+                if (editDto.deleted.length > 0) {
+                    const deleteExperiences = `
+                        UNWIND $delete as toDelete
+                        MATCH (user:User{uid: $userUid})-[:CREATED]-(journey: Journey{id: $journey})-[experience]-(poi: POI{id: toDelete})
+                        DELETE experience
+                        WITH journey
+                        RETURN journey`;
+                    journeyResult = await tx.run(deleteExperiences, {
+                        journey,
+                        userUid,
+                        delete: editDto.deleted
+                    });
+                }
+
+                if (editDto.connected.length > 0) {
+                    const addExperiences = `
+                        MATCH (journey:Journey{id: $journey})<- [:CREATED]-(user:User{uid: $userUid})
+                        UNWIND $experiences as data
+                            MATCH(poi:POI{id: data.poi.id})
+                            MERGE(journey)-[experience:EXPERIENCE{
+                                date : data.experience.date,
+                                title :  data.experience.title,
+                                description :  data.experience.description,
+                                images : data.experience.images
+                            }]->(poi)
+                        RETURN  journey, collect(experience) as experiences, collect(poi) as pois `;
+                    journeyResult = await tx.run(addExperiences, {
+                        journey,
+                        userUid,
+                        experiences: editDto.connected
+                    });
+                }
+
+                if (editDto.updated.length > 0) {
+                    const updateExperiences = `
+                        MATCH (journey:Journey{id: $journey})<-[:CREATED]-(user:User{uid: $userUid})
+                        UNWIND $update as data
+                            MATCH(journey)-[experience:EXPERIENCE]->(poi:POI{id: data.poi.id})
+                            SET experience.date = data.experience.date,
+                                experience.title = data.experience.title,
+                                experience.description = data.experience.description,
+                                experience.images = data.experience.images
+                        RETURN  journey, collect(experience) as experiences, collect(poi) as pois`;
+                    journeyResult = await tx.run(updateExperiences, {
+                        journey,
+                        userUid,
+                        update: editDto.updated
+                    });
+                }
+                return journeyResult;
+            })
+            .finally(() => {
+                session.close();
+            });
     }
 }

@@ -37,11 +37,12 @@ export class PointOfInterestController {
         );
     }
 
-    @Get()
-    findAll(@Query() query) {
+    @Get("search/:query")
+    findAll(@Param("query") query) {
+        const q = JSON.parse(query);
         return this.pointOfInterestService.findAll(
-            { lat: Number(query.lat), lng: Number(query.lng) },
-            Number(query.radius)
+            { lat: q.location.latitude, lng: q.location.longitude },
+            q.radius
         );
     }
 

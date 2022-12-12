@@ -56,7 +56,11 @@ export class PointOfInterestService {
         );
         const poisFound: PointOfInterestDto[] = [];
         queryResult.records.forEach((record) => {
-            const poiNode = new PoiNode(record.get("poi"), record.get("tags"));
+            const poiNode = new PoiNode(
+                record.get("poi"),
+                [],
+                record.get("tags")
+            );
             const foundPoi = poiNode.getProperties() as PointOfInterestDto;
             foundPoi.tags = [];
             poiNode.getTagsRelationships().forEach((rel) => {

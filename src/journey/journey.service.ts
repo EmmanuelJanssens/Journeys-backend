@@ -9,6 +9,7 @@ import { NotFoundError } from "errors/Errors";
 import { JourneyNode } from "./entities/journey.entity";
 import { PointToLocation } from "entities/utilities";
 import { PoiNode } from "point-of-interest/entities/point-of-interest.entity";
+import { EditJourneyExperiencesDto } from "./dto/edit-journey-dto";
 
 @Injectable()
 export class JourneyService {
@@ -206,5 +207,38 @@ export class JourneyService {
             toUpdate
         );
         return queryResult.records[0].get("experience").properties;
+    }
+
+    async editJourneysExperiences(
+        userUid: string,
+        id: string,
+        editDto: EditJourneyExperiencesDto
+    ) {
+        const queryResult =
+            await this.journeyRepository.editJourneysExperiences(
+                userUid,
+                id,
+                editDto
+            );
+        const journeyNode = new JourneyNode(
+            queryResult.records[0].get("journey"),
+            queryResult.records[0].get("experiences")
+        );
+        const updatedJourney = journeyNode.getProperties() as JourneyDto;
+        updatedJourney.experiences = [];
+        journeyNode.getExperiencesRelationships().forEach((rel, idx) => {
+            const poiNode = new PoiNode(
+                queryResult.records[0].get("pois")[idx]
+            );
+            const poi = poiNode.getProperties();
+            poi.location = PointToLocation(poi.location);
+            updatedJourney.experiences.push({
+                experience: rel.properties as Experience,
+                poi: poi
+            });
+        });
+        updatedJourney.start = PointToLocation(journeyNode.getStart());
+        updatedJourney.end = PointToLocation(journeyNode.getEnd());
+        return updatedJourney;
     }
 }
