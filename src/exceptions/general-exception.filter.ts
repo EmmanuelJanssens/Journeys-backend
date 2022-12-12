@@ -23,7 +23,6 @@ export class GeneralExceptionFilter implements ExceptionFilter {
             exception instanceof HttpException
                 ? (exception as HttpException).message
                 : "Unexpected Error";
-
         response.status(status).json({
             statusCode: status,
             timestamp: new Date().toISOString(),

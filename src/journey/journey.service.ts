@@ -6,7 +6,6 @@ import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyDto } from "./dto/journey.dto";
 import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
 import { NotFoundError } from "errors/Errors";
-import { QueryResult } from "neo4j-driver";
 import { JourneyNode } from "./entities/journey.entity";
 import { PointToLocation } from "entities/utilities";
 import { PoiNode } from "point-of-interest/entities/point-of-interest.entity";

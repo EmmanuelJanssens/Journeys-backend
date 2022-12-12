@@ -8,11 +8,14 @@ import {
     Delete,
     Request,
     Query,
-    UseInterceptors
+    UseInterceptors,
+    UseGuards
 } from "@nestjs/common";
 import { PointOfInterestService } from "./point-of-interest.service";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
 import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
+import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
+import { UserInfo } from "firebase-admin/lib/auth/user-record";
 
 @Controller("poi")
 @UseInterceptors(ErrorsInterceptor)
@@ -21,13 +24,15 @@ export class PointOfInterestController {
         private readonly pointOfInterestService: PointOfInterestService
     ) {}
 
+    @UseGuards(FirebaseAuthGuard)
     @Post()
     create(
         @Body() createPointOfInterestDto: CreatePointOfInterestDto,
         @Request() req
     ) {
+        const user = req.user as UserInfo;
         return this.pointOfInterestService.create(
-            "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
+            user.uid,
             createPointOfInterestDto
         );
     }

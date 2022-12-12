@@ -30,6 +30,7 @@ export class PointOfInterestService {
         );
         const poiNode = new PoiNode(
             queryResult.records[0].get("poi"),
+            [],
             queryResult.records[0].get("tags")
         );
         const createdPoi = poiNode.getProperties() as PointOfInterestDto;

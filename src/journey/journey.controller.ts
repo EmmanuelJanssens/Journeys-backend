@@ -4,20 +4,16 @@ import {
     Get,
     Param,
     Post,
-    Query,
     UseGuards,
     Request,
-    Put,
     Delete,
     Patch,
-    UseInterceptors,
-    UseFilters,
-    HttpStatus
+    UseInterceptors
 } from "@nestjs/common";
-import { HttpException, NotFoundException } from "@nestjs/common/exceptions";
 import { Experience, ExperienceDto } from "entities/experience.entity";
 import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
-import { GeneralExceptionFilter } from "exceptions/general-exception.filter";
+import { UserInfo } from "firebase-admin/lib/auth/user-record";
+import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
 import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyService } from "./journey.service";
@@ -33,30 +29,27 @@ export class JourneyController {
         return result;
     }
 
+    @UseGuards(FirebaseAuthGuard)
     @Post()
     async createOne(@Body() journey, @Request() req) {
-        const result = await this.journeyService.create(
-            "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
-            journey
-        );
+        const user = req.user as UserInfo;
+        const result = await this.journeyService.create(user.uid, journey);
         return result;
     }
 
+    @UseGuards(FirebaseAuthGuard)
     @Patch()
     async update(@Body() journey: UpdateJourneyDto, @Request() req) {
-        const result = await this.journeyService.update(
-            "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
-            journey
-        );
+        const user = req.user as UserInfo;
+        const result = await this.journeyService.update(user.uid, journey);
         return result;
     }
 
+    @UseGuards(FirebaseAuthGuard)
     @Delete(":id")
     async remove(@Param("id") id: string, @Request() req) {
-        const result = await this.journeyService.delete(
-            "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
-            id
-        );
+        const user = req.user as UserInfo;
+        const result = await this.journeyService.delete(user.uid, id);
 
         return result;
     }
@@ -67,6 +60,7 @@ export class JourneyController {
         return result;
     }
 
+    @UseGuards(FirebaseAuthGuard)
     @Post(":id/experiences")
     async addExperiences(
         @Param("id") id: string,
@@ -89,6 +83,7 @@ export class JourneyController {
         return result;
     }
 
+    @UseGuards(FirebaseAuthGuard)
     @Post(":id/experience/:poi")
     async addExperience(
         @Param("id") id: string,
@@ -96,8 +91,10 @@ export class JourneyController {
         @Body() experience: Experience,
         @Request() req
     ) {
+        const user = req.user as UserInfo;
+
         const result = await this.journeyService.addExperience(
-            "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
+            user.uid,
             id,
             poi,
             experience
@@ -105,12 +102,12 @@ export class JourneyController {
         return result;
     }
 
+    @UseGuards(FirebaseAuthGuard)
     @Patch(":id/experience/:poi")
     async updateExperience(
         @Param("id") id: string,
         @Param("poi") poi: string,
-        @Body() experience: ExperienceDto,
-        @Request() req
+        @Body() experience: ExperienceDto
     ) {
         const result = await this.journeyService.updateExperience(
             id,

@@ -7,14 +7,16 @@ import {
     Injectable,
     Logger,
     NestInterceptor,
-    NotFoundException
+    NotFoundException,
+    UnauthorizedException
 } from "@nestjs/common";
 import { Observable, catchError, throwError } from "rxjs";
 import {
     BadInputError,
     CreationError,
     NotFoundError,
-    ReadError
+    ReadError,
+    UserPrivateError
 } from "./Errors";
 
 @Injectable()
@@ -24,7 +26,10 @@ export class ErrorsInterceptor implements NestInterceptor {
         return next.handle().pipe(
             catchError((err) => {
                 logger.debug(err.stack);
-
+                if (err instanceof UserPrivateError)
+                    return throwError(
+                        () => new UnauthorizedException(err.message)
+                    );
                 if (err instanceof NotFoundError)
                     return throwError(() => new NotFoundException(err.message));
                 else if (

@@ -1,16 +1,11 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { Neo4jModule } from "neo4j/neo4j.module";
 import { Neo4jService } from "neo4j/neo4j.service";
 import { JourneyService } from "./journey.service";
 import { JourneyRepository } from "./journey.repository";
-import { PointToLocation } from "entities/utilities";
-import { JourneyNode } from "./entities/journey.entity";
-import { Integer, Node, Point } from "neo4j-driver-core";
-import { int, QueryResult } from "neo4j-driver";
+import { int, QueryResult, Node, Point } from "neo4j-driver";
 import { JourneyDto } from "./dto/journey.dto";
 describe("JourneyService", () => {
     let service: JourneyService;
-    let neo4jService: Neo4jService;
     let repository: JourneyRepository;
     let testingModule: TestingModule;
 
@@ -18,7 +13,6 @@ describe("JourneyService", () => {
 
     //mock entire neo4j driver
     jest.mock("neo4j-driver/lib/driver");
-    const mockRepository = {};
     beforeAll(async () => {
         testingModule = await Test.createTestingModule({
             providers: [JourneyService, Neo4jService, JourneyRepository]
@@ -29,7 +23,6 @@ describe("JourneyService", () => {
 
         service = await testingModule.resolve(JourneyService);
         repository = await testingModule.get(JourneyRepository);
-        neo4jService = await testingModule.get(Neo4jService);
     });
 
     it("should be defined", () => {
