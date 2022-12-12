@@ -5,46 +5,43 @@ import {
     Body,
     Patch,
     Param,
-    Delete
+    Delete,
+    Request,
+    Query,
+    UseInterceptors
 } from "@nestjs/common";
 import { PointOfInterestService } from "./point-of-interest.service";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
-import { UpdatePointOfInterestDto } from "./dto/update-point-of-interest.dto";
+import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
 
-@Controller("point-of-interest")
+@Controller("poi")
+@UseInterceptors(ErrorsInterceptor)
 export class PointOfInterestController {
     constructor(
         private readonly pointOfInterestService: PointOfInterestService
     ) {}
 
     @Post()
-    create(@Body() createPointOfInterestDto: CreatePointOfInterestDto) {
-        return this.pointOfInterestService.create(createPointOfInterestDto);
+    create(
+        @Body() createPointOfInterestDto: CreatePointOfInterestDto,
+        @Request() req
+    ) {
+        return this.pointOfInterestService.create(
+            "jSvfATtphxUJ5wYsD4JSdqD17fQ2",
+            createPointOfInterestDto
+        );
     }
 
     @Get()
-    findAll() {
-        return this.pointOfInterestService.findAll();
+    findAll(@Query() query) {
+        return this.pointOfInterestService.findAll(
+            { lat: Number(query.lat), lng: Number(query.lng) },
+            Number(query.radius)
+        );
     }
 
     @Get(":id")
     findOne(@Param("id") id: string) {
-        return this.pointOfInterestService.findOne(+id);
-    }
-
-    @Patch(":id")
-    update(
-        @Param("id") id: string,
-        @Body() updatePointOfInterestDto: UpdatePointOfInterestDto
-    ) {
-        return this.pointOfInterestService.update(
-            +id,
-            updatePointOfInterestDto
-        );
-    }
-
-    @Delete(":id")
-    remove(@Param("id") id: string) {
-        return this.pointOfInterestService.remove(+id);
+        return this.pointOfInterestService.findOne(id);
     }
 }

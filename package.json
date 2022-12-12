@@ -22,6 +22,7 @@
     },
     "dependencies": {
         "@firebase/auth-types": "^0.11.1",
+        "@golevelup/ts-jest": "^0.3.4",
         "@neo4j/graphql": "^3.8.0",
         "@neo4j/graphql-ogm": "^3.8.0",
         "@nestjs/apollo": "^10.1.3",

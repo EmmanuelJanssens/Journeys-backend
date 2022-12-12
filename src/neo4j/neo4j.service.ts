@@ -42,29 +42,31 @@ export class Neo4jService {
         cypher: string,
         params: Record<string, any>,
         database?: string
-    ): Promise<QueryResult | void> {
+    ): Promise<QueryResult> {
         const session = this.getReadSession(database);
         return session
             .run(cypher, params)
-            .catch(() => {
+            .catch((e) => {
                 session.close();
-                throw new Error("could not read from session");
+                throw e;
             })
-            .finally(() => session.close());
+            .finally(() => {
+                session.close();
+            });
     }
 
     write(
         cypher: string,
         params: Record<string, any>,
         database?: string
-    ): Promise<QueryResult | void> {
+    ): Promise<QueryResult> {
         const session = this.getWriteSession(database);
 
         return session
             .run(cypher, params)
             .catch((e) => {
                 session.close();
-                throw new Error("could not write to session");
+                throw e;
             })
             .finally(() => session.close());
     }

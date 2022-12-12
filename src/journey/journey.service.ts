@@ -1,13 +1,15 @@
 import { Injectable } from "@nestjs/common";
-import { Neo4jService } from "neo4j/neo4j.service";
 import { JourneyRepository } from "./journey.repository";
-import { Journey } from "./entities/journey.entity";
-import { Experience } from "entities/experience.entity";
+import { Experience, ExperienceDto } from "entities/experience.entity";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
-import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyDto } from "./dto/journey.dto";
 import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
+import { NotFoundError } from "errors/Errors";
+import { QueryResult } from "neo4j-driver";
+import { JourneyNode } from "./entities/journey.entity";
+import { PointToLocation } from "entities/utilities";
+import { PoiNode } from "point-of-interest/entities/point-of-interest.entity";
 
 @Injectable()
 export class JourneyService {
@@ -16,29 +18,83 @@ export class JourneyService {
     getRepository() {
         return this.journeyRepository;
     }
-    transformPos(journey: any): JourneyDto {
-        journey.start = {
-            latitude: journey.start.x,
-            longitude: journey.start.y
-        };
 
-        journey.end = {
-            latitude: journey.end.x,
-            longitude: journey.end.y
+    async findOne(id: string) {
+        const queryResult = await this.journeyRepository.get(id);
+        const record = (queryResult as QueryResult).records[0];
+        const journeyNode = new JourneyNode(record.get("journey"), []);
+        let journey = journeyNode.getProperties() as JourneyDto;
+
+        journey = {
+            creator: record.get("creator"),
+            experiencesAggregate: {
+                count: record.get("count").low
+            },
+            ...journey
         };
+        journey.start = PointToLocation(journeyNode.getStart());
+        journey.end = PointToLocation(journeyNode.getEnd());
 
         return journey;
     }
 
-    async findOne(id: string) {
-        const result = await this.journeyRepository.get(id);
+    async getExperiences(journey_id: string) {
+        const queryResult = await this.journeyRepository.getExperiences(
+            journey_id
+        );
 
-        return this.transformPos(result);
+        const journeyNode = new JourneyNode(
+            queryResult.records[0].get("journey"),
+            queryResult.records[0].get("experiences")
+        );
+        const journey = journeyNode.getProperties() as JourneyDto;
+        const experiences = journeyNode.getExperiencesRelationships();
+        journey.experiences = [];
+
+        experiences.forEach((experience, idx) => {
+            const poiNode = new PoiNode(
+                queryResult.records[0].get("pois")[idx]
+            );
+            const poi = poiNode.getProperties();
+            poi.location = PointToLocation(poi.location);
+            journey.experiences.push({
+                experience: experience.properties as Experience,
+                poi: poi
+            });
+        });
+
+        journey.start = PointToLocation(journeyNode.getStart());
+        journey.end = PointToLocation(journeyNode.getEnd());
+        return journey;
     }
 
     async create(user: string, createJourney: CreateJourneyDto) {
-        const result = await this.journeyRepository.create(user, createJourney);
-        return this.transformPos(result);
+        const queryResult = await this.journeyRepository.create(
+            user,
+            createJourney
+        );
+        const journeyNode = new JourneyNode(
+            queryResult.records[0].get("journey"),
+            queryResult.records[0].get("experiences")
+        );
+        const createdJourney = journeyNode.getProperties() as JourneyDto;
+
+        createdJourney.experiences = [];
+        journeyNode.getExperiencesRelationships().forEach((rel, idx) => {
+            const poiNode = new PoiNode(
+                queryResult.records[0].get("pois")[idx]
+            );
+            const poi = poiNode.getProperties();
+            poi.location = PointToLocation(poi.location);
+            createdJourney.experiences.push({
+                experience: rel.properties as Experience,
+                poi: poi
+            });
+        });
+        createdJourney.start = PointToLocation(journeyNode.getStart());
+        createdJourney.end = PointToLocation(journeyNode.getEnd());
+
+        return createdJourney;
     }
 
     /**
@@ -55,38 +111,20 @@ export class JourneyService {
         journey.thumbnail = journey.thumbnail || found.thumbnail;
         journey.visibility = journey.visibility || found.visibility;
 
-        const result = await this.journeyRepository.update(user, journey);
-        return this.transformPos(result);
+        const queruResult = await this.journeyRepository.update(user, journey);
+        const journeyNode = new JourneyNode(
+            queruResult.records[0].get("journey"),
+            []
+        );
+        const updatedJourney = journeyNode.getProperties() as JourneyDto;
+
+        updatedJourney.start = PointToLocation(journeyNode.getStart());
+        updatedJourney.end = PointToLocation(journeyNode.getEnd());
+        return updatedJourney;
     }
 
     async delete(user: string, journey: string) {
         const result = await this.journeyRepository.delete(user, journey);
-        return result;
-    }
-
-    async getExperiences(user: string, journey: string) {
-        const result = await this.journeyRepository.getExperiences(journey);
-        return this.transformPos(result);
-    }
-
-    async getExperience(journey: string, poi: string) {
-        const result = await this.journeyRepository.getExperience(journey, poi);
-        return result;
-    }
-
-    async addExperience(
-        user: string,
-        journey: string,
-        poi: string,
-        experience: Experience
-    ) {
-        const result = await this.journeyRepository.addExperience(
-            user,
-            journey,
-            poi,
-            experience
-        );
-        delete result.images;
         return result;
     }
 
@@ -97,10 +135,79 @@ export class JourneyService {
             poi: PointOfInterestDto;
         }[]
     ) {
-        const result = await this.journeyRepository.addExperiences(
+        const queryResult = await this.journeyRepository.addExperiences(
             journey,
             experiences
         );
-        return this.transformPos(result);
+        const journeyNode = new JourneyNode(
+            queryResult.records[0].get("journey"),
+            queryResult.records[0].get("experiences")
+        );
+        const updatedJourney = journeyNode.getProperties() as JourneyDto;
+
+        updatedJourney.experiences = [];
+        journeyNode.getExperiencesRelationships().forEach((rel, idx) => {
+            const poiNode = new PoiNode(
+                queryResult.records[0].get("pois")[idx]
+            );
+            const poi = poiNode.getProperties();
+            poi.location = PointToLocation(poi.location);
+            updatedJourney.experiences.push({
+                experience: rel.properties as Experience,
+                poi: poi
+            });
+        });
+        updatedJourney.start = PointToLocation(journeyNode.getStart());
+        updatedJourney.end = PointToLocation(journeyNode.getEnd());
+
+        return updatedJourney;
+    }
+
+    async addExperience(
+        user: string,
+        journey: string,
+        poi: string,
+        experience: Experience
+    ) {
+        const queryResult = await this.journeyRepository.addExperience(
+            user,
+            journey,
+            poi,
+            experience
+        );
+        return queryResult.records[0].get("experience").properties;
+    }
+
+    async getExperience(journey: string, poi: string) {
+        const queryResult = await this.journeyRepository.getExperience(
+            journey,
+            poi
+        );
+        if (queryResult.records.length == 0)
+            throw new NotFoundError("could not find experience");
+        return queryResult.records[0].get("experience").properties;
+    }
+
+    async updateExperience(
+        journey: string,
+        poi: string,
+        experience: ExperienceDto
+    ) {
+        const existingExp = (await this.getExperience(
+            journey,
+            poi
+        )) as ExperienceDto;
+        const toUpdate: ExperienceDto = {
+            date: experience.date || existingExp.date,
+            description: experience.description || existingExp.description,
+            title: experience.title || existingExp.title,
+            images: experience.images || existingExp.images
+        };
+        const queryResult = await this.journeyRepository.updateExperience(
+            journey,
+            poi,
+            toUpdate
+        );
+        return queryResult.records[0].get("experience").properties;
     }
 }

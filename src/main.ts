@@ -1,14 +1,14 @@
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import console from "console";
+import { GeneralExceptionFilter } from "exceptions/general-exception.filter";
 import { AppModule } from "./app.module";
-import { LoggingInterceptor } from "./log/logging.interceptor";
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
         logger: console
     });
     app.setGlobalPrefix("api");
-    app.useGlobalInterceptors(new LoggingInterceptor());
+    app.useGlobalFilters(new GeneralExceptionFilter());
 
     const config = new DocumentBuilder()
         .setTitle("Journeys Api")

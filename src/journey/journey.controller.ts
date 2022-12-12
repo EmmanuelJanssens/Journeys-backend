@@ -9,14 +9,21 @@ import {
     Request,
     Put,
     Delete,
-    Patch
+    Patch,
+    UseInterceptors,
+    UseFilters,
+    HttpStatus
 } from "@nestjs/common";
-import { Experience } from "entities/experience.entity";
+import { HttpException, NotFoundException } from "@nestjs/common/exceptions";
+import { Experience, ExperienceDto } from "entities/experience.entity";
+import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
+import { GeneralExceptionFilter } from "exceptions/general-exception.filter";
 import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyService } from "./journey.service";
 
 @Controller("journey")
+@UseInterceptors(ErrorsInterceptor)
 export class JourneyController {
     constructor(private journeyService: JourneyService) {}
 
@@ -56,7 +63,7 @@ export class JourneyController {
 
     @Get(":id/experiences")
     async getExperiences(@Param("id") id: string) {
-        const result = await this.journeyService.getExperiences("", id);
+        const result = await this.journeyService.getExperiences(id);
         return result;
     }
 
@@ -76,6 +83,12 @@ export class JourneyController {
         return result;
     }
 
+    @Get(":id/experience/:poi")
+    async getExperience(@Param("id") id: string, @Param("poi") poi: string) {
+        const result = await this.journeyService.getExperience(id, poi);
+        return result;
+    }
+
     @Post(":id/experience/:poi")
     async addExperience(
         @Param("id") id: string,
@@ -92,9 +105,18 @@ export class JourneyController {
         return result;
     }
 
-    @Get(":id/experience/:poi")
-    async getExperience(@Param("id") id: string, @Param("poi") poi: string) {
-        const result = await this.journeyService.getExperience(id, poi);
+    @Patch(":id/experience/:poi")
+    async updateExperience(
+        @Param("id") id: string,
+        @Param("poi") poi: string,
+        @Body() experience: ExperienceDto,
+        @Request() req
+    ) {
+        const result = await this.journeyService.updateExperience(
+            id,
+            poi,
+            experience
+        );
         return result;
     }
 }

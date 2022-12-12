@@ -1,26 +1,92 @@
 import { Injectable } from "@nestjs/common";
+import { Experience } from "entities/experience.entity";
+import { PointToLocation } from "entities/utilities";
+import { BadInputError, NotFoundError } from "errors/Errors";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
+import { PointOfInterestDto } from "./dto/point-of-interest.dto";
 import { UpdatePointOfInterestDto } from "./dto/update-point-of-interest.dto";
+import { PoiNode } from "./entities/point-of-interest.entity";
+import { PoiRepository } from "./point-of-interest.repository";
 
 @Injectable()
 export class PointOfInterestService {
-    create(createPointOfInterestDto: CreatePointOfInterestDto) {
-        return "This action adds a new pointOfInterest";
+    constructor(private poiRepository: PoiRepository) {}
+
+    transformPoiPos(poi: any) {
+        poi.location = {
+            latitude: poi.location.y,
+            longitude: poi.location.x
+        };
+        return poi;
     }
 
-    findAll() {
-        return `This action returns all pointOfInterest`;
+    async create(
+        user: string,
+        createPointOfInterestDto: CreatePointOfInterestDto
+    ) {
+        const queryResult = await this.poiRepository.create(
+            user,
+            createPointOfInterestDto
+        );
+        const poiNode = new PoiNode(
+            queryResult.records[0].get("poi"),
+            queryResult.records[0].get("tags")
+        );
+        const createdPoi = poiNode.getProperties() as PointOfInterestDto;
+        createdPoi.tags = [];
+        poiNode.getTagsRelationships().forEach((rel) => {
+            createdPoi.tags.push(rel.properties.type);
+        });
+        createdPoi.location = PointToLocation(poiNode.getLocation());
+
+        return createdPoi;
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} pointOfInterest`;
+    async findAll(
+        center: {
+            lat: number;
+            lng: number;
+        },
+        radius: number
+    ) {
+        const queryResult = await this.poiRepository.getPoisInRadius(
+            center,
+            radius
+        );
+        const poisFound: PointOfInterestDto[] = [];
+        queryResult.records.forEach((record) => {
+            const poiNode = new PoiNode(record.get("poi"), record.get("tags"));
+            const foundPoi = poiNode.getProperties() as PointOfInterestDto;
+            foundPoi.tags = [];
+            poiNode.getTagsRelationships().forEach((rel) => {
+                foundPoi.tags.push(rel.properties.type);
+            });
+            foundPoi.experiencesAggregate = {
+                count: record.get("expCount").low
+            };
+            foundPoi.location = PointToLocation(poiNode.getLocation());
+            poisFound.push(foundPoi);
+        });
+        return poisFound;
     }
 
-    update(id: number, updatePointOfInterestDto: UpdatePointOfInterestDto) {
-        return `This action updates a #${id} pointOfInterest`;
-    }
-
-    remove(id: number) {
-        return `This action removes a #${id} pointOfInterest`;
+    async findOne(id: string) {
+        const queryResult = await this.poiRepository.get(id);
+        const poiNode = new PoiNode(
+            queryResult.records[0].get("poi"),
+            queryResult.records[0].get("experiences"),
+            queryResult.records[0].get("tags")
+        );
+        const foundPoi = poiNode.getProperties() as PointOfInterestDto;
+        foundPoi.tags = [];
+        foundPoi.experiences = [];
+        poiNode.getTagsRelationships().forEach((rel) => {
+            foundPoi.tags.push(rel.properties.type);
+        });
+        poiNode.getExperiencesRelationships().forEach((rel) => {
+            foundPoi.experiences.push(rel.properties as Experience);
+        });
+        foundPoi.location = PointToLocation(poiNode.getLocation());
+        return foundPoi;
     }
 }

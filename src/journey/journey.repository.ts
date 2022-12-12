@@ -1,197 +1,77 @@
 import { QueryResult } from "neo4j-driver";
-import { Experience } from "entities/experience.entity";
+import { Experience, ExperienceDto } from "entities/experience.entity";
 import { Neo4jService } from "neo4j/neo4j.service";
-import { IRepository } from "repository/IRepository";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
-import { JourneyDto } from "./dto/journey.dto";
-import { Journey } from "./entities/journey.entity";
-import * as uuid from "uuid";
+
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { Logger } from "@nestjs/common/services";
 import { Injectable } from "@nestjs/common/decorators";
 import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
 
-import { BadInputError, CreationError, NotFoundError } from "errors/Errors";
 @Injectable()
-export class JourneyRepository extends IRepository<JourneyDto> {
+export class JourneyRepository {
     logger = new Logger(JourneyRepository.name);
+    constructor(private readonly neo4jService: Neo4jService) {}
 
-    constructor(private readonly neo4jService: Neo4jService) {
-        super();
+    /**
+     *  find a journey and returns it properties excluding experiences
+     * @param journey
+     * @returns  the folowing records [journey : JourneyNode ,creator: string ,count: number]
+     */
+    get(journey: string): Promise<QueryResult> {
+        const query = `
+            OPTIONAL MATCH (:POI)<-[exp:EXPERIENCE]-(journey:Journey{id: $journey})<-[:CREATED]-(user:User)
+            RETURN journey, user.username AS creator, count(distinct exp) as count`;
+        const params = { journey };
+
+        return this.neo4jService.read(query, params);
     }
 
     /**
-     *
+     * Create a simple journey
+     * runs in a transaction because we need to first of create
+     * the journey, and afterwards connect experiences to it if
+     * the user added experiences during the creation process
+     * @param user
      * @param journey
-     * @returns data object representing a journey
-     * @throws BadInputError, NotFoundError, Error
+     * @returns the following records [journey: JourneyNode, experiences: ExperienceRelation[], pois: PoiNode[]]
      */
-    async get(journey: string): Promise<JourneyDto | undefined> {
-        const getJourneyQuery = `
-            MATCH (journey:Journey{id: $journey})-[:CREATED]-(user:User) RETURN journey, user.username AS creator`;
-        const getExpCountQuery = `
-            MATCH (journey:Journey{id: $journey})-[n:EXPERIENCE]->(:POI) RETURN COUNT(n) as count`;
-        const params = { journey };
-
-        const session = this.neo4jService.getReadSession();
-        if (!session) throw new Error("could not create read session");
-        if (journey.length == 0) throw new BadInputError();
-
-        let transaction: JourneyDto;
-        try {
-            transaction = await session.executeRead(async (tw) => {
-                const journeyResult = await tw.run(getJourneyQuery, params);
-
-                if (journeyResult.records.length == 0)
-                    throw new NotFoundError("Journey not found");
-                if (journeyResult.records.length > 1)
-                    throw new BadInputError("Returned multiple journeys");
-
-                const records = journeyResult.records[0];
-
-                if (
-                    !records.get("journey") ||
-                    !records.get("creator") ||
-                    !records.get("count")
-                )
-                    throw new Error(
-                        "Error requesting fields journey|creator|count"
-                    );
-
-                const journey = journeyResult.records[0].get("journey")
-                    .properties as JourneyDto;
-                const creator = journeyResult.records[0].get("creator");
-
-                journey.creator = creator;
-
-                const countResult = await tw.run(getExpCountQuery, params);
-                const count = Number(countResult.records[0].get("count"));
-
-                journey.experiencesAggregate = {
-                    count: count
-                };
-                return journey;
-            });
-
-            session.close();
-            return transaction;
-        } catch (e) {
-            this.logger.debug(e.message);
-            throw e;
-        }
-    }
-
-    async create(user: string, journey: CreateJourneyDto): Promise<JourneyDto> {
-        const id = uuid.v4();
-
+    async create(
+        user: string,
+        journey: CreateJourneyDto
+    ): Promise<QueryResult> {
         const createJourneyQuery = `
         UNWIND $journey as new
-        MATCH(user:User{uid: $user})
-        MERGE(journey:Journey{
-            id:$id,
-            title: new.title,
-            description: new.description,
-            start: point({srid:4326,x: new.start.latitude, y: new.start.longitude}),
-            end: point({srid:4326,x: new.end.latitude, y: new.end.longitude})
-        })<-[:CREATED]-(user)
-        RETURN journey`;
-
-        const addExperiencesQuery = `
-        MATCH(journey:Journey{id: $journey})
+            MATCH(user:User{uid: $user})
+                CREATE (journey:Journey{
+                    id:apoc.create.uuid(),
+                    title: new.title,
+                    description: new.description,
+                    start: point({srid:4326,x: new.start.latitude, y: new.start.longitude}),
+                    end: point({srid:4326,x: new.end.latitude, y: new.end.longitude})
+                })<-[:CREATED]-(user)
+        WITH journey
             UNWIND $experiences as data
-            MATCH(poi:POI{id: data.poi.id})
-            CREATE(journey)-[experience:EXPERIENCE{
-                date : data.experience.date,
-                title :  data.experience.title,
-                description :  data.experience.description,
-                images : data.experience.images
-            }]->(poi)
-        RETURN  journey, experience, poi`;
-
-        const session = this.neo4jService.getWriteSession();
-
-        let transaction: JourneyDto;
-
-        try {
-            //start simple write transaction
-            transaction = await session.executeWrite(async (tx) => {
-                //create the new journey
-                const createdJourneyResult = await tx.run(createJourneyQuery, {
-                    user,
-                    journey,
-                    id
-                });
-
-                if (createdJourneyResult.records.length == 0)
-                    throw new CreationError("Could not create Journey");
-                if (!createdJourneyResult.records[0].get("journey"))
-                    throw new Error("Could not request fields journey");
-
-                const createdJourney = createdJourneyResult.records[0].get(
-                    "journey"
-                ).properties as JourneyDto;
-
-                const experiences = [];
-                //add experiences to newly created journey
-                if (
-                    journey.experiences != undefined &&
-                    journey.experiences.length > 0
-                ) {
-                    const journeyWithExperiencesResult = await tx.run(
-                        addExperiencesQuery,
-                        {
-                            journey: createdJourney.id,
-                            experiences: journey.experiences
-                        }
-                    );
-
-                    if (journeyWithExperiencesResult.records.length == 0)
-                        throw new CreationError(
-                            "Could not create experiences for journey"
-                        );
-                    if (
-                        !journeyWithExperiencesResult.records[0].get(
-                            "journey"
-                        ) ||
-                        !journeyWithExperiencesResult.records[0].get(
-                            "experience"
-                        )
-                    )
-                        throw new Error(
-                            "Could not request fields journey | experience"
-                        );
-
-                    const journeyWithExperiences =
-                        journeyWithExperiencesResult.records[0].get("journey")
-                            .properties as JourneyDto;
-
-                    journeyWithExperiences.experiences = [];
-
-                    for (const record of journeyWithExperiencesResult.records) {
-                        const experience = record.get("experience").properties;
-
-                        experiences.push(experience);
-                    }
-                }
-
-                createdJourney.experiences = experiences;
-                createdJourney.experiencesAggregate = {
-                    count: experiences.length
-                };
-                return createdJourney;
-            });
-
-            //close session
-            session.close();
-            return transaction;
-        } catch (e) {
-            this.logger.debug((e as Error).stack);
-            session.close();
-            throw e;
-        }
+            MATCH(journey:Journey{id: journey.id})
+            MATCH(poi:POI{id:data.poi.id})
+                    CREATE(journey)-[experience:EXPERIENCE{
+                        date :data.experience.date,
+                        title :data.experience.title,
+                        description : data.experience.description,
+                        images :data.experience.images
+                    }]->(poi)
+        RETURN journey, collect(experience) as experiences, collect(poi) as pois`;
+        const params = { user, journey, experiences: journey.experiences };
+        return this.neo4jService.write(createJourneyQuery, params);
     }
 
-    update(user: string, journey: UpdateJourneyDto): Promise<JourneyDto> {
+    /**
+     * Update a journey
+     * @param user
+     * @param journey
+     * @returns
+     */
+    update(user: string, journey: UpdateJourneyDto): Promise<QueryResult> {
         const query = `
             UNWIND $journey as updated
             MATCH (journey:Journey{id: updated.id})<-[:CREATED]-(user: User{uid: $user})
@@ -202,50 +82,43 @@ export class JourneyRepository extends IRepository<JourneyDto> {
             RETURN journey
     `;
 
-        return this.neo4jService
-            .write(query, {
-                journey,
-                user
-            })
-            .then((result: QueryResult) => {
-                if (result.records.length == 0)
-                    throw new CreationError("could not update");
-                const props = result.records[0].get("journey").properties;
-
-                //transform coordinates properly
-                return props;
-            });
+        return this.neo4jService.write(query, {
+            journey,
+            user
+        });
     }
 
-    getExperience(
-        journey: string,
-        poi: string
-    ): Promise<Experience | undefined> {
+    /**
+     * get the experiences of a journey
+     * @param journey
+     * @param poi
+     * @returns
+     */
+    getExperience(journey: string, poi: string): Promise<QueryResult> {
         const query = `
             MATCH(journey:Journey{ id: $journey })-[experience:EXPERIENCE]-(poi:POI{ id:$poi })
             RETURN experience
         `;
-        return this.neo4jService
-            .read(query, {
-                journey,
-                poi
-            })
-            .then((result: QueryResult) => {
-                if (result.records.length == 0)
-                    throw new NotFoundError("could not find experience");
-                if (result.records.length > 0) {
-                    throw Error("bad operation, too many records");
-                }
-                return result.records[0].get("experince").properties;
-            });
+        return this.neo4jService.read(query, {
+            journey,
+            poi
+        });
     }
 
+    /**
+     * Add a single experience to a given journey for a given poi
+     * @param user
+     * @param journey
+     * @param poi
+     * @param experience
+     * @returns
+     */
     addExperience(
         user: string,
         journey: string,
         poi: string,
         experience: Experience
-    ): Promise<Experience | undefined> {
+    ): Promise<QueryResult> {
         const query = `
             MATCH(journey:Journey{id: $journey}) - [:CREATED] - (user: User({uid: $user}))
             MATCH(poi: POI{id: $poi})
@@ -258,140 +131,85 @@ export class JourneyRepository extends IRepository<JourneyDto> {
             }]->(poi)
             RETURN experience
         `;
-        return this.neo4jService
-            .write(query, {
-                user,
-                journey,
-                poi,
-                experience
-            })
-            .then((result: QueryResult) => {
-                if (result.records.length == 0)
-                    throw new CreationError("Could not create experience");
-                if (result.records.length > 1)
-                    throw new Error("Bad request created too many experiences");
-                const props = result.records[0].get("experience");
-                return props as Experience;
-            });
+        return this.neo4jService.write(query, {
+            user,
+            journey,
+            poi,
+            experience
+        });
     }
 
     /**
-     *
+     * get the experiences of a journey
      * @param id Journey'ID
+     * @returns a journey with its experiences
      */
-    getExperiences(journey: string): Promise<Journey | undefined> {
+    getExperiences(journey: string): Promise<QueryResult | undefined> {
         const query = `
             MATCH(journey: Journey{id : $journey})-[experience:EXPERIENCE]-(poi:POI)
-            RETURN  journey, experience, poi, COUNT(Experiences) as count
+            RETURN  journey, collect(experience) as experiences, collect(poi) as pois
         `;
 
         return this.neo4jService
             .read(query, { journey })
             .then((result: QueryResult) => {
-                if (result.records[0].length == 0)
-                    throw new NotFoundError(
-                        "Could not find anything for journeys|experiences"
-                    );
-                if (!result.records[0].get("journey"))
-                    throw new Error("could not access journey");
-                const journey = result.records[0].get("journey").properties;
-                journey.experiences = [];
-                for (const record of result.records) {
-                    if (!record.get("experience") || !record.get("poi"))
-                        throw new Error("could not access poi|experiences");
-                    const experience = record.get("experience").properties;
-                    experience.date = new Date(experience.date).toISOString();
-                    const poi = record.get("poi").properties;
-                    poi.location = {
-                        latitude: poi.location.x,
-                        longitude: poi.location.y
-                    };
-                    journey.experiences.push({
-                        data: experience,
-                        poi: poi
-                    });
-                }
-
-                return journey;
+                return result;
             });
     }
 
+    updateExperience(journey: string, poi: string, experience: ExperienceDto) {
+        const query = `
+            UNWIND $experience as data
+            MATCH(journey:Journey{id:$journey})-[experience:EXPERIENCE]->(poi: POI{id:$poi})
+            SET experience.date = data.date,
+                experience.title = data.title,
+                experience.images = data.images,
+                experience.description = data.description
+            RETURN experience
+        `;
+        const params = { journey, poi, experience };
+        return this.neo4jService.write(query, params);
+    }
+    /**
+     * Add a list of experiences to a given journey
+     * @param journey
+     * @param experiences
+     * @returns
+     */
     addExperiences(
         journey: string,
         experiences: {
             experience: Experience;
             poi: PointOfInterestDto;
         }[]
-    ): Promise<Journey | undefined> {
+    ): Promise<QueryResult> {
         const query = `
         MATCH(journey:Journey{id: $journey})
         UNWIND $experiences as data
-        MATCH(poi:POI{id: data.poi.id})
-        MERGE(journey)-[experience:EXPERIENCE{
-             date : data.experience.date,
-             title :  data.experience.title,
-             description :  data.experience.description,
-             images : data.experience.images
-        }]->(poi)
-        RETURN  journey, experience, poi
+            MATCH(poi:POI{id: data.poi.id})
+            MERGE(journey)-[experience:EXPERIENCE{
+                date : data.experience.date,
+                title :  data.experience.title,
+                description :  data.experience.description,
+                images : data.experience.images
+            }]->(poi)
+        RETURN  journey, collect(experience) as experiences, collect(poi) as pois
     `;
-        return this.neo4jService
-            .write(query, {
-                journey,
-                experiences
-            })
-            .then((result: QueryResult) => {
-                if (result.records.length == 0)
-                    throw new CreationError("could not add experiences");
-                if (!result.records[0].get("journey"))
-                    throw new Error("could not access journey");
-                const journey = result.records[0].get("journey").properties;
-                journey.experiences = [];
-                for (const record of result.records) {
-                    if (!record.get("experience"))
-                        throw new Error("could not access poi|experiences");
-                    const experience = record.get("experience").properties;
-                    journey.experiences.push(experience);
-                }
-                return journey;
-            });
+        return this.neo4jService.write(query, {
+            journey,
+            experiences
+        });
     }
 
-    async delete(user: string, journey: string): Promise<string | undefined> {
+    async delete(user: string, journey: string): Promise<QueryResult> {
         const delExpRelationQuery = `
-            MATCH (user:User{uid: $user})-[:CREATED]-(journey: Journey{id: $journey})-[rel]-() DELETE rel
+            MATCH (user:User{uid: $user})-[:CREATED]-(journey: Journey{id: $journey})-[experiences]-() DELETE experiences
+            WITH user,journey
+            MATCH (user:User{uid: $user})-[created]-(journey: Journey{id: $journey}) DELETE created
+            WITH user, journey
+            MATCH (journey: Journey{id: $journey}) DELETE journey
         `;
-
-        const delCreatorRelationQuery = `MATCH (user:User{uid: $user})-[rel:CREATED]-(journey: Journey{id: $journey}) DELETE rel`;
-
-        const deleteQuery = `MATCH (journey: Journey{id: $journey}) DELETE journey`;
-
-        const session = this.neo4jService.getWriteSession();
-        let transactionResult: string;
-        try {
-            transactionResult = await session.executeWrite((tx) => {
-                tx.run(delExpRelationQuery, {
-                    user,
-                    journey
-                });
-
-                tx.run(delCreatorRelationQuery, {
-                    user,
-                    journey
-                });
-
-                tx.run(deleteQuery, {
-                    journey
-                });
-
-                return journey;
-            });
-            session.close();
-            return transactionResult;
-        } catch (e) {
-            this.logger.debug(e.stack);
-            session.close();
-            throw Error("Transaction error, could not delete");
-        }
+        const params = { user, journey };
+        return this.neo4jService.write(delExpRelationQuery, params);
     }
 }
