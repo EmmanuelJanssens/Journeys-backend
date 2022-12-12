@@ -21,21 +21,19 @@ export class JourneyService {
 
     async findOne(id: string) {
         const queryResult = await this.journeyRepository.get(id);
-        const record = (queryResult as QueryResult).records[0];
-        const journeyNode = new JourneyNode(record.get("journey"), []);
-        let journey = journeyNode.getProperties() as JourneyDto;
-
-        journey = {
-            creator: record.get("creator"),
-            experiencesAggregate: {
-                count: record.get("count").low
-            },
-            ...journey
+        const journeyNode = new JourneyNode(
+            queryResult.records[0].get("journey"),
+            []
+        );
+        const foundJourney = journeyNode.getProperties() as JourneyDto;
+        foundJourney.creator = queryResult.records[0].get("creator");
+        foundJourney.experiencesAggregate = {
+            count: queryResult.records[0].get("count")
         };
-        journey.start = PointToLocation(journeyNode.getStart());
-        journey.end = PointToLocation(journeyNode.getEnd());
+        foundJourney.start = PointToLocation(journeyNode.getStart());
+        foundJourney.end = PointToLocation(journeyNode.getEnd());
 
-        return journey;
+        return foundJourney;
     }
 
     async getExperiences(journey_id: string) {
