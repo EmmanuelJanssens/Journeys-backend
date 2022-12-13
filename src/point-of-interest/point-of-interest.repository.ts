@@ -9,6 +9,12 @@ export class PoiRepository {
     logger = new Logger(PoiRepository.name);
 
     constructor(private neo4jService: Neo4jService) {}
+
+    /**
+     * get a poi by id
+     * @param poi  id of the poi
+     * @returns  query result with poi, experiences and tags
+     */
     get(poi: string): Promise<QueryResult> {
         const query = `
             MATCH (poi:POI{id: $poi})
@@ -22,6 +28,12 @@ export class PoiRepository {
         return this.neo4jService.read(query, params);
     }
 
+    /**
+     * create a poi
+     * @param user  id of the user
+     * @param poi  data of the poi
+     * @returns  query result with poi and tags
+     * */
     create(user: string, poi: CreatePointOfInterestDto): Promise<QueryResult> {
         const query = `
             MATCH (user:User{uid: $user})
@@ -40,6 +52,12 @@ export class PoiRepository {
         return this.neo4jService.write(query, params);
     }
 
+    /**
+     * get all pois in a radius around a point
+     * @param center  center point
+     * @param radius  radius in meters
+     * @returns  query result with pois, experiences and tags
+     * */
     getPoisInRadius(
         center: {
             lat: number;
@@ -58,12 +76,5 @@ export class PoiRepository {
         `;
         const params = { center, radius };
         return this.neo4jService.read(query, params);
-    }
-
-    update(user: string, item: PointOfInterest): Promise<PointOfInterest> {
-        throw new Error("Method not implemented.");
-    }
-    delete(user: string, id: string): Promise<string> {
-        throw new Error("Method not implemented.");
     }
 }

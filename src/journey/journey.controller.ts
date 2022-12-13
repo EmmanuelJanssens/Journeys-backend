@@ -69,9 +69,12 @@ export class JourneyController {
         experiences: {
             experience: Experience;
             poi: PointOfInterest;
-        }[]
+        }[],
+        @Request() req
     ) {
+        const user = req.user as UserInfo;
         const result = await this.journeyService.addExperiences(
+            user.uid,
             id,
             experiences
         );
@@ -123,9 +126,12 @@ export class JourneyController {
     async updateExperience(
         @Param("id") id: string,
         @Param("poi") poi: string,
-        @Body() experience: ExperienceDto
+        @Body() experience: ExperienceDto,
+        @Request() req
     ) {
+        const user = req.user as UserInfo;
         const result = await this.journeyService.updateExperience(
+            user.uid,
             id,
             poi,
             experience

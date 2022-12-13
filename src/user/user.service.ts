@@ -16,6 +16,12 @@ import { UserRepository } from "./user.repository";
 export class UserService {
     constructor(private readonly userRepository: UserRepository) {}
 
+    /**
+     * Create a new user
+     * @param user the data of the user
+     * @param uid the id of the user
+     * @returns a UserDto
+     */
     async create(user: CreateUserDto, uid: string) {
         const queryResult = await this.userRepository.create(user, uid);
         const userNode = new UserNode(
@@ -32,6 +38,11 @@ export class UserService {
         //
     }
 
+    /**
+     * Find a user by its id
+     * @param uid the id of the user
+     * @returns a UserDto
+     */
     async findOne(uid: string) {
         const queryResult = await this.userRepository.findOne(uid);
         const records = queryResult.records[0];
@@ -48,6 +59,11 @@ export class UserService {
         return foundUser;
     }
 
+    /**
+     * Find a user by its uid
+     * @param uid the uid of the user
+     * @returns a UserDto
+     * */
     async getJourneys(uid: string, skip: Integer, limit: Integer) {
         const queryResult = await this.userRepository.getJourneys(
             uid,
@@ -74,6 +90,13 @@ export class UserService {
         return userJourneys;
     }
 
+    /**
+     * get the journeys of the current user
+     * @param uid uid of the user
+     * @param skip skip the first n journeys
+     * @param limit limit the number of journeys
+     * @returns an array of JourneyDto
+     */
     async getMyJourneys(uid: string, skip: Integer, limit: Integer) {
         const queryResult = await this.userRepository.getJourneys(
             uid,
@@ -98,6 +121,13 @@ export class UserService {
         return userJourneys;
     }
 
+    /**
+     * get the pois of the current user
+     * @param uid uid of the user
+     * @param skip skip the first n pois
+     * @param limit limit the number of pois
+     * @returns an array of PointOfInterestDto
+     */
     async getPois(uid: string, skip: Integer, limit: Integer) {
         const queryResult = await this.userRepository.getPois(uid, skip, limit);
         const userPois: PointOfInterestDto[] = [];

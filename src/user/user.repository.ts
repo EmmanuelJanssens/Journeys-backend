@@ -2,12 +2,16 @@ import { Injectable } from "@nestjs/common/decorators";
 import { Integer } from "neo4j-driver";
 import { Neo4jService } from "neo4j/neo4j.service";
 import { CreateUserDto } from "./dto/create-user.dto";
-import { UserDto } from "./dto/user-dto";
 
 @Injectable()
 export class UserRepository {
     constructor(private readonly neo4jService: Neo4jService) {}
 
+    /**
+     * get a user by id
+     * @param uid id of the user
+     * @returns query result with user, journeysCount and pois
+     */
     findOne(uid: string) {
         const query = `
             MATCH(user:User{uid:$uid})
@@ -19,7 +23,13 @@ export class UserRepository {
         return this.neo4jService.read(query, params);
     }
 
-    create(user: CreateUserDto, uid) {
+    /**
+     * create a user
+     * @param user the user data
+     * @param uid the id of the user to create
+     * @returns query result with user
+     */
+    create(user: CreateUserDto, uid: string) {
         const query = `
             UNWIND $user as newUser
             CREATE(user:User{
@@ -35,6 +45,13 @@ export class UserRepository {
         return this.neo4jService.write(query, params);
     }
 
+    /**
+     * get the journeys of a user
+     * @param uid the uid of the user to get the journeys from
+     * @param skip skip the first n journeys
+     * @param limit limit the result to n journeys
+     * @returns query result with user, journeys and expCount
+     */
     getJourneys(uid: string, skip: Integer, limit: Integer) {
         const query = `
             OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED]->(journey:Journey)
@@ -45,6 +62,13 @@ export class UserRepository {
         return this.neo4jService.read(query, params);
     }
 
+    /**
+     * get the pois of a user
+     * @param uid the uid of the user to get the pois from
+     * @param skip skip the first n pois
+     * @param limit limit the result to n pois
+     * @returns query result with pois and expCount
+     */
     getPois(uid: string, skip: Integer, limit: Integer) {
         const query = `
             OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED]->(poi:POI)

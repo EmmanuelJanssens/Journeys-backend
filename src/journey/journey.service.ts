@@ -19,6 +19,11 @@ export class JourneyService {
         return this.journeyRepository;
     }
 
+    /**
+     * find a journey
+     * @param id the journey id
+     * @returns a journey dto
+     */
     async findOne(id: string) {
         const queryResult = await this.journeyRepository.get(id);
         const journeyNode = new JourneyNode(
@@ -36,6 +41,11 @@ export class JourneyService {
         return foundJourney;
     }
 
+    /**
+     * get experiences of a journey
+     * @param journey_id  the journey id
+     * @returns a journey with its experiences
+     */
     async getExperiences(journey_id: string) {
         const queryResult = await this.journeyRepository.getExperiences(
             journey_id
@@ -66,6 +76,12 @@ export class JourneyService {
         return journey;
     }
 
+    /**
+     * create a journey with its optional experiences
+     * @param user the user uid that created the journey
+     * @param createJourney the journey to create
+     * @returns the journey with its experiences
+     */
     async create(user: string, createJourney: CreateJourneyDto) {
         const queryResult = await this.journeyRepository.create(
             user,
@@ -98,9 +114,9 @@ export class JourneyService {
     /**
      * updates a journey, first find journey and set appropriate fields that have to be
      * updated
-     * @param user
-     * @param journey
-     * @returns
+     * @param user the user uid that created the journey
+     * @param journey the journey to update
+     * @returns the updated journey
      */
     async update(user: string, journey: UpdateJourneyDto) {
         const found = await this.findOne(journey.id);
@@ -121,12 +137,25 @@ export class JourneyService {
         return updatedJourney;
     }
 
+    /**
+     * deletes a journey and its experiences
+     * @param user the user uid that created the journey
+     * @param journey the journey to delete
+     * @returns the deleted journey id
+     */
     async delete(user: string, journey: string) {
         const result = await this.journeyRepository.delete(user, journey);
         return result;
     }
 
+    /**
+     * add a list of experiences to a journey
+     * @param journey the journey id to wich the experiences will be added
+     * @param experiences the experiences to add
+     * @returns the updated journey
+     */
     async addExperiences(
+        user: string,
         journey: string,
         experiences: {
             experience: Experience;
@@ -134,6 +163,7 @@ export class JourneyService {
         }[]
     ) {
         const queryResult = await this.journeyRepository.addExperiences(
+            user,
             journey,
             experiences
         );
@@ -161,6 +191,14 @@ export class JourneyService {
         return updatedJourney;
     }
 
+    /**
+     * add an experience to a journey
+     * @param user the user uid that created the journey
+     * @param journey the journey id to wich the experience will be added
+     * @param poi the poi id to wich the experience will be added
+     * @param experience the experience to add
+     * @returns the updated experience
+     */
     async addExperience(
         user: string,
         journey: string,
@@ -176,6 +214,12 @@ export class JourneyService {
         return queryResult.records[0].get("experience").properties;
     }
 
+    /**
+     *  get all experiences of a journey
+     * @param journey the journey id
+     * @param poi the poi id
+     * @returns the experiences of the journey
+     */
     async getExperience(journey: string, poi: string) {
         const queryResult = await this.journeyRepository.getExperience(
             journey,
@@ -186,7 +230,15 @@ export class JourneyService {
         return queryResult.records[0].get("experience").properties;
     }
 
+    /**
+     * updates an experience
+     * @param journey the journey id
+     * @param poi the poi id
+     * @param experience the experience to update
+     * @returns the updated experience
+     */
     async updateExperience(
+        user: string,
         journey: string,
         poi: string,
         experience: ExperienceDto
@@ -202,6 +254,7 @@ export class JourneyService {
             images: experience.images || existingExp.images
         };
         const queryResult = await this.journeyRepository.updateExperience(
+            user,
             journey,
             poi,
             toUpdate
@@ -209,15 +262,22 @@ export class JourneyService {
         return queryResult.records[0].get("experience").properties;
     }
 
+    /**
+     * edits a journey and its experiences
+     * @param user the user uid that created the journey
+     * @param journey the journey id
+     * @param editDto the journey to update
+     * @returns the updated journey
+     */
     async editJourneysExperiences(
-        userUid: string,
-        id: string,
+        user: string,
+        journey: string,
         editDto: EditJourneyExperiencesDto
     ) {
         const queryResult =
             await this.journeyRepository.editJourneysExperiences(
-                userUid,
-                id,
+                user,
+                journey,
                 editDto
             );
         const journeyNode = new JourneyNode(

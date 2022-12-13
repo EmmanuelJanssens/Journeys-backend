@@ -1,10 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { Experience } from "entities/experience.entity";
 import { PointToLocation } from "entities/utilities";
-import { BadInputError, NotFoundError } from "errors/Errors";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
 import { PointOfInterestDto } from "./dto/point-of-interest.dto";
-import { UpdatePointOfInterestDto } from "./dto/update-point-of-interest.dto";
 import { PoiNode } from "./entities/point-of-interest.entity";
 import { PoiRepository } from "./point-of-interest.repository";
 
@@ -12,14 +10,12 @@ import { PoiRepository } from "./point-of-interest.repository";
 export class PointOfInterestService {
     constructor(private poiRepository: PoiRepository) {}
 
-    transformPoiPos(poi: any) {
-        poi.location = {
-            latitude: poi.location.y,
-            longitude: poi.location.x
-        };
-        return poi;
-    }
-
+    /**
+     *  Create a new Point of Interest
+     * @param user the user who creates the poi
+     * @param createPointOfInterestDto  the data of the poi
+     * @returns a PointOfInterestDto
+     */
     async create(
         user: string,
         createPointOfInterestDto: CreatePointOfInterestDto
@@ -75,6 +71,11 @@ export class PointOfInterestService {
         return poisFound;
     }
 
+    /**
+     * Find a poi by id
+     * @param id the id of the poi
+     * @returns a PointOfInterestDto with all the experiences and tags
+     * */
     async findOne(id: string) {
         const queryResult = await this.poiRepository.get(id);
         const poiNode = new PoiNode(
