@@ -1,4 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { FirebaseService } from "firebase/firebase.service";
+import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
 import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
 
@@ -9,10 +11,14 @@ describe("UserController", () => {
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             controllers: [UserController],
-            providers: [UserService]
+            providers: [UserService, FirebaseService, FirebaseAuthGuard]
         })
             .overrideProvider(UserService)
             .useValue(mockUserService)
+            .overrideGuard(FirebaseAuthGuard)
+            .useValue({ canActivate: () => true })
+            .overrideProvider(FirebaseService)
+            .useValue({})
             .compile();
 
         controller = module.get<UserController>(UserController);

@@ -3,11 +3,8 @@ import {
     Get,
     Post,
     Body,
-    Patch,
     Param,
-    Delete,
     Request,
-    Query,
     UseInterceptors,
     UseGuards
 } from "@nestjs/common";

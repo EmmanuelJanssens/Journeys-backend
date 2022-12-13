@@ -1,5 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
+import { FirebaseService } from "firebase/firebase.service";
+import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
 import { JourneyController } from "./journey.controller";
 import { JourneyService } from "./journey.service";
 
@@ -28,10 +30,19 @@ describe("JourneyController", () => {
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             controllers: [JourneyController],
-            providers: [JourneyService, ErrorsInterceptor]
+            providers: [
+                JourneyService,
+                ErrorsInterceptor,
+                FirebaseAuthGuard,
+                FirebaseService
+            ]
         })
             .overrideProvider(JourneyService)
             .useValue(mockJourneyService)
+            .overrideGuard(FirebaseAuthGuard)
+            .useValue({ canActivate: () => true })
+            .overrideProvider(FirebaseService)
+            .useValue({})
             .compile();
         controller = module.get<JourneyController>(JourneyController);
     });

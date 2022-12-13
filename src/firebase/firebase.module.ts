@@ -10,7 +10,7 @@ function createApp(config: firebase.ServiceAccount) {
 }
 
 @Global()
-@Module({})
+@Module({ providers: [FirebaseService], exports: [FirebaseService] })
 export class FirebaseModule {
     static forRoot(config: firebase.ServiceAccount): DynamicModule {
         return {
