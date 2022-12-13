@@ -24,9 +24,9 @@ import { JourneyService } from "./journey.service";
 export class JourneyController {
     constructor(private journeyService: JourneyService) {}
 
-    @Get(":id")
-    async findOne(@Param("id") id: string) {
-        const result = await this.journeyService.findOne(id);
+    @Get(":journey")
+    async findOne(@Param("journey") journey: string) {
+        const result = await this.journeyService.findOne(journey);
         return result;
     }
 
@@ -47,24 +47,24 @@ export class JourneyController {
     }
 
     @UseGuards(FirebaseAuthGuard)
-    @Delete(":id")
-    async remove(@Param("id") id: string, @Request() req) {
+    @Delete(":journey")
+    async remove(@Param("journey") journey: string, @Request() req) {
         const user = req.user as UserInfo;
-        const result = await this.journeyService.delete(user.uid, id);
+        const result = await this.journeyService.delete(user.uid, journey);
 
         return result;
     }
 
-    @Get(":id/experiences")
-    async getExperiences(@Param("id") id: string) {
-        const result = await this.journeyService.getExperiences(id);
+    @Get(":journey/experiences")
+    async getExperiences(@Param("journey") journey: string) {
+        const result = await this.journeyService.getExperiences(journey);
         return result;
     }
 
     @UseGuards(FirebaseAuthGuard)
-    @Post(":id/experiences")
+    @Post(":journey/experiences")
     async addExperiences(
-        @Param("id") id: string,
+        @Param("journey") journey: string,
         @Body()
         experiences: {
             experience: Experience;
@@ -75,37 +75,40 @@ export class JourneyController {
         const user = req.user as UserInfo;
         const result = await this.journeyService.addExperiences(
             user.uid,
-            id,
+            journey,
             experiences
         );
         return result;
     }
 
     @UseGuards(FirebaseAuthGuard)
-    @Patch(":id/experiences")
+    @Patch(":journey/experiences")
     async updateJourneysExperiences(
-        @Param("id") id: string,
+        @Param("journey") journey: string,
         @Body() editDto: EditJourneyExperiencesDto,
         @Request() req
     ) {
         const user = req.user as UserInfo;
         const result = this.journeyService.editJourneysExperiences(
             user.uid,
-            id,
+            journey,
             editDto
         );
         return result;
     }
-    @Get(":id/experience/:poi")
-    async getExperience(@Param("id") id: string, @Param("poi") poi: string) {
-        const result = await this.journeyService.getExperience(id, poi);
+    @Get(":journey/experience/:poi")
+    async getExperience(
+        @Param("journey") journey: string,
+        @Param("poi") poi: string
+    ) {
+        const result = await this.journeyService.getExperience(journey, poi);
         return result;
     }
 
     @UseGuards(FirebaseAuthGuard)
-    @Post(":id/experience/:poi")
+    @Post(":journey/experience/:poi")
     async addExperience(
-        @Param("id") id: string,
+        @Param("journey") journey: string,
         @Param("poi") poi: string,
         @Body() experience: Experience,
         @Request() req
@@ -114,7 +117,7 @@ export class JourneyController {
 
         const result = await this.journeyService.addExperience(
             user.uid,
-            id,
+            journey,
             poi,
             experience
         );
@@ -122,9 +125,9 @@ export class JourneyController {
     }
 
     @UseGuards(FirebaseAuthGuard)
-    @Patch(":id/experience/:poi")
+    @Patch(":journey/experience/:poi")
     async updateExperience(
-        @Param("id") id: string,
+        @Param("journey") journey: string,
         @Param("poi") poi: string,
         @Body() experience: ExperienceDto,
         @Request() req
@@ -132,9 +135,25 @@ export class JourneyController {
         const user = req.user as UserInfo;
         const result = await this.journeyService.updateExperience(
             user.uid,
-            id,
+            journey,
             poi,
             experience
+        );
+        return result;
+    }
+
+    @UseGuards(FirebaseAuthGuard)
+    @Delete(":journey/experience/:poi")
+    async removeExperience(
+        @Param("journey") journey: string,
+        @Param("poi") poi: string,
+        @Request() req
+    ) {
+        const user = req.user as UserInfo;
+        const result = await this.journeyService.deleteExperience(
+            user.uid,
+            journey,
+            poi
         );
         return result;
     }

@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { JourneyDto } from "journey/dto/journey.dto";
 import { Relationship, Node } from "neo4j-driver";
 
@@ -40,12 +41,27 @@ export class UserNode {
     }
 }
 export class User {
+    @ApiProperty()
     uid: string;
+
+    @ApiProperty()
     username: string;
+
+    @ApiProperty()
     firstname: string;
+
+    @ApiProperty()
     lastname: string;
+
+    @ApiProperty()
     visibility: "private" | "public";
+
+    @ApiProperty()
     journeys: JourneyDto[];
+
+    @ApiProperty()
     journeysAggregate: { count: number };
+
+    @ApiProperty()
     poisAggregate: { count: number };
 }

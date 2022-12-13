@@ -43,9 +43,12 @@ export class PointOfInterest {
     @ApiProperty()
     tags: string[];
 
+    @ApiProperty()
     experiencesAggregate: { count: number };
 
+    @ApiProperty()
     experiences: Experience[];
 
+    @ApiProperty()
     thumbnail: string;
 }

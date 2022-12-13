@@ -183,6 +183,24 @@ export class JourneyRepository {
     }
 
     /**
+     * delete an experience
+     * @param user the user uid who created the experience
+     * @param journey the id of the journey to which the experience belongs
+     * @param poi the id of the poi to which the experience belongs
+     * @returns the deleted experience
+     */
+    deleteExperience(user: string, journey: string, poi: string) {
+        const query = `
+            MATCH (user:User{uid:$user})-[:CREATED]->(journey:Journey{id:$journey})-[experience:EXPERIENCE]->(poi: POI{id:$poi})
+            DELETE experience
+            WITH experience
+            RETURN experience
+        `;
+        const params = { user, journey, poi };
+        return this.neo4jService.write(query, params);
+    }
+
+    /**
      * Add a list of experiences to a given journey
      * @param journey the id of the journey
      * @param experiences the list of experiences to add

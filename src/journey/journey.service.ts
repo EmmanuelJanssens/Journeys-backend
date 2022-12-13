@@ -215,6 +215,22 @@ export class JourneyService {
     }
 
     /**
+     * delete an experience from a journey
+     * @param user the user uid that created the journey
+     * @param journey the journey id to wich the experience belongs
+     * @param poi the poi id to wich the experience belongs
+     * @returns the deleted experience
+     **/
+    async deleteExperience(user: string, journey: string, poi: string) {
+        const queryResult = await this.journeyRepository.deleteExperience(
+            user,
+            journey,
+            poi
+        );
+        return queryResult.records[0].get("experience").properties;
+    }
+
+    /**
      *  get all experiences of a journey
      * @param journey the journey id
      * @param poi the poi id

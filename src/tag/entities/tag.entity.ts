@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Relationship, Node } from "neo4j-driver";
 import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
 
@@ -16,9 +17,14 @@ export class TagNode {
     }
 }
 export class Tag {
+    @ApiProperty()
     type: string;
+
+    @ApiProperty()
     tagAggregate: {
         count: number;
     };
+
+    @ApiProperty()
     pois: PointOfInterestDto[];
 }

@@ -15,7 +15,6 @@ import { UserService } from "./user.service";
 import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
 import { UserInfo } from "firebase-admin/lib/auth/user-record";
 import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
-import { CreateUserDto } from "./dto/create-user.dto";
 import { UserDto } from "./dto/user-dto";
 import { int } from "neo4j-driver";
 
