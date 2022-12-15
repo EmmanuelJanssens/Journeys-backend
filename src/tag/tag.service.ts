@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
+import { PointOfInterestDto } from "../point-of-interest/dto/point-of-interest.dto";
 import { TagDto } from "./dto/tag.dto";
 import { TagNode } from "./entities/tag.entity";
 import { TagRepository } from "./tag.repository";

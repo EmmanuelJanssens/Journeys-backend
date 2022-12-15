@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import { PointToLocation } from "entities/utilities";
-import { UserPrivateError } from "errors/Errors";
-import { JourneyDto } from "journey/dto/journey.dto";
-import { JourneyNode } from "journey/entities/journey.entity";
+import { PointToLocation } from "../entities/utilities";
+import { UserPrivateError } from "../errors/Errors";
+import { JourneyDto } from "../journey/dto/journey.dto";
+import { JourneyNode } from "../journey/entities/journey.entity";
 import { Integer } from "neo4j-driver";
-import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
-import { PoiNode } from "point-of-interest/entities/point-of-interest.entity";
+import { PointOfInterestDto } from "../point-of-interest/dto/point-of-interest.dto";
+import { PoiNode } from "../point-of-interest/entities/point-of-interest.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { UserDto } from "./dto/user-dto";
@@ -34,10 +34,6 @@ export class UserService {
         return createdUser;
     }
 
-    async update(user: UpdateUserDto) {
-        //
-    }
-
     /**
      * Find a user by its id
      * @param uid the id of the user
@@ -59,6 +55,16 @@ export class UserService {
         return foundUser;
     }
 
+    async updateUser(uid: string, user: UpdateUserDto) {
+        const queryResult = await this.userRepository.update(uid, user);
+        const userNode = new UserNode(
+            queryResult.records[0].get("user"),
+            [],
+            []
+        );
+        const updatedUser = userNode.getProperties() as UserDto;
+        return updatedUser;
+    }
     /**
      * Find a user by its uid
      * @param uid the uid of the user
@@ -112,6 +118,11 @@ export class UserService {
                 journey.start = PointToLocation(journeyNode.getStart());
                 journey.end = PointToLocation(journeyNode.getEnd());
                 journey.creator = userNode.getUsername();
+                const thumbnails = record.get("thumbnails") as string[][];
+                journey.thumbnails = thumbnails.reduce(
+                    (acc, curr) => acc.concat(curr),
+                    []
+                );
                 journey.experiencesAggregate = {
                     count: record.get("expCount").low
                 };
@@ -119,6 +130,23 @@ export class UserService {
             }
         });
         return userJourneys;
+    }
+
+    async getMyProfile(uid: string) {
+        const queryResult = await this.userRepository.findOne(uid);
+        const records = queryResult.records[0];
+        const userNode = new UserNode(records.get("user"), [], []);
+        const foundUser = userNode.getProperties() as UserDto;
+        foundUser.journeysAggregate = {
+            count: records.get("journeys").low
+        };
+        foundUser.poisAggregate = {
+            count: records.get("pois").low
+        };
+        foundUser.experiencesAggregate = {
+            count: records.get("exps").low
+        };
+        return foundUser;
     }
 
     /**
@@ -129,6 +157,24 @@ export class UserService {
      * @returns an array of PointOfInterestDto
      */
     async getPois(uid: string, skip: Integer, limit: Integer) {
+        const queryResult = await this.userRepository.getPois(uid, skip, limit);
+        const userPois: PointOfInterestDto[] = [];
+        queryResult.records.forEach((record) => {
+            if (record.get("poi")) {
+                const poiNode = new PoiNode(record.get("poi"), []);
+                if (poiNode != null) {
+                    const poi = poiNode.getProperties() as PointOfInterestDto;
+                    poi.location = PointToLocation(poiNode.getLocation());
+                    poi.experiencesAggregate = {
+                        count: record.get("expCount").low
+                    };
+                    userPois.push(poi);
+                }
+            }
+        });
+        return userPois;
+    }
+    async getMyPois(uid: string, skip: Integer, limit: Integer) {
         const queryResult = await this.userRepository.getPois(uid, skip, limit);
         const userPois: PointOfInterestDto[] = [];
         queryResult.records.forEach((record) => {

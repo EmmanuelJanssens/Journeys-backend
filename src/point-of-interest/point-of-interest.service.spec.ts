@@ -1,7 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { FirebaseService } from "firebase/firebase.service";
-import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
-import { Neo4jService } from "neo4j/neo4j.service";
+import { Neo4jService } from "../neo4j/neo4j.service";
 import { PoiRepository } from "./point-of-interest.repository";
 import { PointOfInterestService } from "./point-of-interest.service";
 

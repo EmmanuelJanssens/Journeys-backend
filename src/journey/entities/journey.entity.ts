@@ -1,8 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Locality } from "entities/Locality";
-import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
-import { Experience } from "entities/experience.entity";
-import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
+import { Locality } from "../../entities/Locality";
+import { Experience } from "../../entities/experience.entity";
+import { PointOfInterestDto } from "../../point-of-interest/dto/point-of-interest.dto";
 import { Node } from "neo4j-driver";
 import { Point } from "neo4j-driver-core";
 import { Relationship } from "neo4j-driver-core";
@@ -56,8 +55,6 @@ export class Journey {
     @ApiProperty()
     thumbnail: string;
 
-    thumbnails: string[];
-
     @ApiProperty()
     visibility: "public" | "private";
 
@@ -70,6 +67,7 @@ export class Journey {
     @ApiProperty()
     creator: string;
 
+    @ApiProperty()
     experiencesAggregate: { count: number };
 
     @ApiProperty()
@@ -77,4 +75,7 @@ export class Journey {
         experience: Experience;
         poi: PointOfInterestDto;
     }[];
+
+    @ApiProperty()
+    thumbnails: string[];
 }

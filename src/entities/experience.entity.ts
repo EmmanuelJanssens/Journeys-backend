@@ -1,5 +1,5 @@
 import { PartialType } from "@nestjs/swagger";
-import { Date, Relationship } from "neo4j-driver";
+import { Relationship } from "neo4j-driver";
 
 export class ExperienceRelation {
     constructor(private readonly relation: Relationship) {}

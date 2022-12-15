@@ -1,8 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { QueryResult } from "neo4j-driver";
-import { Neo4jService } from "neo4j/neo4j.service";
+import { Neo4jService } from "../neo4j/neo4j.service";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
-import { PointOfInterest } from "./entities/point-of-interest.entity";
 
 @Injectable()
 export class PoiRepository {
@@ -41,7 +40,7 @@ export class PoiRepository {
                 MERGE (poi: POI{
                     id: apoc.create.uuid(),
                     name: newPoi.name,
-                    location: point({srid:4326, x: newPoi.location.latitude, y: newPoi.location.longitude})
+                    location: point({srid:4326, x: newPoi.location.longitude, y: newPoi.location.latitude})
                 })<-[:CREATED]-(user)
             WITH newPoi.tags as tags, poi
             UNWIND tags as connectTag
@@ -72,7 +71,7 @@ export class PoiRepository {
             WHERE point.distance(poi.location,center) < $radius
             OPTIONAL MATCH (:Journey)-[exp:EXPERIENCE]->(poi)
             OPTIONAL MATCH (tag:Tag)<-[type:IS_TYPE]-(poi)
-            RETURN poi,count(distinct exp) as expCount, collect(distinct tag) as tags
+            RETURN poi,count(distinct exp) as expCount,coalesce(exp.images, []) as images, collect(distinct tag) as tags
         `;
         const params = { center, radius };
         return this.neo4jService.read(query, params);

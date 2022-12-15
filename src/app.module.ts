@@ -6,8 +6,8 @@ import { ConfigModule } from "@nestjs/config";
 import { FirebaseModule } from "./firebase/firebase.module";
 import { PointOfInterestModule } from "./point-of-interest/point-of-interest.module";
 import { JourneyModule } from "./journey/journey.module";
-import { UserModule } from './user/user.module';
-import { TagModule } from './tag/tag.module';
+import { UserModule } from "./user/user.module";
+import { TagModule } from "./tag/tag.module";
 @Module({
     imports: [
         ConfigModule.forRoot({

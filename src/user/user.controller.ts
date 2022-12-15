@@ -12,11 +12,12 @@ import {
     Query
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
-import { UserInfo } from "firebase-admin/lib/auth/user-record";
-import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
 import { UserDto } from "./dto/user-dto";
+import { ErrorsInterceptor } from "../errors/errors-interceptor.interceptor";
+import { UserInfo } from "firebase-admin/lib/auth/user-record";
+import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { int } from "neo4j-driver";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Controller("user")
 @UseInterceptors(ErrorsInterceptor)
@@ -30,6 +31,12 @@ export class UserController {
         this.userService.create(newUser, user.uid);
     }
 
+    @UseGuards(FirebaseAuthGuard)
+    @Patch()
+    update(@Body() newUser: UpdateUserDto, @Request() req) {
+        const user = req.user as UserInfo;
+        this.userService.updateUser(user.uid, newUser);
+    }
     @Get(":uid/profile")
     findOne(@Param("uid") uid: string) {
         const result = this.userService.findOne(uid);
@@ -59,6 +66,23 @@ export class UserController {
         const page = query.page ? int(query.page).subtract(1) : int(0);
         const limit = query.limit ? int(query.limit) : int(300);
         const result = this.userService.getMyJourneys(user.uid, page, limit);
+        return result;
+    }
+    @UseGuards(FirebaseAuthGuard)
+    @Get("/pois")
+    getMyPois(@Request() req, @Query() query) {
+        const user = req.user as UserInfo;
+        const page = query.page ? int(query.page).subtract(1) : int(0);
+        const limit = query.limit ? int(query.limit) : int(300);
+        const result = this.userService.getMyPois(user.uid, page, limit);
+        return result;
+    }
+
+    @UseGuards(FirebaseAuthGuard)
+    @Get("/profile")
+    getMyProfile(@Request() req) {
+        const user = req.user as UserInfo;
+        const result = this.userService.getMyProfile(user.uid);
         return result;
     }
 }

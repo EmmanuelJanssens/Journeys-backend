@@ -1,16 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { JourneyRepository } from "./journey.repository";
-import { Experience, ExperienceDto } from "entities/experience.entity";
+import { Experience, ExperienceDto } from "../entities/experience.entity";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyDto } from "./dto/journey.dto";
-import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
-import { NotFoundError } from "errors/Errors";
+import { PointOfInterestDto } from "../point-of-interest/dto/point-of-interest.dto";
+import { NotFoundError } from "../errors/Errors";
 import { JourneyNode } from "./entities/journey.entity";
-import { PointToLocation } from "entities/utilities";
-import { PoiNode } from "point-of-interest/entities/point-of-interest.entity";
+import { PointToLocation } from "../entities/utilities";
+import { PoiNode } from "../point-of-interest/entities/point-of-interest.entity";
 import { EditJourneyExperiencesDto } from "./dto/edit-journey-dto";
-
 @Injectable()
 export class JourneyService {
     constructor(private journeyRepository: JourneyRepository) {}
@@ -35,6 +34,13 @@ export class JourneyService {
         foundJourney.experiencesAggregate = {
             count: queryResult.records[0].get("count")
         };
+        const thumbnails = queryResult.records[0].get(
+            "thumbnails"
+        ) as string[][];
+        foundJourney.thumbnails = thumbnails.reduce(
+            (acc, curr) => acc.concat(curr),
+            []
+        );
         foundJourney.start = PointToLocation(journeyNode.getStart());
         foundJourney.end = PointToLocation(journeyNode.getEnd());
 
@@ -73,6 +79,12 @@ export class JourneyService {
 
         journey.start = PointToLocation(journeyNode.getStart());
         journey.end = PointToLocation(journeyNode.getEnd());
+
+        journey.experiences.sort(
+            (a, b) =>
+                new Date(a.experience.date).getTime() -
+                new Date(b.experience.date).getTime()
+        );
         return journey;
     }
 
@@ -227,7 +239,10 @@ export class JourneyService {
             journey,
             poi
         );
-        return queryResult.records[0].get("experience").properties;
+
+        const updatedJourney = await this.getExperiences(journey);
+
+        return updatedJourney;
     }
 
     /**
@@ -290,31 +305,35 @@ export class JourneyService {
         journey: string,
         editDto: EditJourneyExperiencesDto
     ) {
-        const queryResult =
-            await this.journeyRepository.editJourneysExperiences(
-                user,
-                journey,
-                editDto
-            );
-        const journeyNode = new JourneyNode(
-            queryResult.records[0].get("journey"),
-            queryResult.records[0].get("experiences")
+        await this.journeyRepository.editJourneysExperiences(
+            user,
+            journey,
+            editDto
         );
-        const updatedJourney = journeyNode.getProperties() as JourneyDto;
-        updatedJourney.experiences = [];
-        journeyNode.getExperiencesRelationships().forEach((rel, idx) => {
-            const poiNode = new PoiNode(
-                queryResult.records[0].get("pois")[idx]
-            );
-            const poi = poiNode.getProperties();
-            poi.location = PointToLocation(poi.location);
-            updatedJourney.experiences.push({
-                experience: rel.properties as Experience,
-                poi: poi
-            });
-        });
-        updatedJourney.start = PointToLocation(journeyNode.getStart());
-        updatedJourney.end = PointToLocation(journeyNode.getEnd());
-        return updatedJourney;
+
+        return this.getExperiences(journey);
+    }
+
+    /**
+     * push an image to the images array of an experience
+     * @param user the user uid that created the journey
+     * @param journey the journey id
+     * @param poi the poi id
+     * @param image the image to push
+     * @returns the updated experience
+     * */
+    async pushImageToExperience(
+        user: string,
+        journey: string,
+        poi: string,
+        image: string
+    ) {
+        const queryResult = await this.journeyRepository.pushImage(
+            user,
+            journey,
+            poi,
+            image
+        );
+        return queryResult.records[0].get("experience").properties;
     }
 }

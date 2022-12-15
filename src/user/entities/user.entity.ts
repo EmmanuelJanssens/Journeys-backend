@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { JourneyDto } from "journey/dto/journey.dto";
+import { JourneyDto } from "../../journey/dto/journey.dto";
 import { Relationship, Node } from "neo4j-driver";
 
 export class UserNode {
@@ -64,4 +64,7 @@ export class User {
 
     @ApiProperty()
     poisAggregate: { count: number };
+
+    @ApiProperty()
+    experiencesAggregate: { count: number };
 }

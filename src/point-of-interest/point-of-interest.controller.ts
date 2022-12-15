@@ -10,8 +10,8 @@ import {
 } from "@nestjs/common";
 import { PointOfInterestService } from "./point-of-interest.service";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
-import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
-import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
+import { ErrorsInterceptor } from "../errors/errors-interceptor.interceptor";
+import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { UserInfo } from "firebase-admin/lib/auth/user-record";
 
 @Controller("poi")
@@ -32,6 +32,16 @@ export class PointOfInterestController {
             user.uid,
             createPointOfInterestDto
         );
+    }
+
+    @Get("search/:query/count")
+    async count(@Param("query") query) {
+        const q = JSON.parse(query);
+        const result = await this.pointOfInterestService.findAll(
+            { lat: q.location.latitude, lng: q.location.longitude },
+            q.radius
+        );
+        return result.length;
     }
 
     @Get("search/:query")

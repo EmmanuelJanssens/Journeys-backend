@@ -37,4 +37,5 @@ lerna-debug.log*
 data/
 
 .env
+.env.local
 my-journeys-361916-firebase-adminsdk-10tw0-34a3fcade2.json

@@ -1,5 +1,4 @@
-import { PartialType, PickType } from "@nestjs/swagger";
-import { User } from "user/entities/user.entity";
+import { PickType } from "@nestjs/swagger";
 import { UserDto } from "./user-dto";
 
 export class CreateUserDto extends PickType(UserDto, [

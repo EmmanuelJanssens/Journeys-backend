@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { Neo4jService } from "neo4j/neo4j.service";
+import { Neo4jService } from "../neo4j/neo4j.service";
 import { JourneyService } from "./journey.service";
 import { JourneyRepository } from "./journey.repository";
 import { int, QueryResult, Node, Point } from "neo4j-driver";
@@ -47,7 +47,8 @@ describe("JourneyService", () => {
                 experiencesAggregate: {
                     count: 10
                 },
-                visibility: "public"
+                visibility: "public",
+                thumbnails: ["thumbnail"]
             };
             jest.spyOn(repository, "get").mockResolvedValueOnce(<QueryResult>{
                 records: [
@@ -62,8 +63,11 @@ describe("JourneyService", () => {
                                         description: expected.description,
                                         start: new Point(4326, 0, 0),
                                         end: new Point(4326, 0, 0),
-                                        visibility: expected.visibility
+                                        visibility: expected.visibility,
+                                        thumbnails: [["thumbnail"], []]
                                     });
+                                case "thumbnails":
+                                    return [["thumbnail"], []];
                                 case "creator":
                                     return "test-user";
                                 case "count":
@@ -94,7 +98,8 @@ describe("JourneyService", () => {
                 experiencesAggregate: {
                     count: 10
                 },
-                visibility: "public"
+                visibility: "public",
+                thumbnails: ["thumbnail"]
             };
             jest.spyOn(repository, "get").mockResolvedValueOnce(<QueryResult>{
                 records: [
@@ -110,6 +115,8 @@ describe("JourneyService", () => {
                                         end: new Point(4326, 0, 0),
                                         visibility: expected.visibility
                                     });
+                                case "thumbnails":
+                                    return [["thumbnail"], []];
                                 case "creator":
                                     return "test-user";
                                 case "count":

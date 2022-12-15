@@ -1,5 +1,5 @@
-import { ExperienceDto } from "entities/experience.entity";
-import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
+import { ExperienceDto } from "../../entities/experience.entity";
+import { PointOfInterest } from "../../point-of-interest/entities/point-of-interest.entity";
 
 export class EditJourneyExperiencesDto {
     connected: {

@@ -1,13 +1,12 @@
 import { QueryResult } from "neo4j-driver";
-import { Experience, ExperienceDto } from "entities/experience.entity";
-import { Neo4jService } from "neo4j/neo4j.service";
-import { CreateJourneyDto } from "./dto/create-journey.dto";
-
-import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { Logger } from "@nestjs/common/services";
 import { Injectable } from "@nestjs/common/decorators";
-import { PointOfInterestDto } from "point-of-interest/dto/point-of-interest.dto";
+import { Experience, ExperienceDto } from "../entities/experience.entity";
+import { Neo4jService } from "../neo4j/neo4j.service";
+import { PointOfInterestDto } from "../point-of-interest/dto/point-of-interest.dto";
 import { EditJourneyExperiencesDto } from "./dto/edit-journey-dto";
+import { CreateJourneyDto } from "./dto/create-journey.dto";
+import { UpdateJourneyDto } from "./dto/update-journey.dto";
 @Injectable()
 export class JourneyRepository {
     logger = new Logger(JourneyRepository.name);
@@ -21,7 +20,7 @@ export class JourneyRepository {
     get(journey: string): Promise<QueryResult> {
         const query = `
             OPTIONAL MATCH (:POI)<-[exp:EXPERIENCE]-(journey:Journey{id: $journey})<-[:CREATED]-(user:User)
-            RETURN journey, user.username AS creator, count(distinct exp) as count`;
+            RETURN journey, user.username AS creator, count(distinct exp) as count, collect(exp.images) as thumbnails`;
         const params = { journey };
 
         return this.neo4jService.read(query, params);
@@ -93,8 +92,7 @@ export class JourneyRepository {
      * @returns the experience between the journey and the poi
      */
     getExperience(journey: string, poi: string): Promise<QueryResult> {
-        const query = `
-       (journey:Journey{ id: $journey })-[experience:EXPERIENCE]-(poi:POI{ id:$poi })
+        const query = `MATCH (journey:Journey{ id: $journey })-[experience:EXPERIENCE]-(poi:POI{ id:$poi })
             RETURN experience
         `;
         return this.neo4jService.read(query, {
@@ -144,7 +142,8 @@ export class JourneyRepository {
      */
     getExperiences(journey: string): Promise<QueryResult | undefined> {
         const query = `
-            MATCH(journey: Journey{id : $journey})-[experience:EXPERIENCE]-(poi:POI)
+            MATCH(journey: Journey{id : $journey})
+            OPTIONAL MATCH (journey)-[experience:EXPERIENCE]-(poi:POI)
             RETURN  journey, collect(experience) as experiences, collect(poi) as pois
         `;
 
@@ -193,8 +192,8 @@ export class JourneyRepository {
         const query = `
             MATCH (user:User{uid:$user})-[:CREATED]->(journey:Journey{id:$journey})-[experience:EXPERIENCE]->(poi: POI{id:$poi})
             DELETE experience
-            WITH experience
-            RETURN experience
+            WITH experience, journey
+            RETURN journey, collect(distinct experience)
         `;
         const params = { user, journey, poi };
         return this.neo4jService.write(query, params);
@@ -241,14 +240,13 @@ export class JourneyRepository {
      */
     async delete(user: string, journey: string): Promise<QueryResult> {
         const delExpRelationQuery = `
-            MATCH (user:User{uid: $user})-[:CREATED]-(journey: Journey{id: $journey})-[experiences]-() DELETE experiences
-            WITH user,journey
-            MATCH (user:User{uid: $user})-[created]-(journey: Journey{id: $journey}) DELETE created
-            WITH user, journey
             MATCH (journey: Journey{id: $journey})
-            DELETE journey
             WITH journey
-            RETURN journey.id
+            OPTIONAL MATCH (journey)-[experiences]->() DELETE experiences
+            WITH journey
+            OPTIONAL MATCH (user:User{uid: $user})-[created]->(journey) DELETE created
+            WITH journey
+            DELETE journey
         `;
         const params = { user, journey };
         return this.neo4jService.write(delExpRelationQuery, params);
@@ -291,12 +289,11 @@ export class JourneyRepository {
                         MATCH (journey:Journey{id: $journey})<- [:CREATED]-(user:User{uid: $user})
                         UNWIND $experiences as data
                             MATCH(poi:POI{id: data.poi.id})
-                            MERGE(journey)-[experience:EXPERIENCE{
-                                date : data.experience.date,
-                                title :  data.experience.title,
-                                description :  data.experience.description,
-                                images : data.experience.images
-                            }]->(poi)
+                            MERGE(journey)-[experience:EXPERIENCE]->(poi)
+                            SET experience.date = data.experience.date,
+                                experience.title =  data.experience.title,
+                                experience.description =  data.experience.description,
+                                experience.images = data.experience.images
                         RETURN  journey, collect(experience) as experiences, collect(poi) as pois `;
                     journeyResult = await tx.run(addExperiences, {
                         journey,
@@ -309,10 +306,11 @@ export class JourneyRepository {
                     const updateExperiences = `
                         MATCH (journey:Journey{id: $journey})<-[:CREATED]-(user:User{uid: $user})
                         UNWIND $update as data
-                            MATCH(journey)-[experience:EXPERIENCE]->(poi:POI{id: data.poi.id})
+                            MATCH(poi:POI{id: data.poi.id})
+                            MERGE(journey)-[experience:EXPERIENCE]->(poi)
                             SET experience.date = data.experience.date,
-                                experience.title = data.experience.title,
-                                experience.description = data.experience.description,
+                                experience.title =  data.experience.title,
+                                experience.description =  data.experience.description,
                                 experience.images = data.experience.images
                         RETURN  journey, collect(experience) as experiences, collect(poi) as pois`;
                     journeyResult = await tx.run(updateExperiences, {
@@ -326,5 +324,28 @@ export class JourneyRepository {
             .finally(() => {
                 session.close();
             });
+    }
+
+    /**
+     * push an image to an experience
+     * @param user user uid who created the journey
+     * @param journey journey id to which the experience belongs
+     * @param poi poi id to which the experience belongs
+     * @param image image url to push
+     * @returns the updated experience
+     */
+    async pushImage(
+        user: string,
+        journey: string,
+        poi: string,
+        image: string
+    ): Promise<QueryResult> {
+        const query = `
+            MATCH (user:User{uid:$user})-[:CREATED]->(journey:Journey{id:$journey})-[experience:EXPERIENCE]->(poi: POI{id:$poi})
+            SET experience.images = coalesce(experience.images, []) + $image
+            RETURN experience
+        `;
+        const params = { user, journey, poi, image };
+        return this.neo4jService.write(query, params);
     }
 }

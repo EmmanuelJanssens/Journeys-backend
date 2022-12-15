@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
-import { FirebaseService } from "firebase/firebase.service";
-import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
+import { ErrorsInterceptor } from "../errors/errors-interceptor.interceptor";
+import { FirebaseService } from "../firebase/firebase.service";
+import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { JourneyController } from "./journey.controller";
 import { JourneyService } from "./journey.service";
 

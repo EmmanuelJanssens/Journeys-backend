@@ -10,11 +10,11 @@ import {
     Patch,
     UseInterceptors
 } from "@nestjs/common";
-import { Experience, ExperienceDto } from "entities/experience.entity";
-import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
+import { Experience, ExperienceDto } from "../entities/experience.entity";
+import { ErrorsInterceptor } from "../errors/errors-interceptor.interceptor";
 import { UserInfo } from "firebase-admin/lib/auth/user-record";
-import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
-import { PointOfInterest } from "point-of-interest/entities/point-of-interest.entity";
+import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
+import { PointOfInterest } from "../point-of-interest/entities/point-of-interest.entity";
 import { EditJourneyExperiencesDto } from "./dto/edit-journey-dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyService } from "./journey.service";
@@ -154,6 +154,24 @@ export class JourneyController {
             user.uid,
             journey,
             poi
+        );
+        return result;
+    }
+
+    @UseGuards(FirebaseAuthGuard)
+    @Patch(":journey/experience/:poi/image")
+    async updateExperienceImage(
+        @Param("journey") journey: string,
+        @Param("poi") poi: string,
+        @Body() image: { url: string },
+        @Request() req
+    ) {
+        const user = req.user as UserInfo;
+        const result = await this.journeyService.pushImageToExperience(
+            user.uid,
+            journey,
+            poi,
+            image.url
         );
         return result;
     }

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Experience } from "entities/experience.entity";
-import { Locality } from "entities/Locality";
+import { Experience } from "../../entities/experience.entity";
+import { Locality } from "../../entities/Locality";
 import { Node, Point, Relationship } from "neo4j-driver";
 
 export class PoiNode {

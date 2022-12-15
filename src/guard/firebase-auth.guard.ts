@@ -6,9 +6,9 @@ import {
     UseInterceptors
 } from "@nestjs/common";
 import { Observable } from "rxjs";
-import { FirebaseService } from "firebase/firebase.service";
+import { FirebaseService } from "../firebase/firebase.service";
 import { Request } from "express";
-import { ErrorsInterceptor } from "errors/errors-interceptor.interceptor";
+import { ErrorsInterceptor } from "../errors/errors-interceptor.interceptor";
 import { UnauthorizedException } from "@nestjs/common/exceptions/unauthorized.exception";
 
 @Injectable()

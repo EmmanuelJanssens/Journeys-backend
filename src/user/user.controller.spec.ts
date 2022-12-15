@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { FirebaseService } from "firebase/firebase.service";
-import { FirebaseAuthGuard } from "guard/firebase-auth.guard";
+import { FirebaseService } from "../firebase/firebase.service";
+import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
 

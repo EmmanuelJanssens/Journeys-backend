@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { QueryResult } from "neo4j-driver";
-import { Neo4jService } from "neo4j/neo4j.service";
+import { Neo4jService } from "../neo4j/neo4j.service";
 import { TagDto } from "./dto/tag.dto";
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { Experience } from "entities/experience.entity";
-import { PointToLocation } from "entities/utilities";
+import { Experience } from "../entities/experience.entity";
+import { PointToLocation } from "../entities/utilities";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
 import { PointOfInterestDto } from "./dto/point-of-interest.dto";
 import { PoiNode } from "./entities/point-of-interest.entity";
@@ -66,6 +66,10 @@ export class PointOfInterestService {
                 count: record.get("expCount").low
             };
             foundPoi.location = PointToLocation(poiNode.getLocation());
+            foundPoi.thumbnail =
+                record.get("images")?.length > 0
+                    ? record.get("images")[0]
+                    : "/assets/placeholder.png";
             poisFound.push(foundPoi);
         });
         return poisFound;
