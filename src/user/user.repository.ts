@@ -99,4 +99,75 @@ export class UserRepository {
         const params = { uid, skip, limit };
         return this.neo4jService.read(query, params);
     }
+
+    /**
+     * send an friend invitation to a user
+     * @param uid the uid of the sender
+     * @param friendUid the uid of the receiver
+     */
+    sendFriendInvitation(uid: string, friendUid: string) {
+        const query = `
+            MATCH (user:User{uid:$uid}), (friend:User{uid:$friendUid})
+            MERGE (user)-[:INVITED]->(friend)
+        `;
+        const params = { uid, friendUid };
+        return this.neo4jService.write(query, params);
+    }
+
+    /**
+     * accept a friend invitation
+     * @param uid the uid of the sender
+     * @param friendUid the uid of the receiver
+     */
+    acceptFriendInvitation(uid: string, friendUid: string) {
+        const query = `
+            MATCH (user:User{uid:$uid})-[inv:INVITED]->(friend:User{uid:$friendUid})
+            MERGE (user)-[:FRIEND]->(friend)
+            DELETE inv
+        `;
+        const params = { uid, friendUid };
+        return this.neo4jService.write(query, params);
+    }
+
+    /**
+     * decline a friend invitation
+     * @param uid the uid of the sender
+     * @param friendUid the uid of the receiver
+     * */
+    declineFriendInvitation(uid: string, friendUid: string) {
+        const query = `
+            MATCH (user:User{uid:$uid})-[inv:INVITED]->(friend:User{uid:$friendUid})
+            DELETE inv
+        `;
+        const params = { uid, friendUid };
+        return this.neo4jService.write(query, params);
+    }
+
+    /**
+     * follow a user
+     * @param uid the uid of the follower
+     * @param friendUid the uid of the user to follow
+     */
+    followUser(uid: string, friendUid: string) {
+        const query = `
+            MATCH (user:User{uid:$uid}), (friend:User{uid:$friendUid})
+            MERGE (user)-[:FOLLOW]->(friend)
+        `;
+        const params = { uid, friendUid };
+        return this.neo4jService.write(query, params);
+    }
+
+    /**
+     * unfollow a user
+     * @param uid the uid of the follower
+     * @param friendUid the uid of the user to unfollow
+     * */
+    unfollowUser(uid: string, friendUid: string) {
+        const query = `
+            MATCH(user:User{uid:$uid})-[f:FOLLOW]->(friend:User{uid:$friendUid})
+            DELETE f
+        `;
+        const params = { uid, friendUid };
+        return this.neo4jService.write(query, params);
+    }
 }
