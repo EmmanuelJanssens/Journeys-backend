@@ -1,9 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { PointToLocation } from "../entities/utilities";
-import { UserPrivateError } from "../errors/Errors";
+import {
+    UserNotFoundError,
+    UserPrivateError,
+    NotFoundError
+} from "../errors/Errors";
 import { JourneyDto } from "../journey/dto/journey.dto";
 import { JourneyNode } from "../journey/entities/journey.entity";
-import { Integer } from "neo4j-driver";
+import { Integer, QueryResult } from "neo4j-driver";
 import { PointOfInterestDto } from "../point-of-interest/dto/point-of-interest.dto";
 import { PoiNode } from "../point-of-interest/entities/point-of-interest.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -191,5 +195,72 @@ export class UserService {
             }
         });
         return userPois;
+    }
+
+    private async getSocialQueryData(queryResult: QueryResult) {
+        const records = queryResult.records[0];
+        if (!records || records.length == 0)
+            throw new UserNotFoundError("Users invitations not found");
+        const userNode = new UserNode(records.get("user"), [], []);
+        const friendNode = new UserNode(records.get("friend"), [], []);
+        if (!userNode || !friendNode)
+            throw new UserNotFoundError("User not found");
+        const user = userNode.getProperties() as UserDto;
+        const friend = friendNode.getProperties() as UserDto;
+        return { user, friend };
+    }
+
+    async sendFriendInvitation(uid: string, friendUid: string) {
+        const queryResult = await this.userRepository.sendFriendInvitation(
+            uid,
+            friendUid
+        );
+        const result = await this.getSocialQueryData(queryResult);
+        return result.friend;
+    }
+
+    async declineFriendInvitation(uid: string, friendUid: string) {
+        const queryResult = await this.userRepository.declineFriendInvitation(
+            uid,
+            friendUid
+        );
+        const result = await this.getSocialQueryData(queryResult);
+        return result.friend;
+    }
+
+    async acceptFriendInvitation(uid: string, friendUid: string) {
+        const queryResult = await this.userRepository.acceptFriendInvitation(
+            uid,
+            friendUid
+        );
+        const result = await this.getSocialQueryData(queryResult);
+        return result.friend;
+    }
+
+    async removeFriend(uid: string, friendUid: string) {
+        const queryResult = await this.userRepository.removeFriend(
+            uid,
+            friendUid
+        );
+        const result = await this.getSocialQueryData(queryResult);
+        return result.friend;
+    }
+
+    async followUser(uid: string, friendUid: string) {
+        const queryResult = await this.userRepository.followUser(
+            uid,
+            friendUid
+        );
+        const result = await this.getSocialQueryData(queryResult);
+        return result.friend;
+    }
+
+    async unfollowUser(uid: string, friendUid: string) {
+        const queryResult = await this.userRepository.unfollowUser(
+            uid,
+            friendUid
+        );
+        const result = await this.getSocialQueryData(queryResult);
+        return result.friend;
     }
 }

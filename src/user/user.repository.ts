@@ -109,6 +109,7 @@ export class UserRepository {
         const query = `
             MATCH (user:User{uid:$uid}), (friend:User{uid:$friendUid})
             MERGE (user)-[:INVITED]->(friend)
+            RETURN user, friend
         `;
         const params = { uid, friendUid };
         return this.neo4jService.write(query, params);
@@ -124,6 +125,8 @@ export class UserRepository {
             MATCH (user:User{uid:$uid})-[inv:INVITED]->(friend:User{uid:$friendUid})
             MERGE (user)-[:FRIEND]->(friend)
             DELETE inv
+            WITH user, friend
+            RETURN user, friend
         `;
         const params = { uid, friendUid };
         return this.neo4jService.write(query, params);
@@ -138,6 +141,24 @@ export class UserRepository {
         const query = `
             MATCH (user:User{uid:$uid})-[inv:INVITED]->(friend:User{uid:$friendUid})
             DELETE inv
+            WITH user, friend
+            RETURN user, friend
+        `;
+        const params = { uid, friendUid };
+        return this.neo4jService.write(query, params);
+    }
+
+    /**
+     * remove a friend
+     * @param uid the uid of the sender
+     * @param friendUid the uid of the receiver
+     * */
+    removeFriend(uid: string, friendUid: string) {
+        const query = `
+            MATCH (user:User{uid:$uid})-[f:FRIEND]->(friend:User{uid:$friendUid})
+            DELETE f
+            WITH user, friend
+            RETURN user, friend
         `;
         const params = { uid, friendUid };
         return this.neo4jService.write(query, params);
@@ -152,6 +173,7 @@ export class UserRepository {
         const query = `
             MATCH (user:User{uid:$uid}), (friend:User{uid:$friendUid})
             MERGE (user)-[:FOLLOW]->(friend)
+            RETURN user, friend
         `;
         const params = { uid, friendUid };
         return this.neo4jService.write(query, params);
@@ -166,6 +188,8 @@ export class UserRepository {
         const query = `
             MATCH(user:User{uid:$uid})-[f:FOLLOW]->(friend:User{uid:$friendUid})
             DELETE f
+            WITH user, friend
+            RETURN user, friend
         `;
         const params = { uid, friendUid };
         return this.neo4jService.write(query, params);
