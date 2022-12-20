@@ -62,9 +62,14 @@ export class ExperienceService {
      * @param userId
      * @returns the created experiences as an array
      * */
-    async createMany(experiences: CreateExperienceDto[], userId: string) {
+    async createMany(
+        userId: string,
+        journeyId: string,
+        experiences: CreateExperienceDto[]
+    ) {
         const queryResult = await this.experienceRepository.createMany(
             userId,
+            journeyId,
             experiences
         );
         const experiencesNodes = queryResult.records.map((record) => {

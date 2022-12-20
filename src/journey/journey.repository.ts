@@ -19,7 +19,7 @@ export class JourneyRepository {
      */
     get(journey: string): Promise<QueryResult> {
         const query = `
-            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey})-[expRel:EXPERIENCE]->(exp:Experience)
+            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey})-[expRel:EXPERIENCE]->(exp    :Experience)
             RETURN journey, user.username AS creator, count(distinct expRel) as count, collect(exp.images) as thumbnails`;
         const params = { journey };
 
@@ -37,27 +37,16 @@ export class JourneyRepository {
         journey: CreateJourneyDto
     ): Promise<QueryResult> {
         const createJourneyQuery = `
-        UNWIND $journey as new
             MATCH(user:User{uid: $user})
-                CREATE (journey:Journey{
+                MERGE (journey:Journey{
                     id:apoc.create.uuid(),
-                    title: new.title,
-                    description: new.description,
-                    start: point({srid:4326,x: new.start.longitude, y: new.start.latitude}),
-                    end: point({srid:4326,x: new.end.longitude, y: new.end.latitude})
+                    title: coalesce($journey.title, "Untitled Journey"),
+                    description: coalesce($journey.description, ""),
+                    start: point({srid:4326,x: $journey.start.longitude, y: $journey.start.latitude}),
+                    end: point({srid:4326,x: $journey.end.longitude, y: $journey.end.latitude})
                 })<-[:CREATED]-(user)
-        WITH journey
-            UNWIND $experiences as data
-            MATCH(journey:Journey{id: journey.id})
-            MATCH(poi:POI{id:data.poi.id})
-                    CREATE(journey)-[experience:EXPERIENCE{
-                        date :data.experience.date,
-                        title :data.experience.title,
-                        description : data.experience.description,
-                        images :data.experience.images
-                    }]->(poi)
-        RETURN journey, collect(experience) as experiences, collect(poi) as pois`;
-        const params = { user, journey, experiences: journey.experiences };
+        RETURN journey`;
+        const params = { user, journey };
         return this.neo4jService.write(createJourneyQuery, params);
     }
 

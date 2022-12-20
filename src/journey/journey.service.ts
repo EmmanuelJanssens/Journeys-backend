@@ -4,15 +4,16 @@ import { Experience, ExperienceDto } from "../entities/experience.entity";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyDto } from "./dto/journey.dto";
-import { PointOfInterestDto } from "../point-of-interest/dto/point-of-interest.dto";
 import { NotFoundError } from "../errors/Errors";
 import { JourneyNode } from "./entities/journey.entity";
 import { PointToLocation } from "../entities/utilities";
-import { PoiNode } from "../point-of-interest/entities/point-of-interest.entity";
-import { EditJourneyExperiencesDto } from "./dto/edit-journey-dto";
+import { ExperienceService } from "src/experience/experience.service";
 @Injectable()
 export class JourneyService {
-    constructor(private journeyRepository: JourneyRepository) {}
+    constructor(
+        private journeyRepository: JourneyRepository,
+        private experienceService: ExperienceService
+    ) {}
 
     getRepository() {
         return this.journeyRepository;
@@ -52,41 +53,41 @@ export class JourneyService {
      * @param journey_id  the journey id
      * @returns a journey with its experiences
      */
-    async getExperiences(journey_id: string) {
-        const queryResult = await this.journeyRepository.getExperiences(
-            journey_id
-        );
+    // async getExperiences(journey_id: string) {
+    //     const queryResult = await this.journeyRepository.getExperiences(
+    //         journey_id
+    //     );
 
-        const journeyNode = new JourneyNode(
-            queryResult.records[0].get("journey"),
-            queryResult.records[0].get("experiences")
-        );
-        const journey = journeyNode.getProperties() as JourneyDto;
-        const experiences = journeyNode.getExperiencesRelationships();
-        journey.experiences = [];
+    //     const journeyNode = new JourneyNode(
+    //         queryResult.records[0].get("journey"),
+    //         queryResult.records[0].get("experiences")
+    //     );
+    //     const journey = journeyNode.getProperties() as JourneyDto;
+    //     const experiences = journeyNode.getExperiencesRelationships();
+    //     journey.experiences = [];
 
-        experiences.forEach((experience, idx) => {
-            const poiNode = new PoiNode(
-                queryResult.records[0].get("pois")[idx]
-            );
-            const poi = poiNode.getProperties();
-            poi.location = PointToLocation(poi.location);
-            journey.experiences.push({
-                experience: experience.properties as Experience,
-                poi: poi
-            });
-        });
+    //     experiences.forEach((experience, idx) => {
+    //         const poiNode = new PoiNode(
+    //             queryResult.records[0].get("pois")[idx]
+    //         );
+    //         const poi = poiNode.getProperties();
+    //         poi.location = PointToLocation(poi.location);
+    //         journey.experiences.push({
+    //             experience: experience.properties as ExperienceDto,
+    //             poi: poi
+    //         });
+    //     });
 
-        journey.start = PointToLocation(journeyNode.getStart());
-        journey.end = PointToLocation(journeyNode.getEnd());
+    //     journey.start = PointToLocation(journeyNode.getStart());
+    //     journey.end = PointToLocation(journeyNode.getEnd());
 
-        journey.experiences.sort(
-            (a, b) =>
-                new Date(a.experience.date).getTime() -
-                new Date(b.experience.date).getTime()
-        );
-        return journey;
-    }
+    //     journey.experiences.sort(
+    //         (a, b) =>
+    //             new Date(a..date).getTime() -
+    //             new Date(b..date).getTime()
+    //     );
+    //     return journey;
+    // }
 
     /**
      * create a journey with its optional experiences
@@ -95,30 +96,41 @@ export class JourneyService {
      * @returns the journey with its experiences
      */
     async create(user: string, createJourney: CreateJourneyDto) {
-        const queryResult = await this.journeyRepository.create(
+        //create the journey node first
+        const journeyQueryResult = await this.journeyRepository.create(
             user,
             createJourney
         );
         const journeyNode = new JourneyNode(
-            queryResult.records[0].get("journey"),
-            queryResult.records[0].get("experiences")
+            journeyQueryResult.records[0].get("journey")
+        );
+
+        const experiences = await this.experienceService.createMany(
+            user,
+            journeyNode.getId(),
+            createJourney.experiences
         );
         const createdJourney = journeyNode.getProperties() as JourneyDto;
-
-        createdJourney.experiences = [];
-        journeyNode.getExperiencesRelationships().forEach((rel, idx) => {
-            const poiNode = new PoiNode(
-                queryResult.records[0].get("pois")[idx]
-            );
-            const poi = poiNode.getProperties();
-            poi.location = PointToLocation(poi.location);
-            createdJourney.experiences.push({
-                experience: rel.properties as Experience,
-                poi: poi
-            });
-        });
+        createdJourney.creator = user;
+        createdJourney.experiences = experiences;
         createdJourney.start = PointToLocation(journeyNode.getStart());
         createdJourney.end = PointToLocation(journeyNode.getEnd());
+        //create the experiences
+
+        // createdJourney.experiences = [];
+        // journeyNode.getExperiencesRelationships().forEach((rel, idx) => {
+        //     const poiNode = new PoiNode(
+        //         queryResult.records[0].get("pois")[idx]
+        //     );
+        //     const poi = poiNode.getProperties();
+        //     poi.location = PointToLocation(poi.location);
+        //     createdJourney.experiences.push({
+        //         experience: rel.properties as Experience,
+        //         poi: poi
+        //     });
+        // });
+        // createdJourney.start = PointToLocation(journeyNode.getStart());
+        // createdJourney.end = PointToLocation(journeyNode.getEnd());
 
         return createdJourney;
     }
@@ -166,42 +178,42 @@ export class JourneyService {
      * @param experiences the experiences to add
      * @returns the updated journey
      */
-    async addExperiences(
-        user: string,
-        journey: string,
-        experiences: {
-            experience: Experience;
-            poi: PointOfInterestDto;
-        }[]
-    ) {
-        const queryResult = await this.journeyRepository.addExperiences(
-            user,
-            journey,
-            experiences
-        );
-        const journeyNode = new JourneyNode(
-            queryResult.records[0].get("journey"),
-            queryResult.records[0].get("experiences")
-        );
-        const updatedJourney = journeyNode.getProperties() as JourneyDto;
+    // async addExperiences(
+    //     user: string,
+    //     journey: string,
+    //     experiences: {
+    //         experience: Experience;
+    //         poi: PointOfInterestDto;
+    //     }[]
+    // ) {
+    //     const queryResult = await this.journeyRepository.addExperiences(
+    //         user,
+    //         journey,
+    //         experiences
+    //     );
+    //     const journeyNode = new JourneyNode(
+    //         queryResult.records[0].get("journey"),
+    //         queryResult.records[0].get("experiences")
+    //     );
+    //     const updatedJourney = journeyNode.getProperties() as JourneyDto;
 
-        updatedJourney.experiences = [];
-        journeyNode.getExperiencesRelationships().forEach((rel, idx) => {
-            const poiNode = new PoiNode(
-                queryResult.records[0].get("pois")[idx]
-            );
-            const poi = poiNode.getProperties();
-            poi.location = PointToLocation(poi.location);
-            updatedJourney.experiences.push({
-                experience: rel.properties as Experience,
-                poi: poi
-            });
-        });
-        updatedJourney.start = PointToLocation(journeyNode.getStart());
-        updatedJourney.end = PointToLocation(journeyNode.getEnd());
+    //     updatedJourney.experiences = [];
+    //     journeyNode.getExperiencesRelationships().forEach((rel, idx) => {
+    //         const poiNode = new PoiNode(
+    //             queryResult.records[0].get("pois")[idx]
+    //         );
+    //         const poi = poiNode.getProperties();
+    //         poi.location = PointToLocation(poi.location);
+    //         updatedJourney.experiences.push({
+    //             experience: rel.properties as Experience,
+    //             poi: poi
+    //         });
+    //     });
+    //     updatedJourney.start = PointToLocation(journeyNode.getStart());
+    //     updatedJourney.end = PointToLocation(journeyNode.getEnd());
 
-        return updatedJourney;
-    }
+    //     return updatedJourney;
+    // }
 
     /**
      * add an experience to a journey
@@ -233,17 +245,17 @@ export class JourneyService {
      * @param poi the poi id to wich the experience belongs
      * @returns the deleted experience
      **/
-    async deleteExperience(user: string, journey: string, poi: string) {
-        const queryResult = await this.journeyRepository.deleteExperience(
-            user,
-            journey,
-            poi
-        );
+    // async deleteExperience(user: string, journey: string, poi: string) {
+    //     const queryResult = await this.journeyRepository.deleteExperience(
+    //         user,
+    //         journey,
+    //         poi
+    //     );
 
-        const updatedJourney = await this.getExperiences(journey);
+    //     const updatedJourney = await this.getExperiences(journey);
 
-        return updatedJourney;
-    }
+    //     return updatedJourney;
+    // }
 
     /**
      *  get all experiences of a journey
@@ -300,19 +312,19 @@ export class JourneyService {
      * @param editDto the journey to update
      * @returns the updated journey
      */
-    async editJourneysExperiences(
-        user: string,
-        journey: string,
-        editDto: EditJourneyExperiencesDto
-    ) {
-        await this.journeyRepository.editJourneysExperiences(
-            user,
-            journey,
-            editDto
-        );
+    // async editJourneysExperiences(
+    //     user: string,
+    //     journey: string,
+    //     editDto: EditJourneyExperiencesDto
+    // ) {
+    //     await this.journeyRepository.editJourneysExperiences(
+    //         user,
+    //         journey,
+    //         editDto
+    //     );
 
-        return this.getExperiences(journey);
-    }
+    //     return this.getExperiences(journey);
+    // }
 
     /**
      * push an image to the images array of an experience

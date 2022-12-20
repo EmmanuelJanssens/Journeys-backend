@@ -100,24 +100,27 @@ export class ExperienceRepository {
      * @param experiences the experiences to create
      * @returns the created experiences
      */
-    async createMany(userId: string, experiences: CreateExperienceDto[]) {
+    async createMany(
+        userId: string,
+        journeyId: string,
+        experiences: CreateExperienceDto[]
+    ) {
         const query = `
-                UNWIND $experiences AS experience
-                MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: experience.journeyId})
-                MATCH (poi:POI {id: experience.poiId})
-                MERGE (experience:Experience{
-                    id: apoc.create.uuid()
-                })
+            MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
+            UNWIND $experiences AS newExperience
+                MATCH (poi:POI {id: newExperience.poiId})
+                UNWIND newExperience AS exp
+                MERGE (poi)<-[:FOR]-(experience:Experience{id: apoc.create.uuid()}) <- [:EXPERIENCE]- (journey)
                 ON CREATE SET   experience.createdAt = datetime(),
-                                experience.title = coalesce(experience.title,'Untitled'),
-                                experience.description = coalesce(experience.description, ''),
-                                experience.date = coalesce(experience.date , datetime()),
-                                experience.images = coalesce(experience.images , [])
-                MERGE (journey)-[:EXPERIENCE]->(experience)-[:FOR]->(poi)
-                RETURN experience, user, journey, poi
+                                experience.title = coalesce(exp.title,'Untitled Experience'),
+                                experience.description = coalesce(exp.description, ''),
+                                experience.date = coalesce(exp.date , datetime()),
+                                experience.images = coalesce(exp.images , [])
+            RETURN experience
             `;
         const params = {
             userId,
+            journeyId,
             experiences
         };
         return await this.neo4jService.write(query, params);

@@ -1,4 +1,5 @@
 import { PickType } from "@nestjs/swagger";
+import { CreateExperienceDto } from "src/experience/dto/create-experience.dto";
 import { Journey } from "../entities/journey.entity";
 
 export class CreateJourneyDto extends PickType(Journey, [
@@ -6,6 +7,7 @@ export class CreateJourneyDto extends PickType(Journey, [
     "description",
     "start",
     "end",
-    "visibility",
-    "experiences"
-]) {}
+    "visibility"
+]) {
+    experiences: CreateExperienceDto[];
+}

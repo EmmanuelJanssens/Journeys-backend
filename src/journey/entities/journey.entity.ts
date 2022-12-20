@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Locality } from "../../entities/Locality";
-import { Experience } from "../../entities/experience.entity";
-import { PointOfInterestDto } from "../../point-of-interest/dto/point-of-interest.dto";
+import { ExperienceDto } from "../../entities/experience.entity";
 import { Node } from "neo4j-driver";
 import { Point } from "neo4j-driver-core";
 import { Relationship } from "neo4j-driver-core";
@@ -9,7 +8,7 @@ import { Relationship } from "neo4j-driver-core";
 export class JourneyNode {
     constructor(
         private readonly node: Node,
-        private readonly experiencesRelationShip: Relationship[]
+        private readonly experiencesRelationShip?: Relationship[]
     ) {}
 
     getId(): string {
@@ -71,10 +70,7 @@ export class Journey {
     experiencesAggregate: { count: number };
 
     @ApiProperty()
-    experiences: {
-        experience: Experience;
-        poi: PointOfInterestDto;
-    }[];
+    experiences: ExperienceDto[];
 
     @ApiProperty()
     thumbnails: string[];
