@@ -100,6 +100,28 @@ export class ExperienceRepository {
      * @param experiences the experiences to create
      * @returns the created experiences
      */
+    async createMany(userId: string, experiences: CreateExperienceDto[]) {
+        const query = `
+                UNWIND $experiences AS experience
+                MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: experience.journeyId})
+                MATCH (poi:POI {id: experience.poiId})
+                MERGE (experience:Experience{
+                    id: apoc.create.uuid()
+                })
+                ON CREATE SET   experience.createdAt = datetime(),
+                                experience.title = coalesce(experience.title,'Untitled'),
+                                experience.description = coalesce(experience.description, ''),
+                                experience.date = coalesce(experience.date , datetime()),
+                                experience.images = coalesce(experience.images , [])
+                MERGE (journey)-[:EXPERIENCE]->(experience)-[:FOR]->(poi)
+                RETURN experience, user, journey, poi
+            `;
+        const params = {
+            userId,
+            experiences
+        };
+        return await this.neo4jService.write(query, params);
+    }
     /**
      * Updates all experiences given in an array
      * @param userId the ID of the user updating the experiences
