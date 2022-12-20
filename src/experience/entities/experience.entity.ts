@@ -1,3 +1,4 @@
+import { PartialType } from "@nestjs/swagger";
 import { Node } from "neo4j-driver";
 
 export class ExperienceNode {
@@ -30,4 +31,9 @@ export class Experience {
     description: string;
     date: Date;
     images: string[];
+}
+
+export class ExperienceDto extends PartialType(Experience) {
+    poiId: string;
+    journeyId: string;
 }

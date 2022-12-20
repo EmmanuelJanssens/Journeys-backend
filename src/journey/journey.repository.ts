@@ -19,8 +19,8 @@ export class JourneyRepository {
      */
     get(journey: string): Promise<QueryResult> {
         const query = `
-            OPTIONAL MATCH (:POI)<-[exp:EXPERIENCE]-(journey:Journey{id: $journey})<-[:CREATED]-(user:User)
-            RETURN journey, user.username AS creator, count(distinct exp) as count, collect(exp.images) as thumbnails`;
+            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey})-[expRel:EXPERIENCE]->(exp:Experience)
+            RETURN journey, user.username AS creator, count(distinct expRel) as count, collect(exp.images) as thumbnails`;
         const params = { journey };
 
         return this.neo4jService.read(query, params);
