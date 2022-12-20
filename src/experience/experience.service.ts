@@ -1,27 +1,19 @@
 import { Injectable } from "@nestjs/common";
 import { QueryResult } from "neo4j-driver";
-import { Journey, JourneyNode } from "src/journey/entities/journey.entity";
-import { Neo4jService } from "src/neo4j/neo4j.service";
+import { Journey, JourneyNode } from "../journey/entities/journey.entity";
 import {
     PoiNode,
     PointOfInterest
-} from "src/point-of-interest/entities/point-of-interest.entity";
+} from "../point-of-interest/entities/point-of-interest.entity";
 import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
-import {
-    Experience,
-    ExperienceDto,
-    ExperienceNode
-} from "./entities/experience.entity";
+import { ExperienceNode } from "./entities/experience.entity";
 import { ExperienceRepository } from "./experience.repository";
 
 @Injectable()
 export class ExperienceService {
-    constructor(
-        private readonly experienceRepository: ExperienceRepository,
-        private readonly neo4jService: Neo4jService
-    ) {}
+    constructor(private readonly experienceRepository: ExperienceRepository) {}
 
     /**
      * find one experience

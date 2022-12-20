@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Neo4jService } from "src/neo4j/neo4j.service";
+import { Neo4jService } from "../neo4j/neo4j.service";
 import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
@@ -192,7 +192,6 @@ export class ExperienceRepository {
      */
     async deleteMany(userId: string, experienceIds: string[]) {
         const query = this.deleteManyQuery(userId, experienceIds);
-
         return await this.neo4jService.write(query.query, query.params);
     }
 

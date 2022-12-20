@@ -11,19 +11,22 @@ describe("JourneyController", () => {
     const mockJourneyService = {
         findOne: jest.fn().mockImplementation((id) => {
             return {
-                id: id,
-                description: "helloworld",
-                title: "test",
-                visibility: "private",
-                end: {
-                    latitude: 0,
-                    longitude: 0
+                journey: {
+                    id: id,
+                    description: "helloworld",
+                    title: "test",
+                    visibility: "private",
+                    end: {
+                        latitude: 0,
+                        longitude: 0
+                    },
+                    start: {
+                        latitude: 0,
+                        longitude: 0
+                    }
                 },
-                start: {
-                    latitude: 0,
-                    longitude: 0
-                },
-                experiences: []
+                experiencesCount: 0,
+                thumbnails: []
             };
         })
     };

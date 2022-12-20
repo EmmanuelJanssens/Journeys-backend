@@ -2,8 +2,6 @@ import { QueryResult } from "neo4j-driver";
 import { Logger } from "@nestjs/common/services";
 import { Injectable } from "@nestjs/common/decorators";
 import { Neo4jService } from "../neo4j/neo4j.service";
-import { PointOfInterestDto } from "../point-of-interest/dto/point-of-interest.dto";
-import { EditJourneyExperiencesDto } from "./dto/edit-journey-dto";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 @Injectable()

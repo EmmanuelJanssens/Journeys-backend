@@ -5,15 +5,15 @@ import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyDto } from "./dto/journey.dto";
 import { Journey, JourneyNode } from "./entities/journey.entity";
 import { PointToLocation } from "../entities/utilities";
-import { ExperienceService } from "src/experience/experience.service";
+import { ExperienceService } from "../experience/experience.service";
 import {
     Experience,
     ExperienceNode
-} from "src/experience/entities/experience.entity";
+} from "../experience/entities/experience.entity";
 import {
     PoiNode,
     PointOfInterest
-} from "src/point-of-interest/entities/point-of-interest.entity";
+} from "../point-of-interest/entities/point-of-interest.entity";
 
 @Injectable()
 export class JourneyService {

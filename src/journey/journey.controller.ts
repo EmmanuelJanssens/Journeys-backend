@@ -24,7 +24,12 @@ export class JourneyController {
     @Get(":journey")
     async findOne(@Param("journey") journey: string) {
         const result = await this.journeyService.findOne(journey);
-        return result;
+        const dto = {
+            ...result.journey,
+            experiences: result.experiencesCount,
+            thumbnails: result.thumbnails
+        };
+        return dto;
     }
 
     @UseGuards(FirebaseAuthGuard)

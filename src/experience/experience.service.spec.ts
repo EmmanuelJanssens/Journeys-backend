@@ -1,4 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { ExperienceRepository } from "./experience.repository";
 import { ExperienceService } from "./experience.service";
 
 describe("ExperienceService", () => {
@@ -6,8 +7,11 @@ describe("ExperienceService", () => {
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            providers: [ExperienceService]
-        }).compile();
+            providers: [ExperienceService, ExperienceRepository]
+        })
+            .overrideProvider(ExperienceRepository)
+            .useValue({})
+            .compile();
 
         service = module.get<ExperienceService>(ExperienceService);
     });

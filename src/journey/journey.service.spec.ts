@@ -4,6 +4,7 @@ import { JourneyService } from "./journey.service";
 import { JourneyRepository } from "./journey.repository";
 import { int, QueryResult, Node, Point } from "neo4j-driver";
 import { JourneyDto } from "./dto/journey.dto";
+import { ExperienceService } from "../experience/experience.service";
 describe("JourneyService", () => {
     let service: JourneyService;
     let repository: JourneyRepository;
@@ -15,10 +16,17 @@ describe("JourneyService", () => {
     jest.mock("neo4j-driver/lib/driver");
     beforeAll(async () => {
         testingModule = await Test.createTestingModule({
-            providers: [JourneyService, Neo4jService, JourneyRepository]
+            providers: [
+                JourneyService,
+                Neo4jService,
+                JourneyRepository,
+                ExperienceService
+            ]
         })
             .overrideProvider(Neo4jService)
             .useValue(mockNeo4jService)
+            .overrideProvider(ExperienceService)
+            .useValue({})
             .compile();
 
         service = await testingModule.resolve(JourneyService);
@@ -31,24 +39,24 @@ describe("JourneyService", () => {
 
     describe("::findOne", () => {
         it("should find one", async () => {
-            const expected: JourneyDto = {
-                id: "test-id",
-                title: "title",
-                description: "description",
-                start: {
-                    latitude: 0,
-                    longitude: 0
+            const expected = {
+                journey: {
+                    id: "test-id",
+                    title: "title",
+                    description: "description",
+                    start: {
+                        latitude: 0,
+                        longitude: 0
+                    },
+                    end: {
+                        latitude: 0,
+                        longitude: 0
+                    },
+                    creator: "test-user",
+                    visibility: "public"
                 },
-                end: {
-                    latitude: 0,
-                    longitude: 0
-                },
-                creator: "test-user",
-                experiencesAggregate: {
-                    count: 10
-                },
-                visibility: "public",
-                thumbnails: ["thumbnail"]
+                experiencesCount: 10,
+                thumbnails: [["thumbnail"], []]
             };
             jest.spyOn(repository, "get").mockResolvedValueOnce(<QueryResult>{
                 records: [
@@ -58,13 +66,12 @@ describe("JourneyService", () => {
                             switch (key) {
                                 case "journey":
                                     return new Node(int(1), ["Journey"], {
-                                        id: expected.id,
-                                        title: expected.title,
-                                        description: expected.description,
+                                        id: expected.journey.id,
+                                        title: expected.journey.title,
+                                        description: "description",
                                         start: new Point(4326, 0, 0),
                                         end: new Point(4326, 0, 0),
-                                        visibility: expected.visibility,
-                                        thumbnails: [["thumbnail"], []]
+                                        visibility: expected.journey.visibility
                                     });
                                 case "thumbnails":
                                     return [["thumbnail"], []];
@@ -83,23 +90,23 @@ describe("JourneyService", () => {
         });
 
         it("should find one with missing description", async () => {
-            const expected: JourneyDto = {
-                id: "test-id",
-                title: "title",
-                start: {
-                    latitude: 0,
-                    longitude: 0
+            const expected = {
+                journey: {
+                    id: "test-id",
+                    title: "title",
+                    start: {
+                        latitude: 0,
+                        longitude: 0
+                    },
+                    end: {
+                        latitude: 0,
+                        longitude: 0
+                    },
+                    creator: "test-user",
+                    visibility: "public"
                 },
-                end: {
-                    latitude: 0,
-                    longitude: 0
-                },
-                creator: "test-user",
-                experiencesAggregate: {
-                    count: 10
-                },
-                visibility: "public",
-                thumbnails: ["thumbnail"]
+                experiencesCount: 10,
+                thumbnails: [["thumbnail"], []]
             };
             jest.spyOn(repository, "get").mockResolvedValueOnce(<QueryResult>{
                 records: [
@@ -109,11 +116,11 @@ describe("JourneyService", () => {
                             switch (key) {
                                 case "journey":
                                     return new Node(int(1), ["Journey"], {
-                                        id: expected.id,
-                                        title: expected.title,
+                                        id: expected.journey.id,
+                                        title: expected.journey.title,
                                         start: new Point(4326, 0, 0),
                                         end: new Point(4326, 0, 0),
-                                        visibility: expected.visibility
+                                        visibility: expected.journey.visibility
                                     });
                                 case "thumbnails":
                                     return [["thumbnail"], []];
