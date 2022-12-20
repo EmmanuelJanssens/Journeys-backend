@@ -15,9 +15,13 @@ export class ExperienceRepository {
      * @param poiId The ID of the POI the experience is for
      * @returns the created experience
      */
-    async create(experience: CreateExperienceDto, userId: string) {
+    async create(
+        userId: string,
+        experience: CreateExperienceDto,
+        journeyId: string
+    ) {
         const query = `
-            MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $experience.journeyId})
+            MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
             MATCH (poi:POI {id: $experience.poiId})
             MERGE (experience:Experience{
                 id: apoc.create.uuid()
@@ -33,6 +37,7 @@ export class ExperienceRepository {
 
         const params = {
             userId,
+            journeyId,
             experience
         };
         return await this.neo4jService.write(query, params);
@@ -83,7 +88,7 @@ export class ExperienceRepository {
      * */
     async findOne(experienceId: string) {
         const query = `
-            MATCH (experience:Experience {id: $experienceId})
+            OPTIONAL MATCH (journey:Journey)-[:EXPERIENCE]->(experience:Experience {id: $experienceId})-[:FOR]->(poi:POI)
             RETURN experience
         `;
         const params = {
@@ -109,13 +114,12 @@ export class ExperienceRepository {
             MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
             UNWIND $experiences AS newExperience
                 MATCH (poi:POI {id: newExperience.poiId})
-                UNWIND newExperience AS exp
                 MERGE (poi)<-[:FOR]-(experience:Experience{id: apoc.create.uuid()}) <- [:EXPERIENCE]- (journey)
                 ON CREATE SET   experience.createdAt = datetime(),
-                                experience.title = coalesce(exp.title,'Untitled Experience'),
-                                experience.description = coalesce(exp.description, ''),
-                                experience.date = coalesce(exp.date , datetime()),
-                                experience.images = coalesce(exp.images , [])
+                                experience.title = coalesce(newExperience.title,'Untitled Experience'),
+                                experience.description = coalesce(newExperience.description, ''),
+                                experience.date = coalesce(newExperience.date , datetime()),
+                                experience.images = coalesce(newExperience.images , [])
             RETURN experience
             `;
         const params = {

@@ -1,13 +1,46 @@
 import { Injectable } from "@nestjs/common";
+import { Journey, JourneyNode } from "src/journey/entities/journey.entity";
+import {
+    PoiNode,
+    PointOfInterest
+} from "src/point-of-interest/entities/point-of-interest.entity";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
-import { ExperienceNode } from "./entities/experience.entity";
+import {
+    Experience,
+    ExperienceDto,
+    ExperienceNode
+} from "./entities/experience.entity";
 import { ExperienceRepository } from "./experience.repository";
 
 @Injectable()
 export class ExperienceService {
     constructor(private readonly experienceRepository: ExperienceRepository) {}
 
+    /**
+     * find one experience
+     * @param experienceId
+     * @returns the experience
+     */
+    async findOne(experienceId: string) {
+        const queryResult = await this.experienceRepository.findOne(
+            experienceId
+        );
+        const experienceNode = new ExperienceNode(
+            queryResult.records[0].get("experience")
+        );
+        const poiNode = new PoiNode(queryResult.records[0].get("poi"));
+        const journeyNode = new JourneyNode(
+            queryResult.records[0].get("journey")
+        );
+
+        const found = {
+            experience: experienceNode.properties,
+            poi: poiNode.getProperties() as PointOfInterest,
+            journey: journeyNode.getProperties() as Journey
+        };
+        return found;
+    }
     /**
      * Create a new experience
      * @param experience The experience to create
@@ -16,10 +49,15 @@ export class ExperienceService {
      * @param poiId The ID of the POI the experience is for
      * @returns the created experience
      *  */
-    async create(experience: CreateExperienceDto, userId: string) {
+    async create(
+        userId: string,
+        journeyId: string,
+        experience: CreateExperienceDto
+    ) {
         const queryResult = await this.experienceRepository.create(
+            userId,
             experience,
-            userId
+            journeyId
         );
         const experienceNode = new ExperienceNode(
             queryResult.records[0].get("experience")
@@ -34,7 +72,7 @@ export class ExperienceService {
      * @param experienceId
      * @returns
      */
-    async update(experience: UpdateExperienceDto, userId: string) {
+    async update(userId: string, experience: UpdateExperienceDto) {
         const queryResult = await this.experienceRepository.update(
             userId,
             experience
