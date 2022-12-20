@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { Neo4jService } from "src/neo4j/neo4j.service";
+import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
 
@@ -51,7 +52,7 @@ export class ExperienceRepository {
      */
     async update(userId: string, experience: UpdateExperienceDto) {
         const query = `
-            MATCH(user:User {uid: $userUid})-[:(CREATED | EXPERIENCE)*0..1]-(experience:Experience:{id: $experience.id})
+            MATCH(user:User {uid: $userUid})-[:(CREATED | EXPERIENCE)*0..2]-(experience:Experience{id: $experience.id})
             SET experience.title = coalesce($experience.title, experience.title),
                 experience.description = coalesce($experience.description, experience.description),
                 experience.date = coalesce($experience.date, experience.date),
@@ -72,7 +73,7 @@ export class ExperienceRepository {
      */
     async delete(userId: string) {
         const query = `
-            MATCH(user:User {uid: $userId})-[:(CREATED | EXPERIENCE)*0..1]-(experience:Experience:{id: $experience.id})
+            MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id: $experience.id})
             DETACH DELETE experience
         `;
         const params = {
@@ -97,6 +98,65 @@ export class ExperienceRepository {
         return await this.neo4jService.read(query, params);
     }
 
+    createManyQuery = (...args: any[]) => {
+        const query = `
+        MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
+        UNWIND $experiences AS newExperience
+            MATCH (poi:POI {id: newExperience.poi})
+            MERGE (poi)<-[:FOR]-(experience:Experience{id: apoc.create.uuid()}) <- [:EXPERIENCE]- (journey)
+            ON CREATE SET   experience.createdAt = datetime(),
+                            experience.title = coalesce(newExperience.title,'Untitled Experience'),
+                            experience.description = coalesce(newExperience.description, ''),
+                            experience.date = coalesce(newExperience.date , datetime()),
+                            experience.images = coalesce(newExperience.images , [])
+        RETURN experience
+        `;
+        return {
+            query,
+            params: {
+                userId: args[0],
+                journeyId: args[1],
+                experiences: args[2]
+            }
+        };
+    };
+
+    updateManyQuery = (...args: any[]) => {
+        const query = `
+        UNWIND $experiences AS updtExperience
+        MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]->(experience:Experience{id: updtExperience.id})
+        SET experience.title = coalesce(updtExperience.title, experience.title),
+            experience.description = coalesce(updtExperience.description, experience.description),
+            experience.date = coalesce(updtExperience.date, experience.date),
+            experience.images = coalesce(updtExperience.images, experience.images)
+        RETURN experience
+    `;
+        return {
+            query,
+            params: {
+                userId: args[0],
+                journeyId: args[1],
+                experiences: args[2]
+            }
+        };
+    };
+
+    deleteManyQuery = (...args: any[]) => {
+        const query = `
+        UNWIND $experienceIds AS experienceId
+        MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id: experienceId})
+        DETACH DELETE experience
+    `;
+        return {
+            query,
+            params: {
+                userId: args[0],
+                journeyId: args[1],
+                experienceIds: args[2]
+            }
+        };
+    };
+
     /**
      * Create all experiences given in an array
      * @param userId the ID of the user creating the experiences
@@ -110,24 +170,8 @@ export class ExperienceRepository {
         journeyId: string,
         experiences: CreateExperienceDto[]
     ) {
-        const query = `
-            MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
-            UNWIND $experiences AS newExperience
-                MATCH (poi:POI {id: newExperience.poiId})
-                MERGE (poi)<-[:FOR]-(experience:Experience{id: apoc.create.uuid()}) <- [:EXPERIENCE]- (journey)
-                ON CREATE SET   experience.createdAt = datetime(),
-                                experience.title = coalesce(newExperience.title,'Untitled Experience'),
-                                experience.description = coalesce(newExperience.description, ''),
-                                experience.date = coalesce(newExperience.date , datetime()),
-                                experience.images = coalesce(newExperience.images , [])
-            RETURN experience
-            `;
-        const params = {
-            userId,
-            journeyId,
-            experiences
-        };
-        return await this.neo4jService.write(query, params);
+        const query = this.createManyQuery(userId, journeyId, experiences);
+        return await this.neo4jService.write(query.query, query.params);
     }
     /**
      * Updates all experiences given in an array
@@ -136,20 +180,8 @@ export class ExperienceRepository {
      * @returns the updated experiences
      */
     async updateMany(userId: string, experiences: UpdateExperienceDto[]) {
-        const query = `
-                UNWIND $experiences AS experience
-                MATCH(user:User {uid: $userId})-[:(CREATED | EXPERIENCE)*0..1]-(experience:Experience:{id: experienceId})
-                SET experience.title = coalesce(experience.title, experience.title),
-                    experience.description = coalesce(experience.description, experience.description),
-                    experience.date = coalesce(experience.date, experience.date),
-                    experience.images = coalesce(experience.images, experience.images)
-                RETURN experience
-            `;
-        const params = {
-            userId,
-            experiences
-        };
-        return await this.neo4jService.write(query, params);
+        const query = this.updateManyQuery(userId, experiences);
+        return await this.neo4jService.write(query.query, query.params);
     }
 
     /**
@@ -159,15 +191,43 @@ export class ExperienceRepository {
      * @returns
      */
     async deleteMany(userId: string, experienceIds: string[]) {
-        const query = `
-                UNWIND $experienceIds AS experienceId
-                MATCH(user:User {uid: $userId})-[:(CREATED | EXPERIENCE)*0..1]-(experience:Experience:{id: experienceId})
-                DETACH DELETE experience
-            `;
-        const params = {
-            userId,
-            experienceIds
-        };
-        return await this.neo4jService.write(query, params);
+        const query = this.deleteManyQuery(userId, experienceIds);
+
+        return await this.neo4jService.write(query.query, query.params);
+    }
+
+    async batchUpdate(
+        userId: string,
+        journeyId: string,
+        batch: BatchUpdateExperienceDto
+    ) {
+        const transaction = this.neo4jService
+            .getWriteSession()
+            .beginTransaction();
+        transaction
+            .then(async (tx) => {
+                const del = this.deleteManyQuery(
+                    userId,
+                    journeyId,
+                    batch.deleted
+                );
+                await tx.run(del.query, del.params);
+                const crt = this.createManyQuery(
+                    userId,
+                    journeyId,
+                    batch.connected
+                );
+                await tx.run(crt.query, crt.params);
+                const updt = this.updateManyQuery(
+                    userId,
+                    journeyId,
+                    batch.updated
+                );
+                await tx.run(updt.query, updt.params);
+                transaction.commit();
+            })
+            .finally(() => {
+                transaction.close();
+            });
     }
 }

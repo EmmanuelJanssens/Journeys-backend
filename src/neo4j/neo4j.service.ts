@@ -71,6 +71,10 @@ export class Neo4jService {
             .finally(() => session.close());
     }
 
+    writeTransaction(database?: string): Transaction {
+        return this.getWriteSession(database).beginTransaction();
+    }
+
     // getDriver(): Driver {
     //     return this.gql.driver;
     // }

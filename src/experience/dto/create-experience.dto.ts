@@ -5,5 +5,6 @@ export class CreateExperienceDto extends PickType(ExperienceDto, [
     "description",
     "date",
     "images",
-    "poi"
+    "poi",
+    "journey"
 ]) {}

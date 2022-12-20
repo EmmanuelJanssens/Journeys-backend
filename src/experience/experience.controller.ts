@@ -12,6 +12,7 @@ import {
 import { UserInfo } from "firebase-admin/lib/auth/user-record";
 import { ErrorsInterceptor } from "src/errors/errors-interceptor.interceptor";
 import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
+import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
 import { ExperienceService } from "./experience.service";
@@ -44,5 +45,20 @@ export class ExperienceController {
     delete(@Param("experienceId") experienceId: string, @Request() req) {
         const user = req.user as UserInfo;
         return this.experienceService.delete(user.uid, experienceId);
+    }
+
+    @UseGuards(FirebaseAuthGuard)
+    @Patch("edit/:journeyId")
+    batchUpdate(
+        @Body() experiences: BatchUpdateExperienceDto,
+        @Param("journeyId") journeyId,
+        @Request() req
+    ) {
+        const user = req.user as UserInfo;
+        return this.experienceService.batchUpdate(
+            user.uid,
+            journeyId,
+            experiences
+        );
     }
 }

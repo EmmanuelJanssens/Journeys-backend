@@ -1,9 +1,12 @@
 import { Injectable } from "@nestjs/common";
+import { QueryResult } from "neo4j-driver";
 import { Journey, JourneyNode } from "src/journey/entities/journey.entity";
+import { Neo4jService } from "src/neo4j/neo4j.service";
 import {
     PoiNode,
     PointOfInterest
 } from "src/point-of-interest/entities/point-of-interest.entity";
+import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
 import {
@@ -15,7 +18,10 @@ import { ExperienceRepository } from "./experience.repository";
 
 @Injectable()
 export class ExperienceService {
-    constructor(private readonly experienceRepository: ExperienceRepository) {}
+    constructor(
+        private readonly experienceRepository: ExperienceRepository,
+        private readonly neo4jService: Neo4jService
+    ) {}
 
     /**
      * find one experience
@@ -105,11 +111,11 @@ export class ExperienceService {
         journeyId: string,
         experiences: CreateExperienceDto[]
     ) {
-        const queryResult = await this.experienceRepository.createMany(
+        const queryResult = (await this.experienceRepository.createMany(
             userId,
             journeyId,
             experiences
-        );
+        )) as QueryResult;
         const experiencesNodes = queryResult.records.map((record) => {
             return new ExperienceNode(record.get("experience"));
         });
@@ -125,10 +131,10 @@ export class ExperienceService {
      * @returns the updated experiences as an array
      * */
     async updateMany(experiences: UpdateExperienceDto[], userId: string) {
-        const queryResult = await this.experienceRepository.updateMany(
+        const queryResult = (await this.experienceRepository.updateMany(
             userId,
             experiences
-        );
+        )) as QueryResult;
         const experiencesNodes = queryResult.records.map((record) => {
             return new ExperienceNode(record.get("experience"));
         });
@@ -145,5 +151,17 @@ export class ExperienceService {
      * */
     async deleteMany(experiencesId: string[], userId: string) {
         await this.experienceRepository.deleteMany(userId, experiencesId);
+    }
+
+    async batchUpdate(
+        userId: string,
+        journeyId: string,
+        toUpdate: BatchUpdateExperienceDto
+    ) {
+        await this.experienceRepository.batchUpdate(
+            userId,
+            journeyId,
+            toUpdate
+        );
     }
 }

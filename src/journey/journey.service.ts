@@ -77,7 +77,7 @@ export class JourneyService {
             queryResult.records[0].get("journey")
         ).getProperties() as Journey;
 
-        const experiences = queryResult.records.map((record) => {
+        const experiences = queryResult.records.map((record, idx) => {
             return {
                 experience: new ExperienceNode(record.get("experience"))
                     .properties as Experience,

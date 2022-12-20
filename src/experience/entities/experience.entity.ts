@@ -47,5 +47,6 @@ export class Experience {
 }
 
 export class ExperienceDto extends PartialType(Experience) {
+    journey: string;
     poi: string | PointOfInterest;
 }
