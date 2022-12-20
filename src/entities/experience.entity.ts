@@ -29,6 +29,7 @@ export class ExperienceRelation {
 }
 
 export class Experience {
+    id: string;
     title: string;
     description: string;
     date: Date;

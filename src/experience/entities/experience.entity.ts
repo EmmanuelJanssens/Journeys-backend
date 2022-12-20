@@ -23,6 +23,7 @@ export class ExperienceNode {
         return this.node.properties.images;
     }
 }
+
 export class Experience {
     id: string;
     title: string;
