@@ -8,10 +8,11 @@ import { PointOfInterestModule } from "./point-of-interest/point-of-interest.mod
 import { JourneyModule } from "./journey/journey.module";
 import { UserModule } from "./user/user.module";
 import { TagModule } from "./tag/tag.module";
+import { ExperienceModule } from "./experience/experience.module";
 @Module({
     imports: [
         ConfigModule.forRoot({
-            envFilePath: [".env"]
+            envFilePath: [".env.local"]
         }),
         Neo4jModule.forRoot({
             host: process.env.NEO4J_HOST,
@@ -28,7 +29,8 @@ import { TagModule } from "./tag/tag.module";
         JourneyModule,
         PointOfInterestModule,
         UserModule,
-        TagModule
+        TagModule,
+        ExperienceModule
     ],
     providers: []
 })

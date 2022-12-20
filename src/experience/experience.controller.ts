@@ -1,0 +1,36 @@
+import {
+    Body,
+    Controller,
+    Param,
+    Post,
+    Request,
+    UseGuards,
+    UseInterceptors
+} from "@nestjs/common";
+import { UserInfo } from "firebase-admin/lib/auth/user-record";
+import { ErrorsInterceptor } from "src/errors/errors-interceptor.interceptor";
+import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
+import { ExperienceService } from "./experience.service";
+
+@Controller("experience")
+@UseInterceptors(ErrorsInterceptor)
+export class ExperienceController {
+    constructor(private readonly experienceService: ExperienceService) {}
+
+    @UseGuards(FirebaseAuthGuard)
+    @Post("/:poiId/:journeyId")
+    create(
+        @Body() experience,
+        @Request() req,
+        @Param("poiId") poiId: string,
+        @Param("journeyId") journeyId: string
+    ) {
+        const user = req.user as UserInfo;
+        return this.experienceService.create(
+            experience,
+            user.uid,
+            poiId,
+            journeyId
+        );
+    }
+}
