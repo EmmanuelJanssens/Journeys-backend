@@ -1,13 +1,24 @@
-import { PickType } from "@nestjs/swagger";
+import { Point } from "neo4j-driver";
+import { Locality } from "src/entities/Locality";
 import { CreateExperienceDto } from "src/experience/dto/create-experience.dto";
-import { Journey } from "../entities/journey.entity";
+import { IsArray, IsNotEmpty, IsString } from "class-validator";
+export class CreateJourneyDto {
+    @IsNotEmpty()
+    @IsString()
+    title: string;
 
-export class CreateJourneyDto extends PickType(Journey, [
-    "title",
-    "description",
-    "start",
-    "end",
-    "visibility"
-]) {
+    @IsString()
+    description?: string;
+
+    @IsNotEmpty()
+    start: Point | Locality;
+
+    @IsNotEmpty()
+    end: Point | Locality;
+
+    @IsString()
+    visibility: string;
+
+    @IsArray()
     experiences: CreateExperienceDto[];
 }

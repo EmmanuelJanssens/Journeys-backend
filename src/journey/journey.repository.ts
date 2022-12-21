@@ -40,9 +40,10 @@ export class JourneyRepository {
                     title: coalesce($journey.title, "Untitled Journey"),
                     description: coalesce($journey.description, ""),
                     start: point({srid:4326,x: $journey.start.longitude, y: $journey.start.latitude}),
-                    end: point({srid:4326,x: $journey.end.longitude, y: $journey.end.latitude})
+                    end: point({srid:4326,x: $journey.end.longitude, y: $journey.end.latitude}),
+                    visibility: $journey.visibility
                 })<-[:CREATED]-(user)
-        RETURN journey`;
+        RETURN journey, user.username AS creator`;
         const params = { user, journey };
         return this.neo4jService.write(createJourneyQuery, params);
     }
@@ -96,8 +97,8 @@ export class JourneyRepository {
      */
     async getExperiences(journeyId: string) {
         const query = `
-                MATCH (journey:Journey {id: $journeyId})-[:EXPERIENCE]->(experience:Experience)-[:FOR]->(poi:POI)
-                RETURN journey,experience, poi
+                MATCH (user: User)-[:CREATED]->(journey:Journey {id: $journeyId})-[:EXPERIENCE]->(experience:Experience)-[:FOR]->(poi:POI)
+                RETURN journey,experience, poi, user
             `;
         const params = {
             journeyId

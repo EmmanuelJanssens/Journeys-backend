@@ -1,3 +1,5 @@
+import "reflect-metadata";
+import { ValidationPipe } from "@nestjs/common/pipes";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import console from "console";
@@ -9,7 +11,7 @@ async function bootstrap() {
     });
     app.setGlobalPrefix("api");
     app.useGlobalFilters(new GeneralExceptionFilter());
-
+    app.useGlobalPipes(new ValidationPipe());
     const config = new DocumentBuilder()
         .setTitle("Journeys Api")
         .setDescription("Api used by the journeys APp")

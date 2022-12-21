@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { JourneyRepository } from "./journey.repository";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
-import { JourneyDto } from "./dto/journey.dto";
 import { Journey, JourneyNode } from "./entities/journey.entity";
 import { ExperienceService } from "../experience/experience.service";
 import {
@@ -14,6 +13,7 @@ import {
     PointOfInterest
 } from "../point-of-interest/entities/point-of-interest.entity";
 import { Integer } from "neo4j-driver";
+import { NotFoundError } from "src/errors/Errors";
 
 @Injectable()
 export class JourneyService {
@@ -35,8 +35,14 @@ export class JourneyService {
         journey: Journey;
         experiencesCount: Integer;
         thumbnails: string[];
+        creator: string;
     }> {
         const queryResult = await this.journeyRepository.get(id);
+        if (queryResult.records.length === 0 || queryResult.records.length > 1)
+            throw new Error("Unexpected error");
+        if (queryResult.records[0].get("journey") === null)
+            throw new NotFoundError("journey not found");
+
         const journeyNode = new JourneyNode(
             queryResult.records[0].get("journey"),
             []
@@ -48,10 +54,12 @@ export class JourneyService {
         //additional journey information
         const experiencesCount = queryResult.records[0].get("count");
         const thumbnails = queryResult.records[0].get("thumbnails");
+        const creator = queryResult.records[0].get("creator");
         return {
             journey,
             experiencesCount,
-            thumbnails
+            thumbnails,
+            creator
         };
     }
 
@@ -66,6 +74,7 @@ export class JourneyService {
             experience: Experience;
             poi: PointOfInterest;
         }[];
+        creator: string;
     }> {
         const queryResult = await this.journeyRepository.getExperiences(
             journey_id
@@ -84,9 +93,11 @@ export class JourneyService {
             };
         });
 
+        const creator = queryResult.records[0].get("creator");
         return {
             journey,
-            experiences
+            experiences,
+            creator
         };
     }
 
@@ -113,10 +124,11 @@ export class JourneyService {
             createJourney.experiences
         );
         const createdJourney = journeyNode.getProperties() as Journey;
-
+        const creator = journeyQueryResult.records[0].get("creator");
         return {
             journey: createdJourney,
-            experiences: experiences
+            experiences: experiences,
+            creator: creator
         };
     }
 

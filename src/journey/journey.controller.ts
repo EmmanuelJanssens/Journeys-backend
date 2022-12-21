@@ -19,53 +19,41 @@ import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { PointToLocation } from "src/entities/utilities";
 import { JourneyDto } from "./dto/journey.dto";
 import { Point } from "neo4j-driver";
-import { ExperienceDto } from "src/experience/entities/experience.entity";
+import {
+    Experience,
+    ExperienceDto
+} from "../experience/entities/experience.entity";
 import { PointOfInterestDto } from "src/point-of-interest/dto/point-of-interest.dto";
 import { HttpCode } from "@nestjs/common/decorators";
+import { Journey } from "./entities/journey.entity";
+import { Locality } from "../entities/Locality";
+import { PointOfInterest } from "../point-of-interest/entities/point-of-interest.entity";
 
 @Controller("journey")
 @UseInterceptors(ErrorsInterceptor)
 export class JourneyController {
     constructor(private journeyService: JourneyService) {}
 
-    @HttpCode(200)
-    @Get(":journey")
-    async findOne(@Param("journey") journey: string) {
-        const result = await this.journeyService.findOne(journey);
-
-        //concatenate thumnails into one array
-        const thumbnails = result.thumbnails.reduce(
-            (acc, curr) => [...acc, ...curr],
-            []
-        );
-        //get proper form for display
-        const start = PointToLocation(result.journey.start as Point);
-        const end = PointToLocation(result.journey.end as Point);
-
-        //build final dto
+    transformJourneyToDto(journey: Journey, creator: string) {
         const dto: JourneyDto = {
-            ...result.journey,
-            experiencesAggregate: { count: result.experiencesCount.low },
-            thumbnails
+            id: journey.id,
+            title: journey.title,
+            description: journey.description,
+            start: PointToLocation(journey.start as Point) as Locality,
+            end: PointToLocation(journey.end as Point) as Locality,
+            visibility: journey.visibility,
+            creator
         };
-        dto.start = start;
-        dto.end = end;
         return dto;
     }
 
-    @HttpCode(201)
-    @UseGuards(FirebaseAuthGuard)
-    @Post()
-    async createOne(@Body() journey: CreateJourneyDto, @Request() req) {
-        const user = req.user as UserInfo;
-        const result = await this.journeyService.create(user.uid, journey);
-
-        const thumbnails = result.experiences.reduce(
-            (acc, curr) => [...acc, ...curr.experience.images],
-            []
-        );
-
-        const expDtos = result.experiences.map((exp) => {
+    transformExperiencesToDto(
+        experiences: {
+            experience: Experience;
+            poi: PointOfInterest;
+        }[]
+    ) {
+        const expDtos = experiences.map((exp) => {
             const poiDto = {
                 id: exp.poi.id,
                 name: exp.poi.name,
@@ -80,21 +68,55 @@ export class JourneyController {
             };
             return dto;
         });
+        return expDtos;
+    }
 
-        //get proper form for display
-        const start = PointToLocation(result.journey.start as Point);
-        const end = PointToLocation(result.journey.end as Point);
+    @HttpCode(200)
+    @Get(":journey")
+    async findOne(@Param("journey") journey: string) {
+        const result = await this.journeyService.findOne(journey);
 
-        const dto: JourneyDto = {
-            ...result.journey,
-            experiences: expDtos,
-            experiencesAggregate: { count: result.experiences.length },
-            thumbnails
+        //concatenate thumnails into one array
+        const thumbnails = result.thumbnails.reduce(
+            (acc, curr) => [...acc, ...curr],
+            []
+        );
+
+        const journeyDto = this.transformJourneyToDto(
+            result.journey,
+            result.creator
+        );
+        journeyDto.experiencesAggregate = {
+            count: result.experiencesCount.low
         };
-        dto.start = start;
-        dto.end = end;
+        journeyDto.thumbnails = thumbnails;
 
-        return dto;
+        return journeyDto;
+    }
+
+    @HttpCode(201)
+    @UseGuards(FirebaseAuthGuard)
+    @Post()
+    async createOne(@Body() journey: CreateJourneyDto, @Request() req) {
+        const user = req.user as UserInfo;
+        const result = await this.journeyService.create(user.uid, journey);
+
+        const thumbnails = result.experiences.reduce(
+            (acc, curr) => [...acc, ...curr.experience.images],
+            []
+        );
+
+        const expDtos = this.transformExperiencesToDto(result.experiences);
+
+        const journeyDto = this.transformJourneyToDto(
+            result.journey,
+            result.creator
+        );
+
+        journeyDto.experiencesAggregate = { count: result.experiences.length };
+        journeyDto.thumbnails = thumbnails;
+        journeyDto.experiences = expDtos;
+        return journeyDto;
     }
 
     @HttpCode(200)
@@ -135,7 +157,9 @@ export class JourneyController {
     @Get(":journey/experiences")
     async getExperiences(@Param("journey") journey: string) {
         const result = await this.journeyService.getExperiences(journey);
-        return result;
+        const dto = this.transformJourneyToDto(result.journey, result.creator);
+        dto.experiences = this.transformExperiencesToDto(result.experiences);
+        return dto;
     }
 
     // @UseGuards(FirebaseAuthGuard)
