@@ -1,5 +1,5 @@
 import { PartialType } from "@nestjs/swagger";
-import { ExperienceDto } from "src/experience/entities/experience.entity";
+import { ExperienceDto } from "../../experience/entities/experience.entity";
 import { Journey } from "../entities/journey.entity";
 
 export class JourneyDto extends PartialType(Journey) {

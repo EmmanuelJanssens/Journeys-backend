@@ -58,10 +58,10 @@ export class Journey {
     visibility: "public" | "private";
 
     @ApiProperty()
-    start: Locality;
+    start: Point | Locality;
 
     @ApiProperty()
-    end: Locality;
+    end: Point | Locality;
 
     @ApiProperty()
     creator: string;

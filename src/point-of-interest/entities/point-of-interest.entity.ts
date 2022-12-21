@@ -38,7 +38,7 @@ export class PointOfInterest {
     name: string;
 
     @ApiProperty()
-    location: Locality;
+    location: Locality | Point;
 
     @ApiProperty()
     tags: string[];

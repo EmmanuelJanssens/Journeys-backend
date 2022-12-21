@@ -12,6 +12,7 @@ describe("JourneyService", () => {
 
     const mockNeo4jService = {};
 
+    const mockRepository = {};
     //mock entire neo4j driver
     jest.mock("neo4j-driver/lib/driver");
     beforeAll(async () => {
@@ -27,6 +28,8 @@ describe("JourneyService", () => {
             .useValue(mockNeo4jService)
             .overrideProvider(ExperienceService)
             .useValue({})
+            .overrideProvider(JourneyRepository)
+            .useValue(mockRepository)
             .compile();
 
         service = await testingModule.resolve(JourneyService);

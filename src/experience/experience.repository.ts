@@ -109,7 +109,7 @@ export class ExperienceRepository {
                             experience.description = coalesce(newExperience.description, ''),
                             experience.date = coalesce(newExperience.date , datetime()),
                             experience.images = coalesce(newExperience.images , [])
-        RETURN experience
+        RETURN experience, poi
         `;
         return {
             query,

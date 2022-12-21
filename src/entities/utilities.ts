@@ -1,9 +1,7 @@
-import { Point } from "neo4j-driver";
+import { Point, Integer } from "neo4j-driver";
+import { Locality } from "./Locality";
 
-export function PointToLocation(point: Point): {
-    latitude: number;
-    longitude: number;
-} {
+export function PointToLocation(point: Point): Locality {
     return {
         latitude: point.y,
         longitude: point.x

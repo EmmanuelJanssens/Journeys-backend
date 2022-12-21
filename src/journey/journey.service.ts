@@ -4,7 +4,6 @@ import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyDto } from "./dto/journey.dto";
 import { Journey, JourneyNode } from "./entities/journey.entity";
-import { PointToLocation } from "../entities/utilities";
 import { ExperienceService } from "../experience/experience.service";
 import {
     Experience,
@@ -14,6 +13,7 @@ import {
     PoiNode,
     PointOfInterest
 } from "../point-of-interest/entities/point-of-interest.entity";
+import { Integer } from "neo4j-driver";
 
 @Injectable()
 export class JourneyService {
@@ -33,7 +33,7 @@ export class JourneyService {
      */
     async findOne(id: string): Promise<{
         journey: Journey;
-        experiencesCount: number;
+        experiencesCount: Integer;
         thumbnails: string[];
     }> {
         const queryResult = await this.journeyRepository.get(id);
@@ -44,9 +44,6 @@ export class JourneyService {
 
         //build journey
         const journey = journeyNode.getProperties() as Journey;
-        journey.creator = queryResult.records[0].get("creator");
-        journey.start = PointToLocation(journeyNode.getStart());
-        journey.end = PointToLocation(journeyNode.getEnd());
 
         //additional journey information
         const experiencesCount = queryResult.records[0].get("count");
@@ -110,16 +107,15 @@ export class JourneyService {
         );
 
         //create the experiences
-        const experiences: Experience[] =
-            await this.experienceService.createMany(
-                user,
-                journeyNode.getId(),
-                createJourney.experiences
-            );
+        const experiences = await this.experienceService.createMany(
+            user,
+            journeyNode.getId(),
+            createJourney.experiences
+        );
         const createdJourney = journeyNode.getProperties() as Journey;
 
         return {
-            ...createdJourney,
+            journey: createdJourney,
             experiences: experiences
         };
     }
@@ -144,9 +140,6 @@ export class JourneyService {
             []
         );
         const updatedJourney = journeyNode.getProperties() as JourneyDto;
-
-        updatedJourney.start = PointToLocation(journeyNode.getStart());
-        updatedJourney.end = PointToLocation(journeyNode.getEnd());
         return updatedJourney;
     }
 

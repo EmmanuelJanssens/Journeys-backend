@@ -8,7 +8,7 @@ import {
 import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
-import { ExperienceNode } from "./entities/experience.entity";
+import { Experience, ExperienceNode } from "./entities/experience.entity";
 import { ExperienceRepository } from "./experience.repository";
 
 @Injectable()
@@ -108,12 +108,17 @@ export class ExperienceService {
             journeyId,
             experiences
         )) as QueryResult;
+
         const experiencesNodes = queryResult.records.map((record) => {
-            return new ExperienceNode(record.get("experience"));
+            return {
+                experience: new ExperienceNode(record.get("experience"))
+                    .properties as Experience,
+                poi: new PoiNode(
+                    record.get("poi")
+                ).getProperties() as PointOfInterest
+            };
         });
-        return experiencesNodes.map((experienceNode) => {
-            return experienceNode.properties;
-        });
+        return experiencesNodes;
     }
 
     /**
