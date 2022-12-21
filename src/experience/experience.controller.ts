@@ -67,6 +67,7 @@ export class ExperienceController {
         return this.experienceService.delete(user.uid, experienceId);
     }
 
+    @HttpCode(204)
     @UseGuards(FirebaseAuthGuard)
     @Patch("edit/:journeyId")
     batchUpdate(
