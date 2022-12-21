@@ -21,12 +21,14 @@ import { JourneyDto } from "./dto/journey.dto";
 import { Point } from "neo4j-driver";
 import { ExperienceDto } from "src/experience/entities/experience.entity";
 import { PointOfInterestDto } from "src/point-of-interest/dto/point-of-interest.dto";
+import { HttpCode } from "@nestjs/common/decorators";
 
 @Controller("journey")
 @UseInterceptors(ErrorsInterceptor)
 export class JourneyController {
     constructor(private journeyService: JourneyService) {}
 
+    @HttpCode(200)
     @Get(":journey")
     async findOne(@Param("journey") journey: string) {
         const result = await this.journeyService.findOne(journey);
@@ -51,6 +53,7 @@ export class JourneyController {
         return dto;
     }
 
+    @HttpCode(201)
     @UseGuards(FirebaseAuthGuard)
     @Post()
     async createOne(@Body() journey: CreateJourneyDto, @Request() req) {
@@ -94,21 +97,39 @@ export class JourneyController {
         return dto;
     }
 
+    @HttpCode(200)
     @UseGuards(FirebaseAuthGuard)
     @Patch()
     async update(@Body() journey: UpdateJourneyDto, @Request() req) {
         const user = req.user as UserInfo;
         const result = await this.journeyService.update(user.uid, journey);
-        return result;
+
+        //concatenate thumnails into one array
+        const thumbnails = result.thumbnails.reduce(
+            (acc, curr) => [...acc, ...curr],
+            []
+        );
+        //get proper form for display
+        const start = PointToLocation(result.journey.start as Point);
+        const end = PointToLocation(result.journey.end as Point);
+
+        //build final dto
+        const dto: JourneyDto = {
+            ...result.journey,
+            experiencesAggregate: { count: result.experiencesCount.low },
+            thumbnails
+        };
+        dto.start = start;
+        dto.end = end;
+        return dto;
     }
 
+    @HttpCode(204)
     @UseGuards(FirebaseAuthGuard)
     @Delete(":journey")
     async remove(@Param("journey") journey: string, @Request() req) {
         const user = req.user as UserInfo;
-        const result = await this.journeyService.delete(user.uid, journey);
-
-        return result;
+        await this.journeyService.delete(user.uid, journey);
     }
 
     @Get(":journey/experiences")

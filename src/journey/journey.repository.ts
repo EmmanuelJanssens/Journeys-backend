@@ -17,7 +17,7 @@ export class JourneyRepository {
     get(journey: string): Promise<QueryResult> {
         const query = `
             OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey})-[expRel:EXPERIENCE]->(exp    :Experience)
-            RETURN journey, user.username AS creator, count(distinct expRel) as count, collect(exp.images) as thumbnails`;
+            RETURN journey, user.username AS creator, count(DISTINCT expRel) as count, collect(DISTINCT exp.images) as thumbnails`;
         const params = { journey };
 
         return this.neo4jService.read(query, params);
@@ -56,12 +56,12 @@ export class JourneyRepository {
     update(user: string, journey: UpdateJourneyDto): Promise<QueryResult> {
         const query = `
             UNWIND $journey as updated
-            MATCH (journey:Journey{id: updated.id})<-[:CREATED]-(user: User{uid: $user})
+            OPTIONAL MATCH (exp:Experience)<-[expRel:EXPERIENCE]-(journey:Journey{id: updated.id})<-[:CREATED]-(user: User{uid: $user})
                 SET journey.title = updated.title,
                  journey.description = updated.description,
                  journey.thumbnail = updated.thumbnail,
                  journey.visibility = updated.visibility
-            RETURN journey
+            RETURN journey,  collect(DISTINCT exp.images) as thumbnails, count(DISTINCT expRel) as count
     `;
 
         return this.neo4jService.write(query, {

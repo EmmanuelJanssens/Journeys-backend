@@ -134,13 +134,19 @@ export class JourneyService {
         journey.thumbnail = journey.thumbnail || found.journey.thumbnail;
         journey.visibility = journey.visibility || found.journey.visibility;
 
-        const queruResult = await this.journeyRepository.update(user, journey);
+        const queryResult = await this.journeyRepository.update(user, journey);
         const journeyNode = new JourneyNode(
-            queruResult.records[0].get("journey"),
+            queryResult.records[0].get("journey"),
             []
         );
-        const updatedJourney = journeyNode.getProperties() as JourneyDto;
-        return updatedJourney;
+        const updatedJourney = journeyNode.getProperties() as Journey;
+        const thumbnails = queryResult.records[0].get("thumbnails");
+        const experienceCount = queryResult.records[0].get("count");
+        return {
+            journey: updatedJourney,
+            thumbnails: thumbnails,
+            experiencesCount: experienceCount
+        };
     }
 
     /**
