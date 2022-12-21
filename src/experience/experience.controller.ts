@@ -9,7 +9,10 @@ import {
     UseGuards,
     UseInterceptors
 } from "@nestjs/common";
+import { Get } from "@nestjs/common/decorators";
+import { HttpCode } from "@nestjs/common/decorators/http/http-code.decorator";
 import { UserInfo } from "firebase-admin/lib/auth/user-record";
+import { transformExperienceToDto } from "src/utilities/transformToDto";
 import { ErrorsInterceptor } from "../errors/errors-interceptor.interceptor";
 import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
@@ -24,20 +27,37 @@ export class ExperienceController {
 
     @UseGuards(FirebaseAuthGuard)
     @Post(":journeyId")
-    create(
+    async create(
         @Body() experience: CreateExperienceDto,
         @Param("journeyId") journeyId: string,
         @Request() req
     ) {
         const user = req.user as UserInfo;
-        return this.experienceService.create(user.uid, journeyId, experience);
+        const result = await this.experienceService.create(
+            user.uid,
+            journeyId,
+            experience
+        );
+
+        const poiDto = transformExperienceToDto(result.experience, result.poi);
+        return poiDto;
     }
 
     @UseGuards(FirebaseAuthGuard)
     @Patch(":experienceId")
-    update(@Body() experience: UpdateExperienceDto, @Request() req) {
+    async update(
+        @Body() experience: UpdateExperienceDto,
+        @Param("experienceId") experienceId: string,
+        @Request() req
+    ) {
         const user = req.user as UserInfo;
-        return this.experienceService.update(user.uid, experience);
+        const result = await this.experienceService.update(
+            user.uid,
+            experienceId,
+            experience
+        );
+        const dto = transformExperienceToDto(result);
+        return dto;
     }
 
     @UseGuards(FirebaseAuthGuard)
@@ -60,5 +80,14 @@ export class ExperienceController {
             journeyId,
             experiences
         );
+    }
+
+    @HttpCode(200)
+    @Get(":experienceId")
+    async getOne(@Param("experienceId") experienceId: string) {
+        const result = await this.experienceService.findOne(experienceId);
+        const dto = transformExperienceToDto(result.experience, result.poi);
+
+        return dto;
     }
 }

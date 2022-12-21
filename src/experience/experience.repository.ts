@@ -23,7 +23,7 @@ export class ExperienceRepository {
     ) {
         const query = `
             MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
-            MATCH (poi:POI {id: $experience.poiId})
+            MATCH (poi:POI {id: $experience.poi})
             MERGE (experience:Experience{
                 id: apoc.create.uuid()
             })
@@ -50,9 +50,13 @@ export class ExperienceRepository {
      * @param userId the ID of the user updating the experience
      * @return the updated experience
      */
-    async update(userId: string, experience: UpdateExperienceDto) {
+    async update(
+        userId: string,
+        experienceId: string,
+        experience: UpdateExperienceDto
+    ) {
         const query = `
-            MATCH(user:User {uid: $userUid})-[:(CREATED | EXPERIENCE)*0..2]-(experience:Experience{id: $experience.id})
+            MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id : $experienceId})
             SET experience.title = coalesce($experience.title, experience.title),
                 experience.description = coalesce($experience.description, experience.description),
                 experience.date = coalesce($experience.date, experience.date),
@@ -61,6 +65,7 @@ export class ExperienceRepository {
         `;
         const params = {
             userId,
+            experienceId,
             experience
         };
         return await this.neo4jService.write(query, params);
@@ -71,13 +76,14 @@ export class ExperienceRepository {
      * @param userId the user who deletes the experience
      * @param experienceId the experience to be deleted
      */
-    async delete(userId: string) {
+    async delete(userId: string, experienceId: string) {
         const query = `
-            MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id: $experience.id})
+            MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id: $experienceId})
             DETACH DELETE experience
         `;
         const params = {
-            userId
+            userId,
+            experienceId
         };
         return await this.neo4jService.write(query, params);
     }
@@ -90,7 +96,7 @@ export class ExperienceRepository {
     async findOne(experienceId: string) {
         const query = `
             OPTIONAL MATCH (journey:Journey)-[:EXPERIENCE]->(experience:Experience {id: $experienceId})-[:FOR]->(poi:POI)
-            RETURN experience
+            RETURN experience, poi, journey, count(DISTINCT journey) as journeyCount, count( DISTINCT poi) as poiCount
         `;
         const params = {
             experienceId

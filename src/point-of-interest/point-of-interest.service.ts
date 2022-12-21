@@ -1,11 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { Experience } from "src/experience/entities/experience.entity";
-import { PointToLocation } from "../entities/utilities";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
 import { PointOfInterestDto } from "./dto/point-of-interest.dto";
 import { PoiNode } from "./entities/point-of-interest.entity";
 import { PoiRepository } from "./point-of-interest.repository";
-
+import { PointToLocation } from "../utilities/transformToDto";
 @Injectable()
 export class PointOfInterestService {
     constructor(private poiRepository: PoiRepository) {}

@@ -1,7 +1,5 @@
 import { Relationship } from "@neo4j/graphql/dist/classes";
-import { PartialType } from "@nestjs/swagger";
 import { Node } from "neo4j-driver";
-import { PointOfInterestDto } from "../../point-of-interest/dto/point-of-interest.dto";
 
 export class ExperienceNode {
     constructor(
@@ -44,8 +42,4 @@ export class Experience {
     description: string;
     date: Date;
     images: string[];
-}
-
-export class ExperienceDto extends PartialType(Experience) {
-    poi: string | PointOfInterestDto;
 }

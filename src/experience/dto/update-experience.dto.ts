@@ -1,4 +1,4 @@
-import { PartialType, IntersectionType, PickType } from "@nestjs/swagger";
+import { PartialType, IntersectionType, PickType } from "@nestjs/mapped-types";
 import { Experience } from "../entities/experience.entity";
 import { CreateExperienceDto } from "./create-experience.dto";
 

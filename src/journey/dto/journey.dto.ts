@@ -1,7 +1,7 @@
 import { IsArray, IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { Point } from "neo4j-driver";
-import { Locality } from "src/entities/Locality";
-import { ExperienceDto } from "../../experience/entities/experience.entity";
+import { ExperienceDto } from "src/experience/dto/experience.dto";
+import { Locality } from "../../utilities/Locality";
 
 export class JourneyDto {
     @IsNotEmpty()

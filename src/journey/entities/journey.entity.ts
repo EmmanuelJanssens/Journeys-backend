@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Locality } from "../../entities/Locality";
 import { Node } from "neo4j-driver";
 import { Point } from "neo4j-driver-core";
 import { Relationship } from "neo4j-driver-core";
+import { Locality } from "../../utilities/Locality";
 
 export class JourneyNode {
     constructor(

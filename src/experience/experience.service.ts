@@ -50,17 +50,28 @@ export class ExperienceService {
     async create(
         userId: string,
         journeyId: string,
-        experience: CreateExperienceDto
+        experienceDto: CreateExperienceDto
     ) {
         const queryResult = await this.experienceRepository.create(
             userId,
-            experience,
+            experienceDto,
             journeyId
         );
-        const experienceNode = new ExperienceNode(
+        const experience = new ExperienceNode(
             queryResult.records[0].get("experience")
-        );
-        return experienceNode.properties;
+        ).properties;
+        const poi = new PoiNode(
+            queryResult.records[0].get("poi")
+        ).getProperties();
+        const journey = new JourneyNode(
+            queryResult.records[0].get("journey")
+        ).getProperties();
+
+        return {
+            experience,
+            poi,
+            journey
+        };
     }
 
     /**
@@ -70,15 +81,20 @@ export class ExperienceService {
      * @param experienceId
      * @returns
      */
-    async update(userId: string, experience: UpdateExperienceDto) {
+    async update(
+        userId: string,
+        experienceId: string,
+        updtExperienceDto: UpdateExperienceDto
+    ) {
         const queryResult = await this.experienceRepository.update(
             userId,
-            experience
+            experienceId,
+            updtExperienceDto
         );
-        const experienceNode = new ExperienceNode(
+        const experience = new ExperienceNode(
             queryResult.records[0].get("experience")
-        );
-        return experienceNode.properties;
+        ).properties;
+        return experience;
     }
 
     /**
@@ -88,7 +104,7 @@ export class ExperienceService {
      * @returns
      */
     async delete(userId: string, experienceId: string) {
-        await this.experienceRepository.delete(userId);
+        await this.experienceRepository.delete(userId, experienceId);
         return experienceId;
     }
 

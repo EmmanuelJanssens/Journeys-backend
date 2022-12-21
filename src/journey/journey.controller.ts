@@ -16,18 +16,16 @@ import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyService } from "./journey.service";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
-import { PointToLocation } from "../entities/utilities";
 import { JourneyDto } from "./dto/journey.dto";
 import { Point } from "neo4j-driver";
-import {
-    Experience,
-    ExperienceDto
-} from "../experience/entities/experience.entity";
+import { Experience } from "../experience/entities/experience.entity";
 import { PointOfInterestDto } from "../point-of-interest/dto/point-of-interest.dto";
 import { HttpCode } from "@nestjs/common/decorators";
 import { Journey } from "./entities/journey.entity";
-import { Locality } from "../entities/Locality";
 import { PointOfInterest } from "../point-of-interest/entities/point-of-interest.entity";
+import { ExperienceDto } from "src/experience/dto/experience.dto";
+import { Locality } from "../utilities/Locality";
+import { PointToLocation } from "../utilities/transformToDto";
 
 @Controller("journey")
 @UseInterceptors(ErrorsInterceptor)
@@ -61,6 +59,7 @@ export class JourneyController {
                 location: PointToLocation(exp.poi.location as Point)
             };
             const dto: ExperienceDto = {
+                id: exp.experience.id,
                 title: exp.experience.title,
                 description: exp.experience.description,
                 images: exp.experience.images,

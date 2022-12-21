@@ -1,10 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { PointToLocation } from "../entities/utilities";
-import {
-    UserNotFoundError,
-    UserPrivateError,
-    NotFoundError
-} from "../errors/Errors";
+import { UserNotFoundError, UserPrivateError } from "../errors/Errors";
 import { JourneyDto } from "../journey/dto/journey.dto";
 import { JourneyNode } from "../journey/entities/journey.entity";
 import { Integer, QueryResult } from "neo4j-driver";
@@ -15,7 +10,7 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { UserDto } from "./dto/user-dto";
 import { UserNode } from "./entities/user.entity";
 import { UserRepository } from "./user.repository";
-
+import { PointToLocation } from "../utilities/transformToDto";
 @Injectable()
 export class UserService {
     constructor(private readonly userRepository: UserRepository) {}
