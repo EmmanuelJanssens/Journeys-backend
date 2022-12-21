@@ -1,10 +1,12 @@
-import { PartialType, PickType } from "@nestjs/swagger";
-import { Journey } from "../entities/journey.entity";
+import { PickType, PartialType } from "@nestjs/mapped-types";
+import { JourneyDto } from "./journey.dto";
 
-export class UpdateJourneyDto extends PickType(Journey, [
-    "id",
-    "description",
-    "thumbnail",
-    "title",
-    "visibility"
-]) {}
+export class UpdateJourneyDto extends PartialType(
+    PickType(JourneyDto, [
+        "id",
+        "title",
+        "description",
+        "visibility",
+        "thumbnail"
+    ])
+) {}

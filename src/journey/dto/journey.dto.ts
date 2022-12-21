@@ -1,5 +1,4 @@
-import { IsArray, IsNotEmpty, IsString } from "class-validator";
-import { IsUUID } from "class-validator/types/decorator/string/IsUUID";
+import { IsArray, IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { Point } from "neo4j-driver";
 import { Locality } from "src/entities/Locality";
 import { ExperienceDto } from "../../experience/entities/experience.entity";
@@ -27,6 +26,9 @@ export class JourneyDto {
 
     @IsNotEmpty()
     creator: string;
+
+    @IsString()
+    thumbnail?: string;
 
     @IsArray()
     experiences?: ExperienceDto[];

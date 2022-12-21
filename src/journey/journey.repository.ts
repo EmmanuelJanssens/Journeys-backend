@@ -41,6 +41,7 @@ export class JourneyRepository {
                     description: coalesce($journey.description, ""),
                     start: point({srid:4326,x: $journey.start.longitude, y: $journey.start.latitude}),
                     end: point({srid:4326,x: $journey.end.longitude, y: $journey.end.latitude}),
+                    thumbnail: coalesce($journey.thumbnail, ""),
                     visibility: $journey.visibility
                 })<-[:CREATED]-(user)
         RETURN journey, user.username AS creator`;

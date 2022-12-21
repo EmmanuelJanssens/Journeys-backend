@@ -3,7 +3,6 @@ import { Locality } from "../../entities/Locality";
 import { Node } from "neo4j-driver";
 import { Point } from "neo4j-driver-core";
 import { Relationship } from "neo4j-driver-core";
-import { ExperienceDto } from "src/experience/entities/experience.entity";
 
 export class JourneyNode {
     constructor(
