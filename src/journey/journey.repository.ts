@@ -63,7 +63,7 @@ export class JourneyRepository {
                  journey.description = updated.description,
                  journey.thumbnail = updated.thumbnail,
                  journey.visibility = updated.visibility
-            RETURN journey,  collect(DISTINCT exp.images) as thumbnails, count(DISTINCT expRel) as count
+            RETURN journey,  collect(DISTINCT exp.images) as thumbnails, count(DISTINCT expRel) as count, user.username AS creator
     `;
 
         return this.neo4jService.write(query, {
@@ -99,7 +99,7 @@ export class JourneyRepository {
     async getExperiences(journeyId: string) {
         const query = `
                 MATCH (user: User)-[:CREATED]->(journey:Journey {id: $journeyId})-[:EXPERIENCE]->(experience:Experience)-[:FOR]->(poi:POI)
-                RETURN journey,experience, poi, user
+                RETURN journey,experience, poi, user.username as creator
             `;
         const params = {
             journeyId

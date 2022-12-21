@@ -2,8 +2,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { JourneyService } from "./journey.service";
 import { JourneyRepository } from "./journey.repository";
-import { int, QueryResult, Node, Point } from "neo4j-driver";
-import { JourneyDto } from "./dto/journey.dto";
+import { int, QueryResult, Node, Point, Integer } from "neo4j-driver";
 import { ExperienceService } from "../experience/experience.service";
 describe("JourneyService", () => {
     let service: JourneyService;
@@ -28,8 +27,6 @@ describe("JourneyService", () => {
             .useValue(mockNeo4jService)
             .overrideProvider(ExperienceService)
             .useValue({})
-            .overrideProvider(JourneyRepository)
-            .useValue(mockRepository)
             .compile();
 
         service = await testingModule.resolve(JourneyService);
@@ -47,17 +44,11 @@ describe("JourneyService", () => {
                     id: "test-id",
                     title: "title",
                     description: "description",
-                    start: {
-                        latitude: 0,
-                        longitude: 0
-                    },
-                    end: {
-                        latitude: 0,
-                        longitude: 0
-                    },
-                    creator: "test-user",
+                    start: new Point(new Integer(4326), 0, 0),
+                    end: new Point(new Integer(4326), 0, 0),
                     visibility: "public"
                 },
+                creator: "test-user",
                 experiencesCount: 10,
                 thumbnails: [["thumbnail"], []]
             };
@@ -72,8 +63,12 @@ describe("JourneyService", () => {
                                         id: expected.journey.id,
                                         title: expected.journey.title,
                                         description: "description",
-                                        start: new Point(4326, 0, 0),
-                                        end: new Point(4326, 0, 0),
+                                        start: new Point(
+                                            new Integer(4326),
+                                            0,
+                                            0
+                                        ),
+                                        end: new Point(new Integer(4326), 0, 0),
                                         visibility: expected.journey.visibility
                                     });
                                 case "thumbnails":
@@ -97,17 +92,11 @@ describe("JourneyService", () => {
                 journey: {
                     id: "test-id",
                     title: "title",
-                    start: {
-                        latitude: 0,
-                        longitude: 0
-                    },
-                    end: {
-                        latitude: 0,
-                        longitude: 0
-                    },
-                    creator: "test-user",
+                    start: new Point(new Integer(4326), 0, 0),
+                    end: new Point(new Integer(4326), 0, 0),
                     visibility: "public"
                 },
+                creator: "test-user",
                 experiencesCount: 10,
                 thumbnails: [["thumbnail"], []]
             };
@@ -121,8 +110,12 @@ describe("JourneyService", () => {
                                     return new Node(int(1), ["Journey"], {
                                         id: expected.journey.id,
                                         title: expected.journey.title,
-                                        start: new Point(4326, 0, 0),
-                                        end: new Point(4326, 0, 0),
+                                        start: new Point(
+                                            new Integer(4326),
+                                            0,
+                                            0
+                                        ),
+                                        end: new Point(new Integer(4326), 0, 0),
                                         visibility: expected.journey.visibility
                                     });
                                 case "thumbnails":

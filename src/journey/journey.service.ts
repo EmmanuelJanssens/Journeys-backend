@@ -13,7 +13,7 @@ import {
     PointOfInterest
 } from "../point-of-interest/entities/point-of-interest.entity";
 import { Integer } from "neo4j-driver";
-import { NotFoundError } from "src/errors/Errors";
+import { NotFoundError } from "../errors/Errors";
 
 @Injectable()
 export class JourneyService {
@@ -154,10 +154,12 @@ export class JourneyService {
         const updatedJourney = journeyNode.getProperties() as Journey;
         const thumbnails = queryResult.records[0].get("thumbnails");
         const experienceCount = queryResult.records[0].get("count");
+        const creator = queryResult.records[0].get("creator");
         return {
             journey: updatedJourney,
             thumbnails: thumbnails,
-            experiencesCount: experienceCount
+            experiencesCount: experienceCount,
+            creator: creator
         };
     }
 
