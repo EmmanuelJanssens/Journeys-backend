@@ -31,13 +31,22 @@ export class ExperienceRepository {
                             experience.title = coalesce($experience.title,'Untitled'),
                             experience.description = coalesce($experience.description, ''),
                             experience.date = coalesce($experience.date , datetime())
-            WITH experience, user, journey, poi
-            UNWIND $experience.images as image
-                MERGE (imageNode:Image {id: apoc.create.uuid()})
-                ON CREATE SET imageNode.original = image, imageNode.thumbnail = image + "_thumb"
-                MERGE (experience)-[:HAS_IMAGE]->(imageNode)
             MERGE (journey)-[:EXPERIENCE]->(experience)-[:FOR]->(poi)
-            RETURN experience, user, journey, poi
+            WITH experience, user, journey, poi
+            CALL apoc.do.when(
+                size($experience.images) > 0,
+                '
+                    UNWIND experienceImages as image
+                    MERGE (imageNode:Image {id: apoc.create.uuid()})
+                    ON CREATE SET imageNode.original = image, imageNode.thumbnail = image + "_thumb"
+                    MERGE (experience)-[:HAS_IMAGE]->(imageNode)
+                    RETURN collect(imageNode) as images
+                ',
+                'RETURN []',
+                {experienceImages: $experience.images, experience: experience}
+            ) YIELD value
+            RETURN experience, user, journey, poi, value.images as images
+
         `;
 
         const params = {
@@ -124,8 +133,10 @@ export class ExperienceRepository {
      * */
     async findOne(experienceId: string) {
         const query = `
-            OPTIONAL MATCH (journey:Journey)-[:EXPERIENCE]->(experience:Experience {id: $experienceId})-[:FOR]->(poi:POI)
-            RETURN experience, poi, journey, count(DISTINCT journey) as journeyCount, count( DISTINCT poi) as poiCount
+            OPTIONAL MATCH  (img:Image)<-[:HAS_IMAGE]-(experience:Experience {id: $experienceId}),
+                            (poi:POI)<-[:FOR]-(experience),
+                            (journey:Journey)-[:EXPERIENCE]->(experience)
+            RETURN experience, collect(img) as Images, poi, journey
         `;
         const params = {
             experienceId
@@ -136,15 +147,28 @@ export class ExperienceRepository {
     createManyQuery = (...args: any[]) => {
         const query = `
         MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
-        UNWIND $experiences AS newExperience
-            MATCH (poi:POI {id: newExperience.poi})
-            MERGE (poi)<-[:FOR]-(experience:Experience{id: apoc.create.uuid()}) <- [:EXPERIENCE]- (journey)
-            ON CREATE SET   experience.createdAt = datetime(),
-                            experience.title = coalesce(newExperience.title,'Untitled Experience'),
-                            experience.description = coalesce(newExperience.description, ''),
-                            experience.date = coalesce(newExperience.date , datetime()),
-                            experience.images = coalesce(newExperience.images , [])
-        RETURN experience, poi
+            UNWIND $experiences as exp_to_add
+            MATCH (poi:POI {id: exp_to_add.poi})
+            MERGE (poi)<-[:FOR]-(created_exp:Experience{id: apoc.create.uuid()}) <- [:EXPERIENCE]- (journey)
+            ON CREATE SET   created_exp.createdAt = datetime(),
+                            created_exp.title = coalesce(exp_to_add.title,'Untitled Experience'),
+                            created_exp.description = coalesce(exp_to_add.description, ''),
+                            created_exp.date = coalesce(exp_to_add.date , datetime())
+                            WITH created_exp, poi, journey, exp_to_add
+                            CALL apoc.do.when(
+                                size(exp_to_add.images) > 0,
+                                '
+                                    UNWIND experienceImages as image
+                                    MERGE (imageNode:Image {id: apoc.create.uuid()})
+                                    ON CREATE SET imageNode.original = image, imageNode.thumbnail = image + "_thumb"
+                                    MERGE (experience)-[:HAS_IMAGE]->(imageNode)
+                                    RETURN collect(imageNode) as images
+                                ',
+                                'RETURN []',
+                                {experienceImages: exp_to_add.images, experience: created_exp}
+                            ) YIELD value
+
+        RETURN created_exp as experience, poi
         `;
         return {
             query,

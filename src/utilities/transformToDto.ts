@@ -12,7 +12,8 @@ import { Image } from "src/image/entities/image.entity";
 export function transformExperienceToDto(
     experience: Experience,
     images?: Image[],
-    poi?: PointOfInterest
+    poi?: PointOfInterest,
+    journey?: Journey
 ): ExperienceDto {
     const poiDto = poi ? transformPoiToDto(poi) : undefined;
     const dto: ExperienceDto = {
@@ -27,7 +28,8 @@ export function transformExperienceToDto(
             };
         }),
         date: new Date(experience.date).toISOString() as any,
-        poi: poiDto
+        poi: poiDto,
+        journey: journey ? journey.id : undefined
     };
     return dto;
 }

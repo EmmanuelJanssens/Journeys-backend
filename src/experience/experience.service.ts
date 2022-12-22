@@ -65,11 +65,14 @@ export class ExperienceService {
         const poi = new PoiNode(queryResult.records[0].get("poi")).properties;
         const journey = new JourneyNode(queryResult.records[0].get("journey"))
             .properties;
-
+        const images = queryResult.records[0].get("images").map((img) => {
+            return new ImageNode(img).properties;
+        });
         return {
             experience,
             poi,
-            journey
+            journey,
+            images
         };
     }
 
