@@ -13,6 +13,7 @@ import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
 import { ErrorsInterceptor } from "../errors/errors-interceptor.interceptor";
 import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { UserInfo } from "firebase-admin/lib/auth/user-record";
+import { transformPoiToDto } from "src/utilities/transformToDto";
 
 @Controller("poi")
 @UseInterceptors(ErrorsInterceptor)
@@ -23,15 +24,18 @@ export class PointOfInterestController {
 
     @UseGuards(FirebaseAuthGuard)
     @Post()
-    create(
+    async create(
         @Body() createPointOfInterestDto: CreatePointOfInterestDto,
         @Request() req
     ) {
         const user = req.user as UserInfo;
-        return this.pointOfInterestService.create(
+        const result = await this.pointOfInterestService.create(
             user.uid,
             createPointOfInterestDto
         );
+
+        const dto = transformPoiToDto(result.poi, undefined, [], result.tags);
+        return dto;
     }
 
     @Get("search/:query/count")
@@ -45,16 +49,36 @@ export class PointOfInterestController {
     }
 
     @Get("search/:query")
-    findAll(@Param("query") query) {
+    async findAll(@Param("query") query) {
         const q = JSON.parse(query);
-        return this.pointOfInterestService.findAll(
+        const result = await this.pointOfInterestService.findAll(
             { lat: q.location.latitude, lng: q.location.longitude },
             q.radius
         );
+
+        const pois = result.map((poi) => {
+            const dto = transformPoiToDto(
+                poi.poi,
+                poi.thumbnail,
+                undefined,
+                poi.tags,
+                poi.expCount
+            );
+            return dto;
+        });
+        return pois;
     }
 
     @Get(":id")
-    findOne(@Param("id") id: string) {
-        return this.pointOfInterestService.findOne(id);
+    async findOne(@Param("id") id: string) {
+        const result = await this.pointOfInterestService.findOne(id);
+        const thumbnail = await this.pointOfInterestService.getThumbnail(id);
+        const dto = transformPoiToDto(
+            result.poi,
+            "",
+            result.experiences,
+            result.tags
+        );
+        return dto;
     }
 }

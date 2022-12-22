@@ -30,15 +30,12 @@ export class TagService {
         const queryResult = await this.tagRepository.findWithPois(tags);
         const tagsWithPois: TagDto[] = [];
         queryResult.records.forEach((record) => {
-            const tag = new TagNode(record.get("t"), record.get("pois"));
+            const tag = new TagNode(record.get("t"));
             tagsWithPois.push({
-                type: tag.getType(),
+                type: tag.type,
                 tagAggregate: {
-                    count: record.get("poiCount").low
-                },
-                pois: tag
-                    .getPoisRelationships()
-                    .map((poi) => poi.properties as PointOfInterestDto)
+                    poiCount: record.get("poiCount").low
+                }
             });
         });
         return tagsWithPois;

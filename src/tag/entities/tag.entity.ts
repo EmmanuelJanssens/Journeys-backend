@@ -1,30 +1,17 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Relationship, Node } from "neo4j-driver";
-import { PointOfInterestDto } from "../../point-of-interest/dto/point-of-interest.dto";
+import { Node } from "neo4j-driver";
 
 export class TagNode {
-    constructor(
-        private readonly node: Node,
-        private readonly poisRelationships: Relationship[]
-    ) {}
+    constructor(private readonly node: Node) {}
 
-    getType(): string {
-        return (<Record<string, any>>this.node.properties).type;
+    get properties() {
+        return this.node.properties as Tag;
     }
-
-    getPoisRelationships(): Relationship[] {
-        return this.poisRelationships;
+    get type(): string {
+        return this.properties.type;
     }
 }
 export class Tag {
     @ApiProperty()
     type: string;
-
-    @ApiProperty()
-    tagAggregate: {
-        count: number;
-    };
-
-    @ApiProperty()
-    pois: PointOfInterestDto[];
 }

@@ -1,54 +1,42 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Node, Point, Relationship } from "neo4j-driver";
+import { IsArray, IsNotEmpty, IsString, IsUUID } from "class-validator";
+import { Node, Point } from "neo4j-driver";
 import { Experience } from "../../experience/entities/experience.entity";
 import { Locality } from "../../utilities/Locality";
 
 export class PoiNode {
-    constructor(
-        private readonly node: Node,
-        private readonly experienceRelationships?: Relationship[],
-        private readonly tagsRelationShips?: Relationship[]
-    ) {}
+    constructor(private readonly node: Node) {}
 
-    getId(): string {
-        return (<Record<string, any>>this.node.properties).id;
+    get properties(): PointOfInterest {
+        return this.node.properties as PointOfInterest;
     }
-    getName(): string {
-        return (<Record<string, any>>this.node.properties).name;
+
+    get id(): string {
+        return this.properties.id;
     }
-    getLocation(): Point {
-        return (<Record<string, any>>this.node.properties).location;
+    get name(): string {
+        return this.properties.name;
     }
-    getProperties(): any {
-        return this.node.properties;
-    }
-    getTagsRelationships(): Relationship[] {
-        return this.tagsRelationShips;
-    }
-    getExperiencesRelationships(): Relationship[] {
-        return this.experienceRelationships;
+    get location(): Point {
+        return this.properties.location as Point;
     }
 }
 
 export class PointOfInterest {
     @ApiProperty()
+    @IsUUID()
+    @IsNotEmpty()
     id: string;
 
     @ApiProperty()
+    @IsString()
     name: string;
 
     @ApiProperty()
+    @IsNotEmpty()
     location: Locality | Point;
 
     @ApiProperty()
+    @IsArray()
     tags: string[];
-
-    @ApiProperty()
-    experiencesAggregate: { count: number };
-
-    @ApiProperty()
-    experiences: Experience[];
-
-    @ApiProperty()
-    thumbnail: string;
 }

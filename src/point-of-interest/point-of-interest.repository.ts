@@ -17,7 +17,7 @@ export class PoiRepository {
     get(poi: string): Promise<QueryResult> {
         const query = `
             MATCH (poi:POI{id: $poi})
-            OPTIONAL MATCH (poi)<-[experience]-()
+            OPTIONAL MATCH (poi)<-[:FOR]-(experience:Experience)
             OPTIONAL MATCH (tag:Tag)<-[type:IS_TYPE]-(poi)
             WITH poi,tag, experience LIMIT 5
             RETURN poi, collect(distinct experience) as experiences, collect(distinct tag) as tags
@@ -36,17 +36,22 @@ export class PoiRepository {
     create(user: string, poi: CreatePointOfInterestDto): Promise<QueryResult> {
         const query = `
             MATCH (user:User{uid: $user})
-            UNWIND $poi as newPoi
                 MERGE (poi: POI{
                     id: apoc.create.uuid(),
-                    name: newPoi.name,
-                    location: point({srid:4326, x: newPoi.location.longitude, y: newPoi.location.latitude})
+                    name: $poi.name,
+                    location: point({srid:4326, x: $poi.location.longitude, y: $poi.location.latitude})
                 })<-[:CREATED]-(user)
-            WITH newPoi.tags as tags, poi
-            UNWIND tags as connectTag
-            MERGE (tag:Tag{type: connectTag})
-            MERGE (tag)<-[:IS_TYPE]-(poi)
-            RETURN distinct poi, collect(tag) as tags`;
+            WITH $poi.tags as tags, poi
+            CALL apoc.do.when(
+                tags IS NULL OR size(tags) = 0,
+                'RETURN NULL',
+                'UNWIND
+                    $tags as tag
+                    MERGE (t:Tag{type: tag})
+                    MERGE (poi)-[:IS_TYPE]->(t)
+                RETURN collect(t) as tags',
+                {tags: tags,poi:poi}) yield value
+            RETURN distinct poi, value.tags as tags`;
         const params = { user, poi };
         return this.neo4jService.write(query, params);
     }
@@ -69,11 +74,25 @@ export class PoiRepository {
             WITH point({crs:"WGS-84", latitude: centerPoint.lat, longitude: centerPoint.lng}) as center, centerPoint
             MATCH(poi:POI)
             WHERE point.distance(poi.location,center) < $radius
-            OPTIONAL MATCH (:Journey)-[exp:EXPERIENCE]->(poi)
+            OPTIONAL MATCH (poi)<-[:FOR]->(exp:Experience)
             OPTIONAL MATCH (tag:Tag)<-[type:IS_TYPE]-(poi)
             RETURN poi,count(distinct exp) as expCount,coalesce(exp.images, []) as images, collect(distinct tag) as tags
         `;
         const params = { center, radius };
+        return this.neo4jService.read(query, params);
+    }
+
+    /**
+     * get thumbnail from experience
+     * @param poi  id of the poi
+     * @returns  query result with thumbnail
+     * */
+    getThumbnail(poi: string): Promise<QueryResult> {
+        const query = `
+            MATCH (poi:POI{id: $poi})<-[:FOR]-(exp:Experience)
+            RETURN collect(exp.images) as thumbnails
+        `;
+        const params = { poi };
         return this.neo4jService.read(query, params);
     }
 }

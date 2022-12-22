@@ -1,10 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { UserNotFoundError, UserPrivateError } from "../errors/Errors";
 import { JourneyDto } from "../journey/dto/journey.dto";
-import { JourneyNode } from "../journey/entities/journey.entity";
+import { Journey, JourneyNode } from "../journey/entities/journey.entity";
 import { Integer, QueryResult } from "neo4j-driver";
 import { PointOfInterestDto } from "../point-of-interest/dto/point-of-interest.dto";
-import { PoiNode } from "../point-of-interest/entities/point-of-interest.entity";
+import {
+    PoiNode,
+    PointOfInterest
+} from "../point-of-interest/entities/point-of-interest.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { UserDto } from "./dto/user-dto";
@@ -75,20 +78,20 @@ export class UserService {
             skip,
             limit
         );
-        const userJourneys: JourneyDto[] = [];
+        const userJourneys: Journey[] = [];
         queryResult.records.forEach((record) => {
             const userNode = new UserNode(record.get("user"), [], []);
             if (userNode.getVisibility() == "private")
                 throw new UserPrivateError("User profile is private");
             const journeyNode = new JourneyNode(record.get("journey"), []);
-            if (journeyNode.getVisibility() == "public") {
-                const journey = journeyNode.getProperties() as JourneyDto;
-                journey.start = PointToLocation(journeyNode.getStart());
-                journey.end = PointToLocation(journeyNode.getEnd());
-                journey.creator = userNode.getUsername();
-                journey.experiencesAggregate = {
-                    count: record.get("expCount").low
-                };
+            if (journeyNode.visibility == "public") {
+                const journey = journeyNode.properties;
+                // journey.start = PointToLocation(journeyNode.getStart());
+                // journey.end = PointToLocation(journeyNode.getEnd());
+                // journey.creator = userNode.getUsername();
+                // journey.experiencesAggregate = {
+                //     count: record.get("expCount").low
+                // };
                 userJourneys.push(journey);
             }
         });
@@ -108,23 +111,20 @@ export class UserService {
             skip,
             limit
         );
-        const userJourneys: JourneyDto[] = [];
+        const userJourneys: Journey[] = [];
         queryResult.records.forEach((record) => {
             if (record.get("journey") != null) {
                 const userNode = new UserNode(record.get("user"), [], []);
                 const journeyNode = new JourneyNode(record.get("journey"), []);
-                const journey = journeyNode.getProperties() as JourneyDto;
-                journey.start = PointToLocation(journeyNode.getStart());
-                journey.end = PointToLocation(journeyNode.getEnd());
-                journey.creator = userNode.getUsername();
+                const journey = journeyNode.properties;
                 const thumbnails = record.get("thumbnails") as string[][];
-                journey.thumbnails = thumbnails.reduce(
-                    (acc, curr) => acc.concat(curr),
-                    []
-                );
-                journey.experiencesAggregate = {
-                    count: record.get("expCount").low
-                };
+                // journey.thumbnails = thumbnails.reduce(
+                //     (acc, curr) => acc.concat(curr),
+                //     []
+                // );
+                // journey.experiencesAggregate = {
+                //     count: record.get("expCount").low
+                // };
                 userJourneys.push(journey);
             }
         });
@@ -157,16 +157,14 @@ export class UserService {
      */
     async getPois(uid: string, skip: Integer, limit: Integer) {
         const queryResult = await this.userRepository.getPois(uid, skip, limit);
-        const userPois: PointOfInterestDto[] = [];
+        const userPois: PointOfInterest[] = [];
         queryResult.records.forEach((record) => {
             if (record.get("poi")) {
-                const poiNode = new PoiNode(record.get("poi"), []);
+                const poiNode = new PoiNode(record.get("poi"));
                 if (poiNode != null) {
-                    const poi = poiNode.getProperties() as PointOfInterestDto;
-                    poi.location = PointToLocation(poiNode.getLocation());
-                    poi.experiencesAggregate = {
-                        count: record.get("expCount").low
-                    };
+                    const poi = poiNode.properties;
+                    poi.location = PointToLocation(poiNode.location);
+
                     userPois.push(poi);
                 }
             }
@@ -175,16 +173,14 @@ export class UserService {
     }
     async getMyPois(uid: string, skip: Integer, limit: Integer) {
         const queryResult = await this.userRepository.getPois(uid, skip, limit);
-        const userPois: PointOfInterestDto[] = [];
+        const userPois: PointOfInterest[] = [];
         queryResult.records.forEach((record) => {
             if (record.get("poi")) {
-                const poiNode = new PoiNode(record.get("poi"), []);
+                const poiNode = new PoiNode(record.get("poi"));
                 if (poiNode != null) {
-                    const poi = poiNode.getProperties() as PointOfInterestDto;
-                    poi.location = PointToLocation(poiNode.getLocation());
-                    poi.experiencesAggregate = {
-                        count: record.get("expCount").low
-                    };
+                    const poi = poiNode.properties;
+                    poi.location = PointToLocation(poiNode.location);
+
                     userPois.push(poi);
                 }
             }

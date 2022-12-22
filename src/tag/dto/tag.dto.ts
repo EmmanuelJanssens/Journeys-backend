@@ -1,4 +1,11 @@
-import { PartialType } from "@nestjs/swagger";
-import { Tag } from "../entities/tag.entity";
+import { PointOfInterestDto } from "src/point-of-interest/dto/point-of-interest.dto";
 
-export class TagDto extends PartialType(Tag) {}
+export class TagDto {
+    type: string;
+
+    tagAggregate: {
+        poiCount: number;
+    };
+
+    pois?: PointOfInterestDto[];
+}

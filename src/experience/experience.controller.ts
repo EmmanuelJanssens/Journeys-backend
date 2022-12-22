@@ -39,7 +39,11 @@ export class ExperienceController {
             experience
         );
 
-        const poiDto = transformExperienceToDto(result.experience, result.poi);
+        const poiDto = transformExperienceToDto(
+            result.experience,
+            [],
+            result.poi
+        );
         return poiDto;
     }
 
@@ -56,7 +60,7 @@ export class ExperienceController {
             experienceId,
             experience
         );
-        const dto = transformExperienceToDto(result);
+        const dto = transformExperienceToDto(result.experience, result.images);
         return dto;
     }
 
@@ -87,7 +91,7 @@ export class ExperienceController {
     @Get(":experienceId")
     async getOne(@Param("experienceId") experienceId: string) {
         const result = await this.experienceService.findOne(experienceId);
-        const dto = transformExperienceToDto(result.experience, result.poi);
+        const dto = transformExperienceToDto(result.experience, [], result.poi);
 
         return dto;
     }

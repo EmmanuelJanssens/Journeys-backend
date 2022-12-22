@@ -49,7 +49,7 @@ export class JourneyService {
         );
 
         //build journey
-        const journey = journeyNode.getProperties() as Journey;
+        const journey = journeyNode.properties;
 
         //additional journey information
         const experiencesCount = queryResult.records[0].get("count");
@@ -79,17 +79,14 @@ export class JourneyService {
         const queryResult = await this.journeyRepository.getExperiences(
             journey_id
         );
-        const journey = new JourneyNode(
-            queryResult.records[0].get("journey")
-        ).getProperties() as Journey;
+        const journey = new JourneyNode(queryResult.records[0].get("journey"))
+            .properties;
 
         const experiences = queryResult.records.map((record, idx) => {
             return {
                 experience: new ExperienceNode(record.get("experience"))
                     .properties as Experience,
-                poi: new PoiNode(
-                    record.get("poi")
-                ).getProperties() as PointOfInterest
+                poi: new PoiNode(record.get("poi")).properties
             };
         });
 
@@ -120,10 +117,10 @@ export class JourneyService {
         //create the experiences
         const experiences = await this.experienceService.createMany(
             user,
-            journeyNode.getId(),
+            journeyNode.id,
             createJourney.experiences
         );
-        const createdJourney = journeyNode.getProperties() as Journey;
+        const createdJourney = journeyNode.properties;
         const creator = journeyQueryResult.records[0].get("creator");
         return {
             journey: createdJourney,
@@ -151,7 +148,7 @@ export class JourneyService {
             queryResult.records[0].get("journey"),
             []
         );
-        const updatedJourney = journeyNode.getProperties() as Journey;
+        const updatedJourney = journeyNode.properties;
         const thumbnails = queryResult.records[0].get("thumbnails");
         const experienceCount = queryResult.records[0].get("count");
         const creator = queryResult.records[0].get("creator");

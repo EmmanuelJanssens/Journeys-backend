@@ -1,8 +1,7 @@
-import { PartialType, IntersectionType, PickType } from "@nestjs/mapped-types";
-import { Experience } from "../entities/experience.entity";
+import { PartialType } from "@nestjs/mapped-types";
 import { CreateExperienceDto } from "./create-experience.dto";
 
-export class UpdateExperienceDto extends IntersectionType(
-    PickType(Experience, ["id"]),
-    PartialType(CreateExperienceDto)
-) {}
+export class UpdateExperienceDto extends PartialType(CreateExperienceDto) {
+    addedImages?: string[];
+    removedImages?: string[];
+}

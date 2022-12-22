@@ -101,6 +101,19 @@ export class UserRepository {
     }
 
     /**
+     * get the experiences of a user
+     * @param uid the uid of the user to get the experiences from
+     */
+    getExperiences(uid: string) {
+        const query = `
+            OPTIONAL MATCH(user:User{uid:$uid})-[:(CREATED|EXPERIENCE0..2)]->(experience:Experience)
+            RETURN experience
+            `;
+        const params = { uid };
+        return this.neo4jService.read(query, params);
+    }
+
+    /**
      * send an friend invitation to a user
      * @param uid the uid of the sender
      * @param friendUid the uid of the receiver

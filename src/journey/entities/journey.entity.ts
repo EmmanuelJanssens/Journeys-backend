@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, isString, IsString, IsUUID } from "class-validator";
 import { Node } from "neo4j-driver";
 import { Point } from "neo4j-driver-core";
 import { Relationship } from "neo4j-driver-core";
@@ -10,58 +11,65 @@ export class JourneyNode {
         private readonly experiencesRelationShip?: Relationship[]
     ) {}
 
-    getId(): string {
-        return (<Record<string, any>>this.node.properties).id;
+    get properties(): Journey {
+        return this.node.properties as Journey;
     }
-    getTitle(): string {
-        return (<Record<string, any>>this.node.properties).title;
+
+    get id(): string {
+        return this.properties.id;
     }
-    getDescription(): string {
-        return (<Record<string, any>>this.node.properties).description;
+    get title(): string {
+        return this.properties.title;
     }
-    getThumbnail(): string {
-        return (<Record<string, any>>this.node.properties).thumbnail;
+    get description(): string {
+        return this.properties.description;
     }
-    getVisibility(): string {
-        return (<Record<string, any>>this.node.properties).visibility;
+    get thumbnail(): string {
+        return this.properties.thumbnail;
     }
-    getStart(): Point {
-        return (<Record<string, any>>this.node.properties).start;
+    get visibility(): string {
+        return this.properties.visibility;
     }
-    getEnd(): Point {
-        return (<Record<string, any>>this.node.properties).end;
+    get start(): Point {
+        return <Point>this.properties.start;
+    }
+    get end(): Point {
+        return <Point>this.properties.end;
     }
 
     getExperiencesRelationships(): Relationship[] {
         return this.experiencesRelationShip;
     }
-    getProperties(): any {
-        return this.node.properties;
-    }
 }
 
 export class Journey {
     @ApiProperty()
+    @IsNotEmpty()
+    @IsUUID()
     id: string;
 
     @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
     title: string;
 
     @ApiProperty()
+    @IsString()
     description: string;
 
     @ApiProperty()
+    @IsNotEmpty()
     thumbnail: string;
 
     @ApiProperty()
+    @IsNotEmpty()
     visibility: "public" | "private";
 
     @ApiProperty()
+    @IsNotEmpty()
     start: Point | Locality;
 
     @ApiProperty()
+    @IsNotEmpty()
     end: Point | Locality;
-
-    @ApiProperty()
-    creator: string;
 }

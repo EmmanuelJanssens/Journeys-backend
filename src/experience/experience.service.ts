@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { QueryResult } from "neo4j-driver";
+import { ImageNode } from "src/image/entities/image.entity";
 import { Journey, JourneyNode } from "../journey/entities/journey.entity";
 import {
     PoiNode,
@@ -10,6 +11,7 @@ import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
 import { Experience, ExperienceNode } from "./entities/experience.entity";
 import { ExperienceRepository } from "./experience.repository";
+import { Image } from "src/image/entities/image.entity";
 
 @Injectable()
 export class ExperienceService {
@@ -34,8 +36,8 @@ export class ExperienceService {
 
         const found = {
             experience: experienceNode.properties,
-            poi: poiNode.getProperties() as PointOfInterest,
-            journey: journeyNode.getProperties() as Journey
+            poi: poiNode.properties,
+            journey: journeyNode.properties
         };
         return found;
     }
@@ -60,12 +62,9 @@ export class ExperienceService {
         const experience = new ExperienceNode(
             queryResult.records[0].get("experience")
         ).properties;
-        const poi = new PoiNode(
-            queryResult.records[0].get("poi")
-        ).getProperties();
-        const journey = new JourneyNode(
-            queryResult.records[0].get("journey")
-        ).getProperties();
+        const poi = new PoiNode(queryResult.records[0].get("poi")).properties;
+        const journey = new JourneyNode(queryResult.records[0].get("journey"))
+            .properties;
 
         return {
             experience,
@@ -94,7 +93,15 @@ export class ExperienceService {
         const experience = new ExperienceNode(
             queryResult.records[0].get("experience")
         ).properties;
-        return experience;
+        const images: Image[] = queryResult.records[0]
+            .get("images")
+            .map((image) => {
+                return new ImageNode(image).properties;
+            });
+        return {
+            experience,
+            images
+        };
     }
 
     /**
@@ -129,9 +136,7 @@ export class ExperienceService {
             return {
                 experience: new ExperienceNode(record.get("experience"))
                     .properties as Experience,
-                poi: new PoiNode(
-                    record.get("poi")
-                ).getProperties() as PointOfInterest
+                poi: new PoiNode(record.get("poi")).properties
             };
         });
         return experiencesNodes;

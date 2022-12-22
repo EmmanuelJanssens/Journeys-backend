@@ -30,8 +30,12 @@ export class ExperienceRepository {
             ON CREATE SET   experience.createdAt = datetime(),
                             experience.title = coalesce($experience.title,'Untitled'),
                             experience.description = coalesce($experience.description, ''),
-                            experience.date = coalesce($experience.date , datetime()),
-                            experience.images = coalesce($experience.images , [])
+                            experience.date = coalesce($experience.date , datetime())
+            WITH experience, user, journey, poi
+            UNWIND $experience.images as image
+                MERGE (imageNode:Image {id: apoc.create.uuid()})
+                ON CREATE SET imageNode.original = image, imageNode.thumbnail = image + "_thumb"
+                MERGE (experience)-[:HAS_IMAGE]->(imageNode)
             MERGE (journey)-[:EXPERIENCE]->(experience)-[:FOR]->(poi)
             RETURN experience, user, journey, poi
         `;
@@ -56,12 +60,37 @@ export class ExperienceRepository {
         experience: UpdateExperienceDto
     ) {
         const query = `
-            MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id : $experienceId})
-            SET experience.title = coalesce($experience.title, experience.title),
-                experience.description = coalesce($experience.description, experience.description),
-                experience.date = coalesce($experience.date, experience.date),
-                experience.images = coalesce($experience.images, experience.images)
-            RETURN experience
+        MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id : $experienceId})
+        SET experience.title = coalesce($experience.title, experience.title),
+            experience.description = coalesce($experience.description, experience.description),
+            experience.date = coalesce($experience.date, experience.date)
+        WITH experience
+        CALL apoc.do.when( size($experience.addedImages) > 0,
+            '
+                UNWIND experienceImages as addedImage
+                MERGE (imageNode:Image{
+                    id: apoc.create.uuid(),
+                    original: addedImage,
+                    thumbnail: addedImage+"_thumb"
+                })
+                MERGE (imageNode)<-[:HAS_IMAGE]-(experience)
+                RETURN imageNode
+            '
+            ,"",
+            {experienceImages: $experience.addedImages, experience: experience})
+        YIELD value AS added
+        CALL apoc.do.when( size($experience.removedImages) > 0,
+            '
+                UNWIND experienceImages as removedImage
+                OPTIONAL MATCH (imageNode:Image{id: removedImage})
+                WHERE imageNode IS NOT NULL DETACH DELETE imageNode
+                RETURN removedImage
+            '
+            ,"",
+            {experienceImages: $experience.removedImages, experience: experience})
+        YIELD value AS removed
+        WITH added, experience
+        RETURN experience , collect(added.imageNode) as images
         `;
         const params = {
             userId,
