@@ -1,6 +1,7 @@
 import { Record, Node, Integer, Point } from "neo4j-driver";
 import { Locality } from "src/utilities/Locality";
 import { CreateJourneyDto } from "../dto/create-journey.dto";
+import { UpdateJourneyDto } from "../dto/update-journey.dto";
 import { Journey, JourneyNode } from "../entities/journey.entity";
 
 export const mockJourney = (id: string) => {
@@ -8,6 +9,7 @@ export const mockJourney = (id: string) => {
         id: id,
         title: "title",
         description: "description",
+        thumbnail: "thumbnail",
         start: new Point(new Integer(4326), 0, 0),
         end: new Point(new Integer(4326), 0, 0),
         visibility: "public"
@@ -87,7 +89,37 @@ export class JourneyRepositoryMock {
             return new Promise((resolve) => resolve(res));
         }
     );
-    public update = jest.fn();
+    public update = jest.fn((user: string, journey: UpdateJourneyDto) => {
+        const j = mockJourney(journey.id);
+        const record = new Record(
+            ["journey", "count", "thumbnails", "creator"],
+            [
+                new Node(new Integer(1), ["Journey"], <Journey>{
+                    id: journey.id,
+                    description: journey.description,
+                    title: journey.title,
+                    start: j.start,
+                    end: j.end,
+                    visibility: journey.visibility,
+                    thumbnail: journey.thumbnail
+                }),
+                10,
+                [["thumbnail"], []],
+                user
+            ],
+            {
+                journey: 0,
+                count: 1,
+                thumbnails: 2,
+                creator: 3
+            }
+        );
+        const res = {
+            records: [record],
+            summary: {}
+        };
+        return new Promise((resolve) => resolve(res));
+    });
     public delete = jest.fn();
     public getExperiences = jest.fn();
 }

@@ -139,7 +139,7 @@ export class JourneyService {
     async update(user: string, journey: UpdateJourneyDto) {
         const found = await this.findOne(journey.id);
         journey.description = journey.description || found.journey.description;
-        journey.title = journey.title || found.journey.description;
+        journey.title = journey.title || found.journey.title;
         journey.thumbnail = journey.thumbnail || found.journey.thumbnail;
         journey.visibility = journey.visibility || found.journey.visibility;
 

@@ -2,12 +2,11 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { JourneyService } from "./journey.service";
 import { JourneyRepository } from "./journey.repository";
-import { Point, Integer, Record } from "neo4j-driver";
+import { Point, Integer } from "neo4j-driver";
 import { ExperienceService } from "../experience/experience.service";
 import { JourneyRepositoryMock } from "./mock/journey.repository.mock";
 import { Locality } from "src/utilities/Locality";
 import { CreateExperienceDto } from "src/experience/dto/create-experience.dto";
-import { Node } from "neo4j-driver";
 import { PointOfInterest } from "src/point-of-interest/entities/point-of-interest.entity";
 import { Experience } from "src/experience/entities/experience.entity";
 describe("JourneyService", () => {
@@ -79,6 +78,7 @@ describe("JourneyService", () => {
                     id: "test-id",
                     title: "title",
                     description: "description",
+                    thumbnail: "thumbnail",
                     start: new Point(new Integer(4326), 0, 0),
                     end: new Point(new Integer(4326), 0, 0),
                     visibility: "public"
@@ -119,6 +119,7 @@ describe("JourneyService", () => {
                 visibility: "public"
             });
             expect(res.creator).toEqual("test-user");
+            expect(res.journey.thumbnail).toBeUndefined();
             expect(res.experiences.length).toEqual(0);
         });
 
@@ -162,11 +163,9 @@ describe("JourneyService", () => {
                 visibility: "public"
             });
             expect(res.creator).toEqual("test-user");
+            expect(res.journey.thumbnail).toBeUndefined();
             expect(res.experiences.length).toEqual(2);
         });
-    });
-    it("should create one ::create", async () => {
-        //
     });
 
     it("should add an experience ::addExperience", async () => {
@@ -177,19 +176,48 @@ describe("JourneyService", () => {
         //
     });
 
-    describe("It should update the fields of a journey ::update", () => {
-        //
-    });
-    it("should update the description fields of the journey ", async () => {
-        //
-    });
-    it("should update the title fields of the journey", async () => {
-        //
-    });
-    it("should update the thumbnail fields of the journey ", async () => {
-        //
-    });
-    it("should update the visibility fields of the journey", async () => {
-        //
+    describe("::update", () => {
+        it("should update multiple fields of a journey", async () => {
+            const res = await service.update("test-user", {
+                id: "test-id",
+                title: "new-title",
+                description: "new-description"
+            });
+            expect(res.journey.title).toEqual("new-title");
+            expect(res.journey.description).toEqual("new-description");
+            expect(res.journey.visibility).toEqual("public");
+        });
+        it("should update the description fields of the journey ", async () => {
+            const res = await service.update("test-user", {
+                id: "test-id",
+                description: "new-description"
+            });
+            expect(res.journey.title).toEqual("title");
+            expect(res.journey.description).toEqual("new-description");
+        });
+        it("should update the title fields of the journey", async () => {
+            const res = await service.update("test-user", {
+                id: "test-id",
+                title: "new-title"
+            });
+            expect(res.journey.description).toEqual("description");
+            expect(res.journey.title).toEqual("new-title");
+        });
+        it("should update the thumbnail fields of the journey ", async () => {
+            const res = await service.update("test-user", {
+                id: "test-id",
+                thumbnail: "new-thumbnail"
+            });
+            expect(res.journey.description).toEqual("description");
+            expect(res.journey.thumbnail).toEqual("new-thumbnail");
+        });
+        it("should update the visibility fields of the journey", async () => {
+            const res = await service.update("test-user", {
+                id: "test-id",
+                visibility: "private"
+            });
+            expect(res.journey.description).toEqual("description");
+            expect(res.journey.visibility).toEqual("private");
+        });
     });
 });
