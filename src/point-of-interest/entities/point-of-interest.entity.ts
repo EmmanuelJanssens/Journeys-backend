@@ -35,8 +35,4 @@ export class PointOfInterest {
     @ApiProperty()
     @IsNotEmpty()
     location: Locality | Point;
-
-    @ApiProperty()
-    @IsArray()
-    tags: string[];
 }

@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { Experience } from "src/experience/entities/experience.entity";
+import { Experience } from "../experience/entities/experience.entity";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
 import { PoiNode, PointOfInterest } from "./entities/point-of-interest.entity";
 import { PoiRepository } from "./point-of-interest.repository";
-import { Tag, TagNode } from "src/tag/entities/tag.entity";
+import { Tag, TagNode } from "../tag/entities/tag.entity";
 import { Integer } from "neo4j-driver";
 @Injectable()
 export class PointOfInterestService {

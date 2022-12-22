@@ -13,7 +13,7 @@ import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
 import { ErrorsInterceptor } from "../errors/errors-interceptor.interceptor";
 import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { UserInfo } from "firebase-admin/lib/auth/user-record";
-import { transformPoiToDto } from "src/utilities/transformToDto";
+import { transformPoiToDto } from "../utilities/transformToDto";
 
 @Controller("poi")
 @UseInterceptors(ErrorsInterceptor)

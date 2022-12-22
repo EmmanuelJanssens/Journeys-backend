@@ -1,14 +1,8 @@
 import { CreateExperienceDto } from "src/experience/dto/create-experience.dto";
 import { IsArray } from "class-validator";
-import { PickType } from "@nestjs/swagger";
-import { JourneyDto } from "./journey.dto";
-export class CreateJourneyDto extends PickType(JourneyDto, [
-    "title",
-    "description",
-    "start",
-    "end",
-    "visibility"
-]) {
+import { PartialType } from "@nestjs/mapped-types";
+import { Journey } from "../entities/journey.entity";
+export class CreateJourneyDto extends PartialType(Journey) {
     @IsArray()
     experiences: CreateExperienceDto[];
 }

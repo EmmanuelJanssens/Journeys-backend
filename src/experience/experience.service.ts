@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { QueryResult } from "neo4j-driver";
-import { ImageNode } from "src/image/entities/image.entity";
+import { ImageNode } from "../image/entities/image.entity";
 import { Journey, JourneyNode } from "../journey/entities/journey.entity";
 import {
     PoiNode,
@@ -11,7 +11,7 @@ import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
 import { Experience, ExperienceNode } from "./entities/experience.entity";
 import { ExperienceRepository } from "./experience.repository";
-import { Image } from "src/image/entities/image.entity";
+import { Image } from "../image/entities/image.entity";
 
 @Injectable()
 export class ExperienceService {
