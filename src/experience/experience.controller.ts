@@ -71,20 +71,20 @@ export class ExperienceController {
         return this.experienceService.delete(user.uid, experienceId);
     }
 
-    @HttpCode(204)
     @UseGuards(FirebaseAuthGuard)
     @Patch("edit/:journeyId")
-    batchUpdate(
+    async batchUpdate(
         @Body() experiences: BatchUpdateExperienceDto,
         @Param("journeyId") journeyId,
         @Request() req
     ) {
         const user = req.user as UserInfo;
-        return this.experienceService.batchUpdate(
+        const res = await this.experienceService.batchUpdate(
             user.uid,
             journeyId,
             experiences
         );
+        return res;
     }
 
     @HttpCode(200)

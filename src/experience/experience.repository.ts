@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ManagedTransaction } from "neo4j-driver";
+import { Transaction } from "nest-neo4j/dist";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
@@ -25,6 +26,7 @@ export class ExperienceRepository {
         const query = `
             MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
             MATCH (poi:POI {id: $experience.poi})
+            WHERE journey.isActive = true AND poi.isActive = true
             MERGE (experience:Experience{
                 id: apoc.create.uuid()
             })
@@ -32,6 +34,9 @@ export class ExperienceRepository {
                             experience.title = coalesce($experience.title,'Untitled'),
                             experience.description = coalesce($experience.description, ''),
                             experience.date = coalesce($experience.date , datetime())
+                            experience.isActive = true
+                            experience.createdAt = datetime()
+                            experience.updatedAt = datetime()
             MERGE (journey)-[:EXPERIENCE]->(experience)-[:FOR]->(poi)
             WITH experience, user, journey, poi
             CALL apoc.do.when(
@@ -39,7 +44,12 @@ export class ExperienceRepository {
                 '
                     UNWIND experienceImages as image
                     MERGE (imageNode:Image {id: apoc.create.uuid()})
-                    ON CREATE SET imageNode.original = image, imageNode.thumbnail = image + "_thumb"
+                    ON CREATE
+                        SET imageNode.original = image,
+                            imageNode.thumbnail = image + "_thumb"
+                            imageNode.isActive = true
+                            imageNode.createdAt = datetime()
+                            imageNode.updatedAt = datetime()
                     MERGE (experience)-[:HAS_IMAGE]->(imageNode)
                     RETURN collect(imageNode) as images
                 ',
@@ -58,6 +68,35 @@ export class ExperienceRepository {
         return await this.neo4jService.write(query, params);
     }
 
+    async create2(
+        tx: ManagedTransaction | Transaction,
+        userId: string,
+        experience: CreateExperienceDto,
+        journeyId: string
+    ) {
+        const query = `
+            MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
+            MATCH (poi:POI {id: $experience.poi})
+            WHERE journey.isActive = true AND poi.isActive = true
+            CREATE (experience:Experience{
+                id: apoc.create.uuid(),
+                title: coalesce($experience.title,'Untitled'),
+                description: coalesce($experience.description, ''),
+                date: coalesce($experience.date , datetime()),
+                isActive: true,
+                createdAt: datetime(),
+                updatedAt: datetime()})
+            MERGE (journey)-[:EXPERIENCE]->(experience)-[:FOR]->(poi)
+            RETURN experience
+        `;
+        const params = {
+            userId,
+            journeyId,
+            experience
+        };
+        return tx.run(query, params);
+    }
+
     /**
      * Update an experience
      * @param experience The experience to update
@@ -65,16 +104,18 @@ export class ExperienceRepository {
      * @return the updated experience
      */
     async update(
-        tx: ManagedTransaction,
+        tx: ManagedTransaction | Transaction,
         userId: string,
         experienceId: string,
         experience: UpdateExperienceDto
     ) {
         const query = `
         MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id : $experienceId})
+        WHERE experience.isActive = true
         SET experience.title = coalesce($experience.title, experience.title),
             experience.description = coalesce($experience.description, experience.description),
-            experience.date = coalesce($experience.date, experience.date)
+            experience.date = coalesce($experience.date, experience.date),
+            experience.updatedAt = datetime()
         RETURN experience
         `;
         const param = {
@@ -84,12 +125,25 @@ export class ExperienceRepository {
         };
         return tx.run(query, param);
     }
-    /**
-     * Update an experience
-     * @param experience The experience to update
-     * @param userId the ID of the user updating the experience
-     * @return the updated experience
-     */
+
+    async delete2(
+        tx: ManagedTransaction | Transaction,
+        userId: string,
+        experienceId: string
+    ) {
+        const query = `
+        MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id : $experienceId})
+        WHERE experience.isActive = true
+        SET experience.isActive = false,
+            experience.updatedAt = datetime()
+        RETURN experience
+        `;
+        const param = {
+            userId,
+            experienceId
+        };
+        return tx.run(query, param);
+    }
 
     /**
      * delete an experience
@@ -99,7 +153,9 @@ export class ExperienceRepository {
     async delete(userId: string, experienceId: string) {
         const query = `
             MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id: $experienceId})
-            DETACH DELETE experience
+            WHERE experience.isActive = true
+            SET experience.isActive = false
+            RETURN experience.id as experience
         `;
         const params = {
             userId,
@@ -118,6 +174,7 @@ export class ExperienceRepository {
             OPTIONAL MATCH  (img:Image)<-[:HAS_IMAGE]-(experience:Experience {id: $experienceId}),
                             (poi:POI)<-[:FOR]-(experience),
                             (journey:Journey)-[:EXPERIENCE]->(experience)
+            WHERE experience.isActive = true
             RETURN experience, collect(img) as Images, poi, journey
         `;
         const params = {

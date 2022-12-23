@@ -14,6 +14,7 @@ import { ExperienceRepository } from "./experience.repository";
 import { Image } from "../image/entities/image.entity";
 import { Neo4jService } from "src/neo4j/neo4j.service";
 import { ImageRepository } from "src/image/image.repository";
+import { Logger } from "@nestjs/common/services/logger.service";
 
 @Injectable()
 export class ExperienceService {
@@ -126,6 +127,7 @@ export class ExperienceService {
                 };
             })
             .catch((err) => {
+                Logger.debug(err);
                 throw Error("Could not update experience");
             });
 
@@ -214,10 +216,94 @@ export class ExperienceService {
         journeyId: string,
         toUpdate: BatchUpdateExperienceDto
     ) {
-        await this.experienceRepository.batchUpdate(
-            userId,
-            journeyId,
-            toUpdate
-        );
+        const session = this.neo4jService.getWriteSession();
+
+        try {
+            const createdExps = await session
+                .executeWrite(async (tx) => {
+                    const created = await toUpdate.connected.map(
+                        async (experience) => {
+                            const created =
+                                await this.experienceRepository.create2(
+                                    tx,
+                                    userId,
+                                    experience,
+                                    journeyId
+                                );
+                            const exp = new ExperienceNode(
+                                created.records[0].get("experience")
+                            ).properties;
+                            await this.imageRepository.createAndConnectImageToExperience(
+                                tx,
+                                exp.id,
+                                experience.images
+                            );
+                            return exp;
+                        }
+                    );
+                    return Promise.all(created);
+                })
+                .catch((err) => {
+                    Logger.debug(err);
+                    throw Error("Could not create experiences");
+                });
+
+            const updatedExps = await session
+                .executeWrite(async (tx) => {
+                    const updated = await toUpdate.updated.map(
+                        async (experience) => {
+                            const updated =
+                                await this.experienceRepository.update(
+                                    tx,
+                                    userId,
+                                    experience.id,
+                                    experience
+                                );
+                            await this.imageRepository.createAndConnectImageToExperience(
+                                tx,
+                                experience.id,
+                                experience.addedImages
+                            );
+
+                            await this.imageRepository.disconnectImagesFromExperience(
+                                tx,
+                                experience.id,
+                                experience.removedImages
+                            );
+                            return new ExperienceNode(
+                                updated.records[0].get("experience")
+                            ).properties;
+                        }
+                    );
+                    return Promise.all(updated);
+                })
+                .catch((err) => {
+                    Logger.debug(err);
+                    throw Error("Could not update experiences");
+                });
+
+            const deletedExps = await session
+                .executeWrite(async (tx) => {
+                    await toUpdate.deleted.forEach(async (experienceId) => {
+                        await this.experienceRepository.delete2(
+                            tx,
+                            userId,
+                            experienceId
+                        );
+                    });
+                })
+                .catch((err) => {
+                    Logger.debug(err);
+                    throw Error("Could not delete experiences");
+                });
+
+            return {
+                created: createdExps,
+                updated: updatedExps,
+                deleted: deletedExps
+            };
+        } finally {
+            session.close();
+        }
     }
 }

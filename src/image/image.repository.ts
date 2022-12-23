@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { ManagedTransaction, QueryResult } from "neo4j-driver";
+import { ManagedTransaction, QueryResult, Transaction } from "neo4j-driver";
 import { Neo4jService } from "../neo4j/neo4j.service";
 
 @Injectable()
@@ -12,7 +12,7 @@ export class ImageRepository {
      * @param imageFile file location on the CDN or bucket
      */
     async createAndConnectImageToExperience(
-        tx: ManagedTransaction,
+        tx: ManagedTransaction | Transaction,
         experienceId: string,
         imageFiles: string[]
     ): Promise<QueryResult> {
@@ -20,7 +20,7 @@ export class ImageRepository {
             CALL apoc.do.when(
                 size($imageFiles) > 0,
                 "
-                    MATCH (experience:Experience{id: experienceId})<-[:CREATED:EXPERIENCE0..2]-(user:User)
+                    MATCH (experience:Experience{id: experienceId})<-[:CREATED|EXPERIENCE*0..2]-(user:User)
                     WITH experience
                     UNWIND $imageFiles AS file
                     CREATE (image:Image {
@@ -32,11 +32,11 @@ export class ImageRepository {
                     RETURN image
                 ",
                 "RETURN [] AS images",
-                {experienceId: $experienceId, imageFiles: $imageFiles}
+                {experienceId: $experienceId, imageFiles: coalesce($imageFiles,[])}
             ) YIELD value
             RETURN value.image as image
         `;
-        const params = { experienceId, imageFiles };
+        const params = { experienceId, imageFiles: imageFiles || [] };
 
         return tx.run(query, params);
     }
@@ -108,12 +108,12 @@ export class ImageRepository {
             ) YIELD value
             RETURN value.images as images
         `;
-        const params = { experienceId, imageIds };
+        const params = { experienceId, imageIds: imageIds || [] };
         return tx.run(query, params);
     }
 
     async disconnectImagesFromExperience(
-        tx: ManagedTransaction,
+        tx: ManagedTransaction | Transaction,
         experienceId: string,
         imageIds: string[]
     ) {
