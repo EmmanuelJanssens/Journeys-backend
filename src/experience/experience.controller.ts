@@ -33,16 +33,22 @@ export class ExperienceController {
         @Request() req
     ) {
         const user = req.user as UserInfo;
-        const result = await this.experienceService.create(
+        const batch: BatchUpdateExperienceDto = {
+            connected: [experience],
+            updated: [],
+            deleted: []
+        };
+
+        const result = await this.experienceService.batchUpdate(
             user.uid,
             journeyId,
-            experience
+            batch
         );
 
         const poiDto = transformExperienceToDto(
-            result.experience,
-            result.images,
-            result.poi
+            result.created[0].experience,
+            result.created[0].images,
+            result.created[0].poi
         );
         return poiDto;
     }
@@ -55,12 +61,21 @@ export class ExperienceController {
         @Request() req
     ) {
         const user = req.user as UserInfo;
-        const result = await this.experienceService.update(
+        const batch: BatchUpdateExperienceDto = {
+            connected: [],
+            updated: [{ ...experience, id: experienceId }],
+            deleted: []
+        };
+
+        const result = await this.experienceService.batchUpdate(
             user.uid,
             experienceId,
-            experience
+            batch
         );
-        const dto = transformExperienceToDto(result.experience, result.images);
+        const dto = transformExperienceToDto(
+            result.updated[0].experience,
+            result.updated[0].images
+        );
         return dto;
     }
 
@@ -68,7 +83,12 @@ export class ExperienceController {
     @Delete(":experienceId")
     delete(@Param("experienceId") experienceId: string, @Request() req) {
         const user = req.user as UserInfo;
-        return this.experienceService.delete(user.uid, experienceId);
+        const batch: BatchUpdateExperienceDto = {
+            connected: [],
+            updated: [],
+            deleted: [experienceId]
+        };
+        return this.experienceService.batchUpdate(user.uid, undefined, batch);
     }
 
     @UseGuards(FirebaseAuthGuard)

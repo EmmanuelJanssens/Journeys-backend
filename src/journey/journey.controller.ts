@@ -63,24 +63,24 @@ export class JourneyController {
     async createOne(@Body() journey: CreateJourneyDto, @Request() req) {
         const user = req.user as UserInfo;
         const result = await this.journeyService.create(user.uid, journey);
-
-        const thumbnails = result.experiences.reduce(
+        const createdExps = result.experiences.created;
+        const thumbnails = createdExps.reduce(
             (acc, curr) => [...acc, ...curr.experience.images],
             []
         );
 
-        const expDtos = transformExperiencesToDto(result.experiences);
+        const expDtos = transformExperiencesToDto(createdExps);
 
         let journeyDto = transformJourneyToDto(
             result.journey,
             result.creator,
             thumbnails,
-            new Integer(result.experiences.length)
+            new Integer(createdExps.length)
         );
 
         journeyDto = {
             ...journeyDto,
-            experiencesAggregate: { count: result.experiences.length },
+            experiencesAggregate: { count: createdExps.length },
             thumbnails,
             experiences: expDtos
         };

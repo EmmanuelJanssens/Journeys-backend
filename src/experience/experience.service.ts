@@ -48,168 +48,6 @@ export class ExperienceService {
         };
         return found;
     }
-    /**
-     * Create a new experience
-     * @param experience The experience to create
-     * @param userId The ID of the user creating the experience
-     * @param journeyId The ID of the journey the experience is for
-     * @param poiId The ID of the POI the experience is for
-     * @returns the created experience
-     *  */
-    async create(
-        userId: string,
-        journeyId: string,
-        experienceDto: CreateExperienceDto
-    ) {
-        const queryResult = await this.experienceRepository.create(
-            userId,
-            experienceDto,
-            journeyId
-        );
-        const experience = new ExperienceNode(
-            queryResult.records[0].get("experience")
-        ).properties;
-        const poi = new PoiNode(queryResult.records[0].get("poi")).properties;
-        const journey = new JourneyNode(queryResult.records[0].get("journey"))
-            .properties;
-        const images = queryResult.records[0].get("images").map((img) => {
-            return new ImageNode(img).properties;
-        });
-        return {
-            experience,
-            poi,
-            journey,
-            images
-        };
-    }
-
-    /**
-     *
-     * @param experience
-     * @param userId
-     * @param experienceId
-     * @returns
-     */
-    async update(
-        userId: string,
-        experienceId: string,
-        updtExperienceDto: UpdateExperienceDto
-    ) {
-        const session = this.neo4jService.getDriver().session();
-        const transactionResult = await session
-            .executeWrite(async (tx) => {
-                //create experiences
-                const updatedExp = await this.experienceRepository.update(
-                    tx,
-                    userId,
-                    experienceId,
-                    updtExperienceDto
-                );
-                //create images
-                const createdImages =
-                    await this.imageRepository.createAndConnectImageToExperience(
-                        tx,
-                        experienceId,
-                        updtExperienceDto.addedImages
-                    );
-
-                //delete images
-                const removedImages =
-                    await this.imageRepository.disconnectImagesFromExperience(
-                        tx,
-                        experienceId,
-                        updtExperienceDto.removedImages
-                    );
-                return {
-                    updatedExp,
-                    createdImages,
-                    removedImages
-                };
-            })
-            .catch((err) => {
-                Logger.debug(err);
-                throw Error("Could not update experience");
-            });
-
-        const experience = new ExperienceNode(
-            transactionResult.updatedExp.records[0].get("experience")
-        ).properties;
-        const images = transactionResult.createdImages.records.map((img) => {
-            console.log(img);
-            return new ImageNode(img.get("image")).properties;
-        });
-        return {
-            experience,
-            images
-        };
-    }
-
-    /**
-     *
-     * @param userId
-     * @param experienceId
-     * @returns
-     */
-    async delete(userId: string, experienceId: string) {
-        await this.experienceRepository.delete(userId, experienceId);
-        return experienceId;
-    }
-
-    /**
-     * create experiences from an array
-     * @param experiences
-     * @param userId
-     * @returns the created experiences as an array
-     * */
-    async createMany(
-        userId: string,
-        journeyId: string,
-        experiences: CreateExperienceDto[]
-    ) {
-        const queryResult = (await this.experienceRepository.createMany(
-            userId,
-            journeyId,
-            experiences
-        )) as QueryResult;
-
-        const experiencesNodes = queryResult.records.map((record) => {
-            return {
-                experience: new ExperienceNode(record.get("experience"))
-                    .properties as Experience,
-                poi: new PoiNode(record.get("poi")).properties
-            };
-        });
-        return experiencesNodes;
-    }
-
-    /**
-     * update experiences from an array
-     * @param experiences
-     * @param userId
-     * @returns the updated experiences as an array
-     * */
-    async updateMany(experiences: UpdateExperienceDto[], userId: string) {
-        const queryResult = (await this.experienceRepository.updateMany(
-            userId,
-            experiences
-        )) as QueryResult;
-        const experiencesNodes = queryResult.records.map((record) => {
-            return new ExperienceNode(record.get("experience"));
-        });
-        return experiencesNodes.map((experienceNode) => {
-            return experienceNode.properties;
-        });
-    }
-
-    /**
-     * delete experiences from an array
-     * @param experiences
-     * @param userId
-     * @returns the deleted experiences as an array
-     * */
-    async deleteMany(experiencesId: string[], userId: string) {
-        await this.experienceRepository.deleteMany(userId, experiencesId);
-    }
 
     async batchUpdate(
         userId: string,
@@ -233,12 +71,24 @@ export class ExperienceService {
                             const exp = new ExperienceNode(
                                 created.records[0].get("experience")
                             ).properties;
-                            await this.imageRepository.createAndConnectImageToExperience(
-                                tx,
-                                exp.id,
-                                experience.images
-                            );
-                            return exp;
+                            const poi = new PoiNode(
+                                created.records[0].get("poi")
+                            ).properties;
+                            const imagesAdded =
+                                await this.imageRepository.createAndConnectImageToExperience(
+                                    tx,
+                                    exp.id,
+                                    experience.images
+                                );
+                            const images = imagesAdded.records.map((img) => {
+                                return new ImageNode(img.get("image"))
+                                    .properties;
+                            });
+                            return {
+                                experience: exp,
+                                images,
+                                poi
+                            };
                         }
                     );
                     return Promise.all(created);
@@ -259,20 +109,28 @@ export class ExperienceService {
                                     experience.id,
                                     experience
                                 );
-                            await this.imageRepository.createAndConnectImageToExperience(
-                                tx,
-                                experience.id,
-                                experience.addedImages
-                            );
-
+                            const exp = new ExperienceNode(
+                                updated.records[0].get("experience")
+                            ).properties;
+                            const addedImages =
+                                await this.imageRepository.createAndConnectImageToExperience(
+                                    tx,
+                                    experience.id,
+                                    experience.addedImages
+                                );
+                            const images = addedImages.records.map((img) => {
+                                return new ImageNode(img.get("image"))
+                                    .properties;
+                            });
                             await this.imageRepository.disconnectImagesFromExperience(
                                 tx,
                                 experience.id,
                                 experience.removedImages
                             );
-                            return new ExperienceNode(
-                                updated.records[0].get("experience")
-                            ).properties;
+                            return {
+                                experience: exp,
+                                images
+                            };
                         }
                     );
                     return Promise.all(updated);

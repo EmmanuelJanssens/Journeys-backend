@@ -17,6 +17,7 @@ import { NotFoundError } from "../errors/Errors";
 import { ImageService } from "src/image/image.service";
 import { ImageRepository } from "src/image/image.repository";
 import { Neo4jService } from "src/neo4j/neo4j.service";
+import { BatchUpdateExperienceDto } from "src/experience/dto/batch-update-experience.dto";
 
 @Injectable()
 export class JourneyService {
@@ -132,11 +133,16 @@ export class JourneyService {
             journeyQueryResult.records[0].get("journey")
         );
 
+        const batch: BatchUpdateExperienceDto = {
+            connected: [...createJourney.experiences],
+            deleted: [],
+            updated: []
+        };
         //create the experiences
-        const experiences = await this.experienceService.createMany(
+        const experiences = await this.experienceService.batchUpdate(
             user,
             journeyNode.id,
-            createJourney.experiences
+            batch
         );
         const createdJourney = journeyNode.properties;
         const creator = journeyQueryResult.records[0].get("creator");

@@ -87,7 +87,7 @@ export class ExperienceRepository {
                 createdAt: datetime(),
                 updatedAt: datetime()})
             MERGE (journey)-[:EXPERIENCE]->(experience)-[:FOR]->(poi)
-            RETURN experience
+            RETURN experience, poi
         `;
         const params = {
             userId,
