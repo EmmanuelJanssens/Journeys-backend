@@ -2,31 +2,35 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { JourneyService } from "./journey.service";
 import { JourneyRepository } from "./journey.repository";
-import { Point, Integer } from "neo4j-driver";
 import { ExperienceService } from "../experience/experience.service";
 import { JourneyRepositoryMock } from "./mock/journey.repository.mock";
-import { Locality } from "src/utilities/Locality";
-import { CreateExperienceDto } from "src/experience/dto/create-experience.dto";
-import { PointOfInterest } from "src/point-of-interest/entities/point-of-interest.entity";
-import { Experience } from "src/experience/entities/experience.entity";
+import { Locality } from "../utilities/Locality";
+import { ImageRepository } from "../image/image.repository";
+import { BatchUpdateExperienceDto } from "../experience/dto/batch-update-experience.dto";
+import { Integer, Point } from "neo4j-driver";
+
+import { Experience } from "../experience/entities/experience.entity";
+import { PointOfInterest } from "../point-of-interest/entities/point-of-interest.entity";
+
 describe("JourneyService", () => {
     let service: JourneyService;
     let testingModule: TestingModule;
 
     const mockNeo4jService = {};
     const mockExpService = {
-        createMany: jest
+        batchUpdate: jest
             .fn()
             .mockImplementation(
                 (
                     userId: string,
                     journeyId: string,
-                    experiences: CreateExperienceDto[]
-                ): Promise<any> => {
+                    batch: BatchUpdateExperienceDto
+                ) => {
+                    const exps = batch.connected;
                     const resp: {
                         experience: Experience;
                         poi: PointOfInterest;
-                    }[] = experiences.map((created) => {
+                    }[] = exps.map((created) => {
                         return {
                             experience: <Experience>{
                                 title: created.title,
@@ -41,7 +45,7 @@ describe("JourneyService", () => {
                             }
                         };
                     });
-                    return Promise.resolve(resp);
+                    return Promise.resolve({ created: resp });
                 }
             )
     };
@@ -53,6 +57,7 @@ describe("JourneyService", () => {
                 JourneyService,
                 Neo4jService,
                 JourneyRepository,
+                ImageRepository,
                 ExperienceService
             ]
         })
@@ -120,7 +125,7 @@ describe("JourneyService", () => {
             });
             expect(res.creator).toEqual("test-user");
             expect(res.journey.thumbnail).toBeUndefined();
-            expect(res.experiences.length).toEqual(0);
+            expect(res.experiences.created.length).toEqual(0);
         });
 
         it("should return the created journey with added experiences and additional metadata(creator,experiencesCount, thumbnails)", async () => {
@@ -164,7 +169,7 @@ describe("JourneyService", () => {
             });
             expect(res.creator).toEqual("test-user");
             expect(res.journey.thumbnail).toBeUndefined();
-            expect(res.experiences.length).toEqual(2);
+            expect(res.experiences.created.length).toEqual(2);
         });
     });
 

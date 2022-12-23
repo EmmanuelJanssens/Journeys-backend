@@ -1,5 +1,5 @@
 import { IsArray } from "class-validator";
-import { ExperienceDto } from "src/experience/dto/experience.dto";
+import { ExperienceDto } from "../../experience/dto/experience.dto";
 import { PointOfInterest } from "../../point-of-interest/entities/point-of-interest.entity";
 
 export class EditJourneyExperiencesDto {

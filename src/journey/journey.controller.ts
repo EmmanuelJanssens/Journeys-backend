@@ -29,14 +29,6 @@ import {
 export class JourneyController {
     constructor(private journeyService: JourneyService) {}
 
-    @Post("/test/connect/:exp/")
-    async connectTest(
-        @Param("exp") exp: string,
-        @Body() body: { images: string[] }
-    ): Promise<any> {
-        await this.journeyService.test(exp, body.images);
-    }
-
     @HttpCode(200)
     @Get(":journey")
     async findOne(@Param("journey") journey: string) {

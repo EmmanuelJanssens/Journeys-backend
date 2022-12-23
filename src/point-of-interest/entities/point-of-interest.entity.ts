@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { Node, Point } from "neo4j-driver";
-import { Entity } from "src/utilities/BaseEntity";
+import { Entity } from "../../utilities/BaseEntity";
 import { Experience } from "../../experience/entities/experience.entity";
 import { Locality } from "../../utilities/Locality";
 

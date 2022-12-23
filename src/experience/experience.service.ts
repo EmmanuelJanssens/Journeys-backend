@@ -1,19 +1,14 @@
 import { Injectable } from "@nestjs/common";
-import { QueryResult } from "neo4j-driver";
 import { ImageNode } from "../image/entities/image.entity";
-import { Journey, JourneyNode } from "../journey/entities/journey.entity";
-import {
-    PoiNode,
-    PointOfInterest
-} from "../point-of-interest/entities/point-of-interest.entity";
+import { JourneyNode } from "../journey/entities/journey.entity";
+import { PoiNode } from "../point-of-interest/entities/point-of-interest.entity";
 import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
-import { Experience, ExperienceNode } from "./entities/experience.entity";
+import { ExperienceNode } from "./entities/experience.entity";
 import { ExperienceRepository } from "./experience.repository";
-import { Image } from "../image/entities/image.entity";
-import { Neo4jService } from "src/neo4j/neo4j.service";
-import { ImageRepository } from "src/image/image.repository";
+import { Neo4jService } from "../neo4j/neo4j.service";
+import { ImageRepository } from "../image/image.repository";
 import { Logger } from "@nestjs/common/services/logger.service";
 
 @Injectable()
@@ -49,6 +44,78 @@ export class ExperienceService {
         return found;
     }
 
+    private async create(
+        tx,
+        userId: string,
+        journeyId: string,
+        toCreate: CreateExperienceDto[]
+    ) {
+        const created = await toCreate.map(async (experience) => {
+            const created = await this.experienceRepository.create2(
+                tx,
+                userId,
+                experience,
+                journeyId
+            );
+            const exp = new ExperienceNode(created.records[0].get("experience"))
+                .properties;
+            const poi = new PoiNode(created.records[0].get("poi")).properties;
+            const imagesAdded =
+                await this.imageRepository.createAndConnectImageToExperience(
+                    tx,
+                    exp.id,
+                    experience.images
+                );
+            const images = imagesAdded.records.map((img) => {
+                return new ImageNode(img.get("image")).properties;
+            });
+            return {
+                experience: exp,
+                images,
+                poi
+            };
+        });
+        return Promise.all(created);
+    }
+
+    private async update(tx, userId: string, toUpdate: UpdateExperienceDto[]) {
+        const updated = await toUpdate.map(async (experience) => {
+            const updated = await this.experienceRepository.update(
+                tx,
+                userId,
+                experience.id,
+                experience
+            );
+            const exp = new ExperienceNode(updated.records[0].get("experience"))
+                .properties;
+            const addedImages =
+                await this.imageRepository.createAndConnectImageToExperience(
+                    tx,
+                    experience.id,
+                    experience.addedImages
+                );
+            const images = addedImages.records.map((img) => {
+                return new ImageNode(img.get("image")).properties;
+            });
+            await this.imageRepository.disconnectImagesFromExperience(
+                tx,
+                experience.id,
+                experience.removedImages
+            );
+            return {
+                experience: exp,
+                images
+            };
+        });
+        return Promise.all(updated);
+    }
+
+    private async delete(tx, userId: string, toDelete: string[]) {
+        await toDelete.forEach(async (experienceId) => {
+            await this.experienceRepository.delete2(tx, userId, experienceId);
+        });
+    }
+
     async batchUpdate(
         userId: string,
         journeyId: string,
@@ -59,39 +126,12 @@ export class ExperienceService {
         try {
             const createdExps = await session
                 .executeWrite(async (tx) => {
-                    const created = await toUpdate.connected.map(
-                        async (experience) => {
-                            const created =
-                                await this.experienceRepository.create2(
-                                    tx,
-                                    userId,
-                                    experience,
-                                    journeyId
-                                );
-                            const exp = new ExperienceNode(
-                                created.records[0].get("experience")
-                            ).properties;
-                            const poi = new PoiNode(
-                                created.records[0].get("poi")
-                            ).properties;
-                            const imagesAdded =
-                                await this.imageRepository.createAndConnectImageToExperience(
-                                    tx,
-                                    exp.id,
-                                    experience.images
-                                );
-                            const images = imagesAdded.records.map((img) => {
-                                return new ImageNode(img.get("image"))
-                                    .properties;
-                            });
-                            return {
-                                experience: exp,
-                                images,
-                                poi
-                            };
-                        }
+                    return this.create(
+                        tx,
+                        userId,
+                        journeyId,
+                        toUpdate.connected
                     );
-                    return Promise.all(created);
                 })
                 .catch((err) => {
                     Logger.debug(err);
@@ -100,40 +140,7 @@ export class ExperienceService {
 
             const updatedExps = await session
                 .executeWrite(async (tx) => {
-                    const updated = await toUpdate.updated.map(
-                        async (experience) => {
-                            const updated =
-                                await this.experienceRepository.update(
-                                    tx,
-                                    userId,
-                                    experience.id,
-                                    experience
-                                );
-                            const exp = new ExperienceNode(
-                                updated.records[0].get("experience")
-                            ).properties;
-                            const addedImages =
-                                await this.imageRepository.createAndConnectImageToExperience(
-                                    tx,
-                                    experience.id,
-                                    experience.addedImages
-                                );
-                            const images = addedImages.records.map((img) => {
-                                return new ImageNode(img.get("image"))
-                                    .properties;
-                            });
-                            await this.imageRepository.disconnectImagesFromExperience(
-                                tx,
-                                experience.id,
-                                experience.removedImages
-                            );
-                            return {
-                                experience: exp,
-                                images
-                            };
-                        }
-                    );
-                    return Promise.all(updated);
+                    this.update(tx, userId, toUpdate.updated);
                 })
                 .catch((err) => {
                     Logger.debug(err);
@@ -142,13 +149,7 @@ export class ExperienceService {
 
             const deletedExps = await session
                 .executeWrite(async (tx) => {
-                    await toUpdate.deleted.forEach(async (experienceId) => {
-                        await this.experienceRepository.delete2(
-                            tx,
-                            userId,
-                            experienceId
-                        );
-                    });
+                    this.delete(tx, userId, toUpdate.deleted);
                 })
                 .catch((err) => {
                     Logger.debug(err);

@@ -1,4 +1,4 @@
-import { PointOfInterestDto } from "src/point-of-interest/dto/point-of-interest.dto";
+import { PointOfInterestDto } from "../../point-of-interest/dto/point-of-interest.dto";
 
 export class TagDto {
     type: string;

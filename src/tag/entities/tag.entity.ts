@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Node } from "neo4j-driver";
-import { Entity } from "src/utilities/BaseEntity";
+import { Entity } from "../../utilities/BaseEntity";
 
 export class TagNode {
     constructor(private readonly node: Node) {}

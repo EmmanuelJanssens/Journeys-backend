@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { JourneyDto } from "../../journey/dto/journey.dto";
 import { Relationship, Node } from "neo4j-driver";
-import { Entity } from "src/utilities/BaseEntity";
+import { Entity } from "../../utilities/BaseEntity";
 
 export class UserNode {
     constructor(

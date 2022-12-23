@@ -1,5 +1,5 @@
 import { Record, Node, Integer, Point } from "neo4j-driver";
-import { Locality } from "src/utilities/Locality";
+import { Locality } from "../../utilities/Locality";
 import { CreateJourneyDto } from "../dto/create-journey.dto";
 import { UpdateJourneyDto } from "../dto/update-journey.dto";
 import { Journey, JourneyNode } from "../entities/journey.entity";

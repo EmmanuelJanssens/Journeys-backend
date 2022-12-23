@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsNotEmpty } from "class-validator";
-import { ExperienceDto } from "src/experience/dto/experience.dto";
+import { ExperienceDto } from "../../experience/dto/experience.dto";
 import { Journey } from "../entities/journey.entity";
 import { PickType } from "@nestjs/mapped-types";
 export class JourneyDto extends PickType(Journey, [

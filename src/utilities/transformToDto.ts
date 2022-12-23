@@ -4,10 +4,10 @@ import { Experience } from "..//experience/entities/experience.entity";
 import { PointOfInterestDto } from "../point-of-interest/dto/point-of-interest.dto";
 import { PointOfInterest } from "../point-of-interest/entities/point-of-interest.entity";
 import { Locality } from "./Locality";
-import { Tag } from "src/tag/entities/tag.entity";
-import { Journey } from "src/journey/entities/journey.entity";
-import { JourneyDto } from "src/journey/dto/journey.dto";
-import { Image } from "src/image/entities/image.entity";
+import { Tag } from "../tag/entities/tag.entity";
+import { Journey } from "../journey/entities/journey.entity";
+import { JourneyDto } from "../journey/dto/journey.dto";
+import { Image } from "../image/entities/image.entity";
 
 export function transformExperienceToDto(
     experience: Experience,

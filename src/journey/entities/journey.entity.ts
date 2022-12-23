@@ -3,7 +3,7 @@ import { IsNotEmpty, isString, IsString, IsUUID } from "class-validator";
 import { Node } from "neo4j-driver";
 import { Point } from "neo4j-driver-core";
 import { Relationship } from "neo4j-driver-core";
-import { Entity } from "src/utilities/BaseEntity";
+import { Entity } from "../../utilities/BaseEntity";
 import { Locality } from "../../utilities/Locality";
 
 export class JourneyNode {

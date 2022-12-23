@@ -1,4 +1,4 @@
-import { CreateExperienceDto } from "src/experience/dto/create-experience.dto";
+import { CreateExperienceDto } from "../../experience/dto/create-experience.dto";
 import { IsArray } from "class-validator";
 import { PartialType } from "@nestjs/mapped-types";
 import { Journey } from "../entities/journey.entity";
