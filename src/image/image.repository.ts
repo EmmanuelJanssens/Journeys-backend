@@ -20,7 +20,7 @@ export class ImageRepository {
             CALL apoc.do.when(
                 size($imageFiles) > 0,
                 "
-                    MATCH (experience:Experience{id: experienceId})
+                    MATCH (experience:Experience{id: experienceId})<-[:CREATED:EXPERIENCE0..2]-(user:User)
                     WITH experience
                     UNWIND $imageFiles AS file
                     CREATE (image:Image {

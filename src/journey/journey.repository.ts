@@ -17,6 +17,7 @@ export class JourneyRepository {
     get(journey: string): Promise<QueryResult> {
         const query = `
             OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey})-[expRel:EXPERIENCE]->(exp    :Experience)
+            WHERE journey.isActive = true
             RETURN journey, user.username AS creator, count(DISTINCT expRel) as count, collect(DISTINCT exp.images) as thumbnails`;
         const params = { journey };
 
@@ -42,7 +43,10 @@ export class JourneyRepository {
                     start: point({srid:4326,x: $journey.start.longitude, y: $journey.start.latitude}),
                     end: point({srid:4326,x: $journey.end.longitude, y: $journey.end.latitude}),
                     thumbnail: coalesce($journey.thumbnail, ""),
-                    visibility: $journey.visibility
+                    visibility: $journey.visibility,
+                    isActive: true
+                    createdAt: datetime(),
+                    updatedAt: datetime()
                 })<-[:CREATED]-(user)
         RETURN journey, user.username AS creator`;
         const params = { user, journey };
@@ -63,6 +67,7 @@ export class JourneyRepository {
                  journey.description = updated.description,
                  journey.thumbnail = updated.thumbnail,
                  journey.visibility = updated.visibility
+                 journey.updatedAt = datetime()
             RETURN journey,  collect(DISTINCT exp.images) as thumbnails, count(DISTINCT expRel) as count, user.username AS creator
     `;
 
@@ -80,13 +85,10 @@ export class JourneyRepository {
      */
     async delete(user: string, journey: string): Promise<QueryResult> {
         const delExpRelationQuery = `
-            MATCH (journey: Journey{id: $journey})
-            WITH journey
-            OPTIONAL MATCH (journey)-[experiences]->() DELETE experiences
-            WITH journey
-            OPTIONAL MATCH (user:User{uid: $user})-[created]->(journey) DELETE created
-            WITH journey
-            DELETE journey
+            MATCH (journey: Journey{id: $journey})<-[:CREATED]-(user: User{uid: $user})
+            SET journey.isActive = false,
+                journey.updatedAt = datetime()
+            RETURN journey.id as journey
         `;
         const params = { user, journey };
         return this.neo4jService.write(delExpRelationQuery, params);
@@ -99,6 +101,7 @@ export class JourneyRepository {
     async getExperiences(journeyId: string) {
         const query = `
                 MATCH (user: User)-[:CREATED]->(journey:Journey {id: $journeyId})-[:EXPERIENCE]->(experience:Experience)-[:FOR]->(poi:POI)
+                WHERE journey.isActive = true
                 RETURN journey,experience, poi, user.username as creator
             `;
         const params = {
