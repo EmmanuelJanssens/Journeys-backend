@@ -14,18 +14,36 @@ import {
 } from "../point-of-interest/entities/point-of-interest.entity";
 import { Integer } from "neo4j-driver";
 import { NotFoundError } from "../errors/Errors";
+import { ImageService } from "src/image/image.service";
+import { ImageRepository } from "src/image/image.repository";
+import { Neo4jService } from "src/neo4j/neo4j.service";
 
 @Injectable()
 export class JourneyService {
     constructor(
         private journeyRepository: JourneyRepository,
-        private experienceService: ExperienceService
+        private neo4jService: Neo4jService,
+        private experienceService: ExperienceService,
+        private imageRepository: ImageRepository
     ) {}
 
     getRepository() {
         return this.journeyRepository;
     }
 
+    async test(exp: string, img: string[]) {
+        const session = this.neo4jService.getWriteSession();
+        const result = await session.executeWrite(async (tx) => {
+            const res = await this.imageRepository.connectImagesToExperience(
+                tx,
+                exp,
+                img
+            );
+            console.log(res);
+            return res;
+        });
+        console.log(result.records[0].get("images"));
+    }
     /**
      * find a journey
      * @param id the journey id

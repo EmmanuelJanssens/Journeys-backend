@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ManagedTransaction } from "neo4j-driver";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
@@ -64,6 +65,7 @@ export class ExperienceRepository {
      * @return the updated experience
      */
     async update(
+        tx: ManagedTransaction,
         userId: string,
         experienceId: string,
         experience: UpdateExperienceDto
@@ -73,41 +75,21 @@ export class ExperienceRepository {
         SET experience.title = coalesce($experience.title, experience.title),
             experience.description = coalesce($experience.description, experience.description),
             experience.date = coalesce($experience.date, experience.date)
-        WITH experience
-        CALL apoc.do.when( size($experience.addedImages) > 0,
-            '
-                UNWIND experienceImages as addedImage
-                MERGE (imageNode:Image{
-                    id: apoc.create.uuid(),
-                    original: addedImage,
-                    thumbnail: addedImage+"_thumb"
-                })
-                MERGE (imageNode)<-[:HAS_IMAGE]-(experience)
-                RETURN imageNode
-            '
-            ,"",
-            {experienceImages: $experience.addedImages, experience: experience})
-        YIELD value AS added
-        CALL apoc.do.when( size($experience.removedImages) > 0,
-            '
-                UNWIND experienceImages as removedImage
-                OPTIONAL MATCH (imageNode:Image{id: removedImage})
-                WHERE imageNode IS NOT NULL DETACH DELETE imageNode
-                RETURN removedImage
-            '
-            ,"",
-            {experienceImages: $experience.removedImages, experience: experience})
-        YIELD value AS removed
-        WITH added, experience
-        RETURN experience , collect(added.imageNode) as images
+        RETURN experience
         `;
-        const params = {
+        const param = {
             userId,
             experienceId,
             experience
         };
-        return await this.neo4jService.write(query, params);
+        return tx.run(query, param);
     }
+    /**
+     * Update an experience
+     * @param experience The experience to update
+     * @param userId the ID of the user updating the experience
+     * @return the updated experience
+     */
 
     /**
      * delete an experience
@@ -182,12 +164,35 @@ export class ExperienceRepository {
 
     updateManyQuery = (...args: any[]) => {
         const query = `
-        UNWIND $experiences AS updtExperience
-        MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]->(experience:Experience{id: updtExperience.id})
-        SET experience.title = coalesce(updtExperience.title, experience.title),
-            experience.description = coalesce(updtExperience.description, experience.description),
-            experience.date = coalesce(updtExperience.date, experience.date),
-            experience.images = coalesce(updtExperience.images, experience.images)
+        UNWIND $experiences AS exp_to_update
+        MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]->(updated_exp:Experience{id: exp_to_update.id})
+        SET updated_exp.title = coalesce(exp_to_update.title, updated_exp.title),
+            updated_exp.description = coalesce(exp_to_update.description, updated_exp.description),
+            updated_exp.date = coalesce(exp_to_update.date, updated_exp.date)
+            CALL apoc.do.when( size($experience.addedImages) > 0,
+            '
+                UNWIND experienceImages as addedImage
+                MERGE (imageNode:Image{
+                    id: apoc.create.uuid(),
+                    original: addedImage,
+                    thumbnail: addedImage+"_thumb"
+                })
+                MERGE (imageNode)<-[:HAS_IMAGE]-(experience)
+                RETURN imageNode
+            '
+            ,"",
+            {experienceImages: $experience.addedImages, experience: experience})
+            YIELD value AS added
+            CALL apoc.do.when( size($experience.removedImages) > 0,
+                '
+                    UNWIND experienceImages as removedImage
+                    OPTIONAL MATCH (imageNode:Image{id: removedImage})
+                    WHERE imageNode IS NOT NULL DETACH DELETE imageNode
+                    RETURN removedImage
+                '
+                ,"",
+                {experienceImages: $experience.removedImages, experience: updated_exp})
+            YIELD value AS removed
         RETURN experience
     `;
         return {

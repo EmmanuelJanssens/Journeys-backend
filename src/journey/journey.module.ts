@@ -5,6 +5,7 @@ import { ErrorsInterceptor } from "../errors/errors-interceptor.interceptor";
 import { ExperienceRepository } from "src/experience/experience.repository";
 import { ExperienceService } from "src/experience/experience.service";
 import { JourneyRepository } from "./journey.repository";
+import { ImageRepository } from "src/image/image.repository";
 
 @Module({
     providers: [
@@ -12,7 +13,8 @@ import { JourneyRepository } from "./journey.repository";
         JourneyRepository,
         ExperienceRepository,
         ExperienceService,
-        ErrorsInterceptor
+        ErrorsInterceptor,
+        ImageRepository
     ],
     controllers: [JourneyController],
     exports: [JourneyService]

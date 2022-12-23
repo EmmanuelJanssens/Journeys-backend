@@ -9,7 +9,7 @@ import { JourneyModule } from "./journey/journey.module";
 import { UserModule } from "./user/user.module";
 import { TagModule } from "./tag/tag.module";
 import { ExperienceModule } from "./experience/experience.module";
-import { ImageModule } from './image/image.module';
+import { ImageModule } from "./image/image.module";
 @Module({
     imports: [
         ConfigModule.forRoot({

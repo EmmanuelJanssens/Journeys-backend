@@ -12,10 +12,16 @@ import { UpdateExperienceDto } from "./dto/update-experience.dto";
 import { Experience, ExperienceNode } from "./entities/experience.entity";
 import { ExperienceRepository } from "./experience.repository";
 import { Image } from "../image/entities/image.entity";
+import { Neo4jService } from "src/neo4j/neo4j.service";
+import { ImageRepository } from "src/image/image.repository";
 
 @Injectable()
 export class ExperienceService {
-    constructor(private readonly experienceRepository: ExperienceRepository) {}
+    constructor(
+        private readonly experienceRepository: ExperienceRepository,
+        private readonly imageRepository: ImageRepository,
+        private readonly neo4jService: Neo4jService
+    ) {}
 
     /**
      * find one experience
@@ -88,19 +94,48 @@ export class ExperienceService {
         experienceId: string,
         updtExperienceDto: UpdateExperienceDto
     ) {
-        const queryResult = await this.experienceRepository.update(
-            userId,
-            experienceId,
-            updtExperienceDto
-        );
-        const experience = new ExperienceNode(
-            queryResult.records[0].get("experience")
-        ).properties;
-        const images: Image[] = queryResult.records[0]
-            .get("images")
-            .map((image) => {
-                return new ImageNode(image).properties;
+        const session = this.neo4jService.getDriver().session();
+        const transactionResult = await session
+            .executeWrite(async (tx) => {
+                //create experiences
+                const updatedExp = await this.experienceRepository.update(
+                    tx,
+                    userId,
+                    experienceId,
+                    updtExperienceDto
+                );
+                //create images
+                const createdImages =
+                    await this.imageRepository.createAndConnectImageToExperience(
+                        tx,
+                        experienceId,
+                        updtExperienceDto.addedImages
+                    );
+
+                //delete images
+                const removedImages =
+                    await this.imageRepository.disconnectImagesFromExperience(
+                        tx,
+                        experienceId,
+                        updtExperienceDto.removedImages
+                    );
+                return {
+                    updatedExp,
+                    createdImages,
+                    removedImages
+                };
+            })
+            .catch((err) => {
+                throw Error("Could not update experience");
             });
+
+        const experience = new ExperienceNode(
+            transactionResult.updatedExp.records[0].get("experience")
+        ).properties;
+        const images = transactionResult.createdImages.records.map((img) => {
+            console.log(img);
+            return new ImageNode(img.get("image")).properties;
+        });
         return {
             experience,
             images
