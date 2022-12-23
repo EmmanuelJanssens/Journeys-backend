@@ -1,11 +1,17 @@
-import { ApiProperty, PickType } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsString, IsUUID } from "class-validator";
-import { Point } from "neo4j-driver";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsArray, IsNotEmpty } from "class-validator";
 import { ExperienceDto } from "src/experience/dto/experience.dto";
-import { Locality } from "../../utilities/Locality";
 import { Journey } from "../entities/journey.entity";
-
-export class JourneyDto extends Journey {
+import { PickType } from "@nestjs/mapped-types";
+export class JourneyDto extends PickType(Journey, [
+    "id",
+    "title",
+    "description",
+    "thumbnail",
+    "visibility",
+    "start",
+    "end"
+]) {
     @ApiProperty()
     @IsNotEmpty()
     creator: string;

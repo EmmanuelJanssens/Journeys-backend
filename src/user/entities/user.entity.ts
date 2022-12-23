@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { JourneyDto } from "../../journey/dto/journey.dto";
 import { Relationship, Node } from "neo4j-driver";
+import { Entity } from "src/utilities/BaseEntity";
 
 export class UserNode {
     constructor(
@@ -40,7 +41,7 @@ export class UserNode {
         return this.poisRelationships;
     }
 }
-export class User {
+export class User extends Entity {
     @ApiProperty()
     uid: string;
 
@@ -56,15 +57,15 @@ export class User {
     @ApiProperty()
     visibility: "private" | "public";
 
-    @ApiProperty()
-    journeys: JourneyDto[];
+    // @ApiProperty()
+    // journeys: JourneyDto[];
 
-    @ApiProperty()
-    journeysAggregate: { count: number };
+    // @ApiProperty()
+    // journeysAggregate: { count: number };
 
-    @ApiProperty()
-    poisAggregate: { count: number };
+    // @ApiProperty()
+    // poisAggregate: { count: number };
 
-    @ApiProperty()
-    experiencesAggregate: { count: number };
+    // @ApiProperty()
+    // experiencesAggregate: { count: number };
 }

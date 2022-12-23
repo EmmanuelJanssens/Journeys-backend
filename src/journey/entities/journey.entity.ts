@@ -3,6 +3,7 @@ import { IsNotEmpty, isString, IsString, IsUUID } from "class-validator";
 import { Node } from "neo4j-driver";
 import { Point } from "neo4j-driver-core";
 import { Relationship } from "neo4j-driver-core";
+import { Entity } from "src/utilities/BaseEntity";
 import { Locality } from "../../utilities/Locality";
 
 export class JourneyNode {
@@ -42,7 +43,7 @@ export class JourneyNode {
     }
 }
 
-export class Journey {
+export class Journey extends Entity {
     @ApiProperty()
     @IsNotEmpty()
     @IsUUID()

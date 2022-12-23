@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsUUID } from "class-validator";
 import { Node } from "neo4j-driver";
+import { Entity } from "src/utilities/BaseEntity";
 export class ImageNode {
     constructor(private readonly node: Node) {}
 
@@ -19,7 +20,7 @@ export class ImageNode {
     }
 }
 
-export class Image {
+export class Image extends Entity {
     @ApiProperty()
     @IsUUID()
     id: string;

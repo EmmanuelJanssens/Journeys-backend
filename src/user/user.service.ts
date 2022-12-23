@@ -48,12 +48,12 @@ export class UserService {
         const foundUser = userNode.getProperties() as UserDto;
         if (foundUser.visibility == "private")
             throw new UserPrivateError("User profile is private");
-        foundUser.journeysAggregate = {
-            count: records.get("journeys").low
-        };
-        foundUser.poisAggregate = {
-            count: records.get("pois").low
-        };
+        // foundUser.journeysAggregate = {
+        //     count: records.get("journeys").low
+        // };
+        // foundUser.poisAggregate = {
+        //     count: records.get("pois").low
+        // };
         return foundUser;
     }
 
@@ -136,15 +136,15 @@ export class UserService {
         const records = queryResult.records[0];
         const userNode = new UserNode(records.get("user"), [], []);
         const foundUser = userNode.getProperties() as UserDto;
-        foundUser.journeysAggregate = {
-            count: records.get("journeys").low
-        };
-        foundUser.poisAggregate = {
-            count: records.get("pois").low
-        };
-        foundUser.experiencesAggregate = {
-            count: records.get("exps").low
-        };
+        // foundUser.journeysAggregate = {
+        //     count: records.get("journeys").low
+        // };
+        // foundUser.poisAggregate = {
+        //     count: records.get("pois").low
+        // };
+        // foundUser.experiencesAggregate = {
+        //     count: records.get("exps").low
+        // };
         return foundUser;
     }
 

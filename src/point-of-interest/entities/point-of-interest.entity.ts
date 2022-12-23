@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { Node, Point } from "neo4j-driver";
+import { Entity } from "src/utilities/BaseEntity";
 import { Experience } from "../../experience/entities/experience.entity";
 import { Locality } from "../../utilities/Locality";
 
@@ -22,7 +23,7 @@ export class PoiNode {
     }
 }
 
-export class PointOfInterest {
+export class PointOfInterest extends Entity {
     @ApiProperty()
     @IsUUID()
     @IsNotEmpty()
