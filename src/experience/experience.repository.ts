@@ -10,65 +10,7 @@ import { UpdateExperienceDto } from "./dto/update-experience.dto";
 export class ExperienceRepository {
     constructor(private readonly neo4jService: Neo4jService) {}
 
-    /**
-     * Create a new experience
-     * @param experience The experience to create
-     * @param userId The ID of the user creating the experience
-     * @param journeyId The ID of the journey the experience is for
-     * @param poiId The ID of the POI the experience is for
-     * @returns the created experience
-     */
     async create(
-        userId: string,
-        experience: CreateExperienceDto,
-        journeyId: string
-    ) {
-        const query = `
-            MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
-            MATCH (poi:POI {id: $experience.poi})
-            WHERE journey.isActive = true AND poi.isActive = true
-            MERGE (experience:Experience{
-                id: apoc.create.uuid()
-            })
-            ON CREATE SET   experience.createdAt = datetime(),
-                            experience.title = coalesce($experience.title,'Untitled'),
-                            experience.description = coalesce($experience.description, ''),
-                            experience.date = coalesce($experience.date , datetime())
-                            experience.isActive = true
-                            experience.createdAt = datetime()
-                            experience.updatedAt = datetime()
-            MERGE (journey)-[:EXPERIENCE]->(experience)-[:FOR]->(poi)
-            WITH experience, user, journey, poi
-            CALL apoc.do.when(
-                size($experience.images) > 0,
-                '
-                    UNWIND experienceImages as image
-                    MERGE (imageNode:Image {id: apoc.create.uuid()})
-                    ON CREATE
-                        SET imageNode.original = image,
-                            imageNode.thumbnail = image + "_thumb"
-                            imageNode.isActive = true
-                            imageNode.createdAt = datetime()
-                            imageNode.updatedAt = datetime()
-                    MERGE (experience)-[:HAS_IMAGE]->(imageNode)
-                    RETURN collect(imageNode) as images
-                ',
-                'RETURN []',
-                {experienceImages: $experience.images, experience: experience}
-            ) YIELD value
-            RETURN experience, user, journey, poi, value.images as images
-
-        `;
-
-        const params = {
-            userId,
-            journeyId,
-            experience
-        };
-        return await this.neo4jService.write(query, params);
-    }
-
-    async create2(
         tx: ManagedTransaction | Transaction,
         userId: string,
         experience: CreateExperienceDto,

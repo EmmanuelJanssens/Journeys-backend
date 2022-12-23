@@ -9,7 +9,7 @@ import { ExperienceNode } from "./entities/experience.entity";
 import { ExperienceRepository } from "./experience.repository";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { ImageRepository } from "../image/image.repository";
-import { Logger } from "@nestjs/common/services/logger.service";
+import { NotFoundError } from "../errors/Errors";
 
 @Injectable()
 export class ExperienceService {
@@ -44,28 +44,40 @@ export class ExperienceService {
         return found;
     }
 
-    private async create(
+    async create(
         tx,
         userId: string,
         journeyId: string,
         toCreate: CreateExperienceDto[]
     ) {
         const created = await toCreate.map(async (experience) => {
-            const created = await this.experienceRepository.create2(
+            const created = await this.experienceRepository.create(
                 tx,
                 userId,
                 experience,
                 journeyId
             );
+
+            if (
+                created.records.length === 0 ||
+                created.records[0].get("experience") === null
+            )
+                throw new Error("Experience not created");
             const exp = new ExperienceNode(created.records[0].get("experience"))
                 .properties;
+
+            if (created.records[0].get("poi") === null)
+                throw new NotFoundError("Poi not found");
             const poi = new PoiNode(created.records[0].get("poi")).properties;
+
             const imagesAdded =
                 await this.imageRepository.createAndConnectImageToExperience(
                     tx,
                     exp.id,
                     experience.images
                 );
+            if (experience.images.length !== imagesAdded.records.length)
+                throw new Error("Images not created");
             const images = imagesAdded.records.map((img) => {
                 return new ImageNode(img.get("image")).properties;
             });
@@ -78,7 +90,7 @@ export class ExperienceService {
         return Promise.all(created);
     }
 
-    private async update(tx, userId: string, toUpdate: UpdateExperienceDto[]) {
+    async update(tx, userId: string, toUpdate: UpdateExperienceDto[]) {
         const updated = await toUpdate.map(async (experience) => {
             const updated = await this.experienceRepository.update(
                 tx,
@@ -86,15 +98,23 @@ export class ExperienceService {
                 experience.id,
                 experience
             );
+            if (
+                updated.records.length === 0 ||
+                updated.records[0].get("experience") === null
+            )
+                throw new Error("Experience not updated");
             const exp = new ExperienceNode(updated.records[0].get("experience"))
                 .properties;
-            const addedImages =
+            const imagesAdded =
                 await this.imageRepository.createAndConnectImageToExperience(
                     tx,
                     experience.id,
                     experience.addedImages
                 );
-            const images = addedImages.records.map((img) => {
+
+            if (experience.images.length !== imagesAdded.records.length)
+                throw new Error("Images not created");
+            const images = imagesAdded.records.map((img) => {
                 return new ImageNode(img.get("image")).properties;
             });
             await this.imageRepository.disconnectImagesFromExperience(
@@ -110,7 +130,7 @@ export class ExperienceService {
         return Promise.all(updated);
     }
 
-    private async delete(tx, userId: string, toDelete: string[]) {
+    async delete(tx, userId: string, toDelete: string[]) {
         await toDelete.forEach(async (experienceId) => {
             await this.experienceRepository.delete2(tx, userId, experienceId);
         });
@@ -124,37 +144,17 @@ export class ExperienceService {
         const session = this.neo4jService.getWriteSession();
 
         try {
-            const createdExps = await session
-                .executeWrite(async (tx) => {
-                    return this.create(
-                        tx,
-                        userId,
-                        journeyId,
-                        toUpdate.connected
-                    );
-                })
-                .catch((err) => {
-                    Logger.debug(err);
-                    throw Error("Could not create experiences");
-                });
+            const createdExps = await session.executeWrite(async (tx) => {
+                return this.create(tx, userId, journeyId, toUpdate.connected);
+            });
 
-            const updatedExps = await session
-                .executeWrite(async (tx) => {
-                    this.update(tx, userId, toUpdate.updated);
-                })
-                .catch((err) => {
-                    Logger.debug(err);
-                    throw Error("Could not update experiences");
-                });
+            const updatedExps = await session.executeWrite(async (tx) => {
+                this.update(tx, userId, toUpdate.updated);
+            });
 
-            const deletedExps = await session
-                .executeWrite(async (tx) => {
-                    this.delete(tx, userId, toUpdate.deleted);
-                })
-                .catch((err) => {
-                    Logger.debug(err);
-                    throw Error("Could not delete experiences");
-                });
+            const deletedExps = await session.executeWrite(async (tx) => {
+                this.delete(tx, userId, toUpdate.deleted);
+            });
 
             return {
                 created: createdExps,
