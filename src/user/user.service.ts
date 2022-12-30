@@ -48,12 +48,12 @@ export class UserService {
         const foundUser = userNode.getProperties() as UserDto;
         if (foundUser.visibility == "private")
             throw new UserPrivateError("User profile is private");
-        // foundUser.journeysAggregate = {
-        //     count: records.get("journeys").low
-        // };
-        // foundUser.poisAggregate = {
-        //     count: records.get("pois").low
-        // };
+        foundUser.journeysAggregate = {
+            count: records.get("journeys").low
+        };
+        foundUser.poisAggregate = {
+            count: records.get("pois").low
+        };
         return foundUser;
     }
 
@@ -68,7 +68,7 @@ export class UserService {
         return updatedUser;
     }
     /**
-     * Find a user by its uid
+     * Get journeys from a specific user
      * @param uid the uid of the user
      * @returns a UserDto
      * */
@@ -78,20 +78,20 @@ export class UserService {
             skip,
             limit
         );
-        const userJourneys: Journey[] = [];
+        const userJourneys: JourneyDto[] = [];
         queryResult.records.forEach((record) => {
             const userNode = new UserNode(record.get("user"), [], []);
             if (userNode.getVisibility() == "private")
                 throw new UserPrivateError("User profile is private");
             const journeyNode = new JourneyNode(record.get("journey"), []);
             if (journeyNode.visibility == "public") {
-                const journey = journeyNode.properties;
-                // journey.start = PointToLocation(journeyNode.getStart());
-                // journey.end = PointToLocation(journeyNode.getEnd());
-                // journey.creator = userNode.getUsername();
-                // journey.experiencesAggregate = {
-                //     count: record.get("expCount").low
-                // };
+                const journey: JourneyDto = { ...journeyNode.properties };
+                journey.start = PointToLocation(journeyNode.start);
+                journey.end = PointToLocation(journeyNode.end);
+                journey.creator = userNode.getUsername();
+                journey.experiencesAggregate = {
+                    count: record.get("expCount").low
+                };
                 userJourneys.push(journey);
             }
         });
@@ -111,20 +111,19 @@ export class UserService {
             skip,
             limit
         );
-        const userJourneys: Journey[] = [];
+        const userJourneys: JourneyDto[] = [];
         queryResult.records.forEach((record) => {
             if (record.get("journey") != null) {
-                const userNode = new UserNode(record.get("user"), [], []);
                 const journeyNode = new JourneyNode(record.get("journey"), []);
-                const journey = journeyNode.properties;
+                const journey: JourneyDto = { ...journeyNode.properties };
                 const thumbnails = record.get("thumbnails") as string[][];
-                // journey.thumbnails = thumbnails.reduce(
-                //     (acc, curr) => acc.concat(curr),
-                //     []
-                // );
-                // journey.experiencesAggregate = {
-                //     count: record.get("expCount").low
-                // };
+                journey.thumbnails = thumbnails.reduce(
+                    (acc, curr) => acc.concat(curr),
+                    []
+                );
+                journey.experiencesAggregate = {
+                    count: record.get("expCount").low
+                };
                 userJourneys.push(journey);
             }
         });
@@ -136,15 +135,15 @@ export class UserService {
         const records = queryResult.records[0];
         const userNode = new UserNode(records.get("user"), [], []);
         const foundUser = userNode.getProperties() as UserDto;
-        // foundUser.journeysAggregate = {
-        //     count: records.get("journeys").low
-        // };
-        // foundUser.poisAggregate = {
-        //     count: records.get("pois").low
-        // };
-        // foundUser.experiencesAggregate = {
-        //     count: records.get("exps").low
-        // };
+        foundUser.journeysAggregate = {
+            count: records.get("journeys").low
+        };
+        foundUser.poisAggregate = {
+            count: records.get("pois").low
+        };
+        foundUser.experiencesAggregate = {
+            count: records.get("exps").low
+        };
         return foundUser;
     }
 

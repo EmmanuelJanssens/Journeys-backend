@@ -1,14 +1,18 @@
 import { Injectable } from "@nestjs/common";
 import { ImageNode } from "../image/entities/image.entity";
 import { JourneyNode } from "../journey/entities/journey.entity";
-import { PoiNode } from "../point-of-interest/entities/point-of-interest.entity";
+import {
+    PoiNode,
+    PointOfInterest
+} from "../point-of-interest/entities/point-of-interest.entity";
 import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
-import { ExperienceNode } from "./entities/experience.entity";
+import { Experience, ExperienceNode } from "./entities/experience.entity";
 import { ExperienceRepository } from "./experience.repository";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { ImageRepository } from "../image/image.repository";
+import { Image } from "../image/entities/image.entity";
 import { NotFoundError } from "../errors/Errors";
 
 @Injectable()
@@ -131,9 +135,20 @@ export class ExperienceService {
     }
 
     async delete(tx, userId: string, toDelete: string[]) {
-        await toDelete.forEach(async (experienceId) => {
-            await this.experienceRepository.delete2(tx, userId, experienceId);
+        const deleted = await toDelete.map(async (experienceId) => {
+            const deletedExps = await this.experienceRepository.delete2(
+                tx,
+                userId,
+                experienceId
+            );
+            const deleted = new ExperienceNode(
+                deletedExps.records[0].get("experience")
+            ).properties;
+            return {
+                experience: deleted
+            };
         });
+        return Promise.all(deleted);
     }
 
     async batchUpdate(
@@ -143,18 +158,36 @@ export class ExperienceService {
     ) {
         const session = this.neo4jService.getWriteSession();
 
+        let createdExps: {
+            experience: Experience;
+            poi: PointOfInterest;
+            images: Image[];
+        }[] = [];
+        let updatedExps: {
+            experience: Experience;
+            images: Image[];
+        }[] = [];
+        let deletedExps: { experience: Experience }[] = [];
         try {
-            const createdExps = await session.executeWrite(async (tx) => {
-                return this.create(tx, userId, journeyId, toUpdate.connected);
-            });
+            if (toUpdate.connected.length > 0)
+                createdExps = await session.executeWrite(async (tx) => {
+                    return this.create(
+                        tx,
+                        userId,
+                        journeyId,
+                        toUpdate.connected
+                    );
+                });
 
-            const updatedExps = await session.executeWrite(async (tx) => {
-                this.update(tx, userId, toUpdate.updated);
-            });
+            if (toUpdate.updated.length > 0)
+                updatedExps = await session.executeWrite(async (tx) => {
+                    return this.update(tx, userId, toUpdate.updated);
+                });
 
-            const deletedExps = await session.executeWrite(async (tx) => {
-                this.delete(tx, userId, toUpdate.deleted);
-            });
+            if (toUpdate.deleted.length > 0)
+                deletedExps = await session.executeWrite(async (tx) => {
+                    return this.delete(tx, userId, toUpdate.deleted);
+                });
 
             return {
                 created: createdExps,

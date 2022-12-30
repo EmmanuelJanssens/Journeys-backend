@@ -137,4 +137,23 @@ export class ImageRepository {
         const params = { experienceId, imageIds };
         return tx.run(query, params);
     }
+
+    /**
+     * Updates an image file url usually
+     * after uploading to a CDN or bucket
+     * @param id id of the imabe
+     * @param url url of the original image
+     * @param thumbnail url of the thumbnail image
+     * @returns
+     */
+    async setImageFileUrl(id: string, url: string, thumbnail: string) {
+        const query = `
+            MATCH(image: Image {id: $id})
+            SET image.original = $url,
+                image.thumbnail = $thumbnail
+            RETURN image
+        `;
+        const params = { id, url, thumbnail };
+        return this.neo4jService.write(query, params);
+    }
 }

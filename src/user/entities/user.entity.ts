@@ -56,16 +56,4 @@ export class User extends Entity {
 
     @ApiProperty()
     visibility: "private" | "public";
-
-    // @ApiProperty()
-    // journeys: JourneyDto[];
-
-    // @ApiProperty()
-    // journeysAggregate: { count: number };
-
-    // @ApiProperty()
-    // poisAggregate: { count: number };
-
-    // @ApiProperty()
-    // experiencesAggregate: { count: number };
 }

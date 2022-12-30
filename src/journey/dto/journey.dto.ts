@@ -2,29 +2,21 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsNotEmpty } from "class-validator";
 import { ExperienceDto } from "../../experience/dto/experience.dto";
 import { Journey } from "../entities/journey.entity";
-import { PickType } from "@nestjs/mapped-types";
-export class JourneyDto extends PickType(Journey, [
-    "id",
-    "title",
-    "description",
-    "thumbnail",
-    "visibility",
-    "start",
-    "end"
-]) {
+import { PartialType } from "@nestjs/mapped-types";
+export class JourneyDto extends PartialType(Journey) {
     @ApiProperty()
     @IsNotEmpty()
-    creator: string;
+    creator?: string;
 
     @ApiProperty()
     @IsArray()
-    experiences: ExperienceDto[];
+    experiences?: ExperienceDto[];
 
     @ApiProperty()
     @IsNotEmpty()
-    experiencesAggregate: { count: number };
+    experiencesAggregate?: { count: number };
 
     @ApiProperty()
     @IsArray()
-    thumbnails: string[];
+    thumbnails?: string[];
 }
