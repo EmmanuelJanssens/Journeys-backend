@@ -66,7 +66,7 @@ export class ExperienceService {
                 created.records.length === 0 ||
                 created.records[0].get("experience") === null
             )
-                throw new Error("Experience not created");
+                throw new Error("Experience not created ");
             const exp = new ExperienceNode(created.records[0].get("experience"))
                 .properties;
 
@@ -80,11 +80,16 @@ export class ExperienceService {
                     exp.id,
                     experience.images
                 );
-            if (experience.images.length !== imagesAdded.records.length)
+            if (
+                experience.images &&
+                experience.images.length !== imagesAdded.records.length
+            )
                 throw new Error("Images not created");
-            const images = imagesAdded.records.map((img) => {
-                return new ImageNode(img.get("image")).properties;
-            });
+            let images = [];
+            if (imagesAdded.records.length === 0)
+                images = imagesAdded.records.map((img) => {
+                    return new ImageNode(img.get("image")).properties;
+                });
             return {
                 experience: exp,
                 images,
@@ -116,16 +121,22 @@ export class ExperienceService {
                     experience.addedImages
                 );
 
-            if (experience.images.length !== imagesAdded.records.length)
+            if (
+                experience.images &&
+                experience.images.length !== imagesAdded.records.length
+            )
                 throw new Error("Images not created");
-            const images = imagesAdded.records.map((img) => {
-                return new ImageNode(img.get("image")).properties;
-            });
-            await this.imageRepository.disconnectImagesFromExperience(
-                tx,
-                experience.id,
-                experience.removedImages
-            );
+            let images = [];
+            if (experience.images)
+                images = imagesAdded.records.map((img) => {
+                    return new ImageNode(img.get("image")).properties;
+                });
+            if (experience.removedImages && experience.removedImages.length > 0)
+                await this.imageRepository.disconnectImagesFromExperience(
+                    tx,
+                    experience.id,
+                    experience.removedImages
+                );
             return {
                 experience: exp,
                 images

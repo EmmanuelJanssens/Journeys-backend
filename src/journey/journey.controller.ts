@@ -56,10 +56,11 @@ export class JourneyController {
         const user = req.user as UserInfo;
         const result = await this.journeyService.create(user.uid, journey);
         const createdExps = result.experiences.created;
-        const thumbnails = createdExps.reduce(
-            (acc, curr) => [...acc, ...curr.experience.images],
-            []
-        );
+
+        const thumbnails = createdExps.reduce((acc, curr) => {
+            if (curr.experience.images)
+                return [...acc, ...curr.experience.images];
+        }, []);
 
         const expDtos = transformExperiencesToDto(createdExps);
 
@@ -115,10 +116,10 @@ export class JourneyController {
         const result = await this.journeyService.getExperiences(journey);
 
         //get thumbnails from experiences
-        const thumbnails = result.experiences.reduce(
-            (acc, curr) => [...acc, ...curr.experience.images],
-            []
-        );
+        const thumbnails = result.experiences.reduce((acc, curr) => {
+            if (curr.experience.images)
+                return [...acc, ...curr.experience.images];
+        }, []);
 
         let journeyDto = transformJourneyToDto(
             result.journey,

@@ -18,7 +18,7 @@ export class ExperienceRepository {
     ) {
         const query = `
             MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
-            MATCH (poi:POI {id: $experience.poi})
+            MATCH (poi:POI {id: $experience.poi.id})
             WHERE journey.isActive = true AND poi.isActive = true
             CREATE (experience:Experience{
                 id: apoc.create.uuid(),

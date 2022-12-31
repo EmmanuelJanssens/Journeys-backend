@@ -123,7 +123,7 @@ export class ImageRepository {
             CALL apoc.do.when(
                 size($imageIds) > 0,
                 "
-                    UNWIND $imageIds AS imageId
+                    UNWIND imageIds AS imageId
                         MATCH (image:Image{id: imageId})<-[:HAS_IMAGE]-(experience)
                         DETACH DELETE image
                         WITH imageId

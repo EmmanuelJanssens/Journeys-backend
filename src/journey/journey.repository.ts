@@ -44,7 +44,7 @@ export class JourneyRepository {
                     end: point({srid:4326,x: $journey.end.longitude, y: $journey.end.latitude}),
                     thumbnail: coalesce($journey.thumbnail, ""),
                     visibility: $journey.visibility,
-                    isActive: true
+                    isActive: true,
                     createdAt: datetime(),
                     updatedAt: datetime()
                 })<-[:CREATED]-(user)

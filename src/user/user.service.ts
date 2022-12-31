@@ -111,20 +111,23 @@ export class UserService {
             skip,
             limit
         );
-        const userJourneys: JourneyDto[] = [];
+        const userJourneys: {
+            journey: Journey;
+            thumbnails: string[][];
+            expCount: Integer;
+        }[] = [];
         queryResult.records.forEach((record) => {
             if (record.get("journey") != null) {
                 const journeyNode = new JourneyNode(record.get("journey"), []);
-                const journey: JourneyDto = { ...journeyNode.properties };
+                const journey = journeyNode.properties;
                 const thumbnails = record.get("thumbnails") as string[][];
-                journey.thumbnails = thumbnails.reduce(
-                    (acc, curr) => acc.concat(curr),
-                    []
-                );
-                journey.experiencesAggregate = {
-                    count: record.get("expCount").low
-                };
-                userJourneys.push(journey);
+                const expCount = record.get("expCount").low as Integer;
+
+                userJourneys.push({
+                    journey,
+                    thumbnails,
+                    expCount
+                });
             }
         });
         return userJourneys;

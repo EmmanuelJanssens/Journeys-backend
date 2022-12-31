@@ -18,6 +18,7 @@ import { UserInfo } from "firebase-admin/lib/auth/user-record";
 import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { int } from "neo4j-driver";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { transformJourneyToDto } from "src/utilities/transformToDto";
 
 @Controller("user")
 @UseInterceptors(ErrorsInterceptor)
@@ -61,12 +62,30 @@ export class UserController {
 
     @UseGuards(FirebaseAuthGuard)
     @Get("/journeys")
-    getMyJourneys(@Request() req, @Query() query) {
+    async getMyJourneys(@Request() req, @Query() query) {
         const user = req.user as UserInfo;
         const page = query.page ? int(query.page).subtract(1) : int(0);
         const limit = query.limit ? int(query.limit) : int(300);
-        const result = this.userService.getMyJourneys(user.uid, page, limit);
-        return result;
+        const result = await this.userService.getMyJourneys(
+            user.uid,
+            page,
+            limit
+        );
+        const journeys = result.map((journey) => {
+            const thumbnails = journey.thumbnails.reduce(
+                (acc, curr) => acc.concat(curr),
+                []
+            );
+            const transformed = transformJourneyToDto(
+                journey.journey,
+                user.uid,
+                thumbnails,
+                journey.expCount,
+                []
+            );
+            return transformed;
+        });
+        return journeys;
     }
     @UseGuards(FirebaseAuthGuard)
     @Get("/pois")
