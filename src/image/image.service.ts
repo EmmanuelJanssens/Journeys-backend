@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { ImageNode, Image } from "./entities/image.entity";
 import { ImageRepository } from "./image.repository";
 
 @Injectable()
@@ -7,5 +8,19 @@ export class ImageService {
 
     async connectToExperience(experienceId: string, imageId: string) {
         this.connectToExperience(experienceId, imageId);
+    }
+
+    async update(
+        id: string,
+        content: { original: string; thumbnail: string },
+        userId: string
+    ) {
+        const result = await this.imageRepository.setImageFileUrl(
+            id,
+            userId,
+            content
+        );
+        const image = new ImageNode(result.records[0].get("image")).properties;
+        return image;
     }
 }

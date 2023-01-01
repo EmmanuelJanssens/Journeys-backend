@@ -14,14 +14,15 @@ import {
 } from "../point-of-interest/entities/point-of-interest.entity";
 import { Integer } from "neo4j-driver";
 import { NotFoundError } from "../errors/Errors";
-import { ImageRepository } from "../image/image.repository";
-import { Neo4jService } from "../neo4j/neo4j.service";
 import { BatchUpdateExperienceDto } from "../experience/dto/batch-update-experience.dto";
+import { ExperienceRepository } from "src/experience/experience.repository";
+import { Image } from "src/image/entities/image.entity";
 
 @Injectable()
 export class JourneyService {
     constructor(
         private journeyRepository: JourneyRepository,
+        private experienceRepository: ExperienceRepository,
         private experienceService: ExperienceService
     ) {}
 
@@ -75,29 +76,30 @@ export class JourneyService {
         journey: Journey;
         experiences: {
             experience: Experience;
+            images: Image[];
             poi: PointOfInterest;
         }[];
         creator: string;
     }> {
-        const queryResult = await this.journeyRepository.getExperiences(
+        const journey = await this.findOne(journey_id);
+        const queryResult = await this.experienceRepository.findManyByJourneyId(
             journey_id
         );
-        const journey = new JourneyNode(queryResult.records[0].get("journey"))
-            .properties;
 
         const experiences = queryResult.records.map((record, idx) => {
             return {
                 experience: new ExperienceNode(record.get("experience"))
                     .properties as Experience,
+                images: record.get("images").map((imgRec) => {
+                    return imgRec.properties;
+                }),
                 poi: new PoiNode(record.get("poi")).properties
             };
         });
 
-        const creator = queryResult.records[0].get("creator");
         return {
-            journey,
-            experiences,
-            creator
+            ...journey,
+            experiences
         };
     }
 

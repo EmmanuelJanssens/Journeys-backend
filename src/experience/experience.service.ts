@@ -80,15 +80,10 @@ export class ExperienceService {
                     exp.id,
                     experience.images
                 );
-            if (
-                experience.images &&
-                experience.images.length !== imagesAdded.records.length
-            )
-                throw new Error("Images not created");
             let images = [];
-            if (imagesAdded.records.length === 0)
-                images = imagesAdded.records.map((img) => {
-                    return new ImageNode(img.get("image")).properties;
+            if (imagesAdded.records[0] && imagesAdded.records[0].length > 0)
+                images = imagesAdded.records[0].get("images").map((img) => {
+                    return new ImageNode(img).properties;
                 });
             return {
                 experience: exp,

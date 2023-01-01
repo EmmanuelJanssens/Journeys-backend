@@ -33,7 +33,7 @@ describe("ExperienceService", () => {
                                 new Node(new Integer(1), ["Image"], {
                                     id: "test-image-id",
                                     original: file,
-                                    thumbnail: file + "_thumb"
+                                    thumbnail: file
                                 })
                             ],
                             {

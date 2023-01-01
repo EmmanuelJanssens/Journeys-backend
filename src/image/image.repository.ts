@@ -26,15 +26,15 @@ export class ImageRepository {
                     CREATE (image:Image {
                         id: apoc.create.uuid(),
                         original: file,
-                        thumbnail: file+'_thumb'
+                        thumbnail: file
                     })
                     MERGE (image)<-[:HAS_IMAGE]-(experience)
                     RETURN image
                 ",
-                "RETURN [] AS images",
+                "RETURN [] as images",
                 {experienceId: $experienceId, imageFiles: coalesce($imageFiles,[])}
             ) YIELD value
-            RETURN value.image as image
+            RETURN collect(value.image) as images
         `;
         const params = { experienceId, imageFiles: imageFiles || [] };
 
@@ -146,14 +146,21 @@ export class ImageRepository {
      * @param thumbnail url of the thumbnail image
      * @returns
      */
-    async setImageFileUrl(id: string, url: string, thumbnail: string) {
+    async setImageFileUrl(
+        id: string,
+        userId: string,
+        image: {
+            original: string;
+            thumbnail: string;
+        }
+    ) {
         const query = `
-            MATCH(image: Image {id: $id})
-            SET image.original = $url,
-                image.thumbnail = $thumbnail
+            MATCH (image: Image {id: $id})<-[*0..3]-(:User{uid: $userId})
+            SET image.original = $image.original,
+                image.thumbnail = $image.thumbnail
             RETURN image
         `;
-        const params = { id, url, thumbnail };
+        const params = { id, image, userId };
         return this.neo4jService.write(query, params);
     }
 }

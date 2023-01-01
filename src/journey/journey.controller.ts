@@ -58,8 +58,7 @@ export class JourneyController {
         const createdExps = result.experiences.created;
 
         const thumbnails = createdExps.reduce((acc, curr) => {
-            if (curr.experience.images)
-                return [...acc, ...curr.experience.images];
+            if (curr.images) return [...acc, ...curr.images];
         }, []);
 
         const expDtos = transformExperiencesToDto(createdExps);
@@ -117,8 +116,7 @@ export class JourneyController {
 
         //get thumbnails from experiences
         const thumbnails = result.experiences.reduce((acc, curr) => {
-            if (curr.experience.images)
-                return [...acc, ...curr.experience.images];
+            if (curr.images) return [...acc, ...curr.images];
         }, []);
 
         let journeyDto = transformJourneyToDto(

@@ -8,6 +8,7 @@ import { Tag } from "../tag/entities/tag.entity";
 import { Journey } from "../journey/entities/journey.entity";
 import { JourneyDto } from "../journey/dto/journey.dto";
 import { Image } from "../image/entities/image.entity";
+import { ImageDto } from "src/image/dto/image.dto";
 
 export function transformExperienceToDto(
     experience: Experience,
@@ -16,11 +17,12 @@ export function transformExperienceToDto(
     journey?: Journey
 ): ExperienceDto {
     const poiDto = poi ? transformPoiToDto(poi) : undefined;
+    const imageDto = images ? images : [];
     const dto: ExperienceDto = {
         id: experience.id,
         title: experience.title,
         description: experience.description,
-        images: images.map((image) => {
+        images: imageDto.map((image) => {
             return {
                 id: image.id,
                 original: image.original,
@@ -94,6 +96,7 @@ export function transformJourneyToDto(
 export function transformExperiencesToDto(
     experiences: {
         experience: Experience;
+        images: Image[];
         poi: PointOfInterest;
     }[]
 ) {
@@ -107,7 +110,13 @@ export function transformExperiencesToDto(
             id: exp.experience.id,
             title: exp.experience.title,
             description: exp.experience.description,
-            // images: exp.experience.images,
+            images: exp.images.map((image) => {
+                return <ImageDto>{
+                    id: image.id,
+                    original: image.original,
+                    thumbnail: image.thumbnail
+                };
+            }),
             date: new Date(exp.experience.date).toISOString() as any,
             poi: poiDto as PointOfInterestDto
         };

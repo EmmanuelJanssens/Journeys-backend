@@ -117,7 +117,7 @@ export class ExperienceRepository {
                             (poi:POI)<-[:FOR]-(experience),
                             (journey:Journey)-[:EXPERIENCE]->(experience)
             WHERE experience.isActive = true
-            RETURN experience, collect(img) as Images, poi, journey
+            RETURN experience, collect(img) as images, poi, journey
         `;
         const params = {
             experienceId
@@ -125,6 +125,23 @@ export class ExperienceRepository {
         return await this.neo4jService.read(query, params);
     }
 
+    /**
+     * get experiences related to a journey
+     * @param journeyId the ID of the journey
+     * @returns
+     */
+    async findManyByJourneyId(journeyId: string) {
+        const query = `
+            OPTIONAL MATCH(journey:Journey{id: $journeyId})-[:EXPERIENCE]->(experience:Experience)-[:FOR]->(poi:POI)
+            OPTIONAL MATCH (img:Image)<-[:HAS_IMAGE]-(experience)
+            WHERE experience.isActive = true
+            RETURN experience, collect(img) as images, poi
+        `;
+        const params = {
+            journeyId
+        };
+        return await this.neo4jService.read(query, params);
+    }
     createManyQuery = (...args: any[]) => {
         const query = `
         MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
@@ -141,7 +158,7 @@ export class ExperienceRepository {
                                 '
                                     UNWIND experienceImages as image
                                     MERGE (imageNode:Image {id: apoc.create.uuid()})
-                                    ON CREATE SET imageNode.original = image, imageNode.thumbnail = image + "_thumb"
+                                    ON CREATE SET imageNode.original = image, imageNode.thumbnail = image
                                     MERGE (experience)-[:HAS_IMAGE]->(imageNode)
                                     RETURN collect(imageNode) as images
                                 ',
@@ -174,7 +191,7 @@ export class ExperienceRepository {
                 MERGE (imageNode:Image{
                     id: apoc.create.uuid(),
                     original: addedImage,
-                    thumbnail: addedImage+"_thumb"
+                    thumbnail: addedImage
                 })
                 MERGE (imageNode)<-[:HAS_IMAGE]-(experience)
                 RETURN imageNode
