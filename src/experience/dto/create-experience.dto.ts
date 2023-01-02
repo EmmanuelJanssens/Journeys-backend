@@ -8,5 +8,5 @@ export class CreateExperienceDto extends PickType(ExperienceDto, [
     "poi"
 ]) {
     @IsArray()
-    images: string[];
+    addedImages?: string[];
 }

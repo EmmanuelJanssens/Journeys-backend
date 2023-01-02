@@ -78,7 +78,7 @@ export class ExperienceService {
                 await this.imageRepository.createAndConnectImageToExperience(
                     tx,
                     exp.id,
-                    experience.images
+                    experience.addedImages
                 );
             let images = [];
             if (imagesAdded.records[0] && imagesAdded.records[0].length > 0)

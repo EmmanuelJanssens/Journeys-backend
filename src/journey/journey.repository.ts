@@ -73,7 +73,7 @@ export class JourneyRepository {
     ): Promise<QueryResult> {
         const query = `
             UNWIND $journey as updated
-            OPTIONAL MATCH (exp:Experiencee{isActive: true})<-[expRel:EXPERIENCE]-(journey:Journey{id: updated.id,isActive: true})<-[:CREATED]-(user: User{uid: $user})
+            OPTIONAL MATCH (exp:Experience{isActive: true})<-[expRel:EXPERIENCE]-(journey:Journey{id: updated.id,isActive: true})<-[:CREATED]-(user: User{uid: $user})
             SET journey.title = updated.title,
                 journey.description = updated.description,
                 journey.visibility = updated.visibility,
