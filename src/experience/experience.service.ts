@@ -49,55 +49,42 @@ export class ExperienceService {
     }
 
     async create(
-        tx,
+        transaction,
         userId: string,
         journeyId: string,
         toCreate: CreateExperienceDto[]
     ) {
         const created = await toCreate.map(async (experience) => {
             const created = await this.experienceRepository.create(
-                tx,
                 userId,
                 experience,
-                journeyId
+                journeyId,
+                transaction
             );
 
-            if (
-                created.records.length === 0 ||
-                created.records[0].get("experience") === null
-            )
-                throw new Error("Experience not created ");
-            const exp = new ExperienceNode(created.records[0].get("experience"))
-                .properties;
-
-            if (created.records[0].get("poi") === null)
-                throw new NotFoundError("Poi not found");
-            const poi = new PoiNode(created.records[0].get("poi")).properties;
+            if (!created.experience) throw new Error("Experience not created ");
 
             const imagesAdded =
                 await this.imageRepository.createAndConnectImageToExperience(
-                    tx,
-                    exp.id,
-                    experience.addedImages
+                    created.experience.id,
+                    transaction
                 );
             let images = [];
-            if (imagesAdded.records[0] && imagesAdded.records[0].length > 0)
-                images = imagesAdded.records[0].get("images").map((img) => {
-                    return new ImageNode(img).properties;
-                });
+            if (imagesAdded)
+                images = imagesAdded.createdImages.map((img) => img.properties);
             return {
-                experience: exp,
+                experience: created.experience.properties,
                 images,
-                poi
+                poi: created.poi.properties
             };
         });
         return Promise.all(created);
     }
 
-    async update(tx, userId: string, toUpdate: UpdateExperienceDto[]) {
+    async update(transaction, userId: string, toUpdate: UpdateExperienceDto[]) {
         const updated = await toUpdate.map(async (experience) => {
             const updated = await this.experienceRepository.update(
-                tx,
+                transaction,
                 userId,
                 experience.id,
                 experience
@@ -111,9 +98,8 @@ export class ExperienceService {
                 .properties;
             const imagesAdded =
                 await this.imageRepository.createAndConnectImageToExperience(
-                    tx,
                     experience.id,
-                    experience.addedImages
+                    transaction
                 );
 
             // if (
@@ -122,12 +108,10 @@ export class ExperienceService {
             // )
             //     throw new Error("Images not created");
             let images = [];
-            images = imagesAdded.records[0].get("images").map((img) => {
-                return new ImageNode(img).properties;
-            });
+            images = imagesAdded.createdImages.map((img) => img.properties);
             if (experience.removedImages && experience.removedImages.length > 0)
                 await this.imageRepository.disconnectImagesFromExperience(
-                    tx,
+                    transaction,
                     experience.id,
                     experience.removedImages
                 );

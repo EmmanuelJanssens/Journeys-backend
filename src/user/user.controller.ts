@@ -18,7 +18,7 @@ import { UserInfo } from "firebase-admin/lib/auth/user-record";
 import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { int } from "neo4j-driver";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { transformJourneyToDto } from "src/utilities/transformToDto";
+import { transformJourneyToDto } from "../utilities/transformToDto";
 
 @Controller("user")
 @UseInterceptors(ErrorsInterceptor)

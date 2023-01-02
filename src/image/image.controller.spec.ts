@@ -1,4 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { FirebaseService } from "../firebase/firebase.service";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { ImageController } from "./image.controller";
 import { ImageRepository } from "./image.repository";
@@ -10,9 +11,16 @@ describe("ImageController", () => {
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             controllers: [ImageController],
-            providers: [ImageService, ImageRepository, Neo4jService]
+            providers: [
+                ImageService,
+                ImageRepository,
+                Neo4jService,
+                FirebaseService
+            ]
         })
             .overrideProvider(Neo4jService)
+            .useValue({})
+            .overrideProvider(FirebaseService)
             .useValue({})
             .compile();
 

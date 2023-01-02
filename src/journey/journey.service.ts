@@ -18,7 +18,7 @@ import { BatchUpdateExperienceDto } from "../experience/dto/batch-update-experie
 import { ExperienceRepository } from "../experience/experience.repository";
 import { Image, ImageNode } from "../image/entities/image.entity";
 import { ImageRepository } from "../image/image.repository";
-import { Neo4jService } from "src/neo4j/neo4j.service";
+import { Neo4jService } from "../neo4j/neo4j.service";
 
 @Injectable()
 export class JourneyService {
@@ -42,41 +42,77 @@ export class JourneyService {
     async findOne(id: string): Promise<{
         journey: Journey;
         experiencesCount: Integer;
-        thumbnails: string[];
+        thumbnails: Image[];
         thumbnail: Image;
         creator: string;
     }> {
         const queryResult = await this.journeyRepository.get(id);
-        if (queryResult.records.length === 0 || queryResult.records.length > 1)
-            throw new Error("Unexpected error");
-        if (queryResult.records[0].get("journey") === null)
-            throw new NotFoundError("journey not found");
 
-        const journeyNode = new JourneyNode(
-            queryResult.records[0].get("journey"),
-            []
-        );
-
-        let thumbnail = null;
-        if (queryResult.records[0].get("thumbnail"))
-            thumbnail = new ImageNode(queryResult.records[0].get("thumbnail"))
-                .properties;
-        //build journey
-        const journey = journeyNode.properties;
-
-        //additional journey information
-        const experiencesCount = queryResult.records[0].get("count");
-        const thumbnails = queryResult.records[0].get("thumbnails");
-        const creator = queryResult.records[0].get("creator");
+        if (!queryResult.journey) throw new NotFoundError("journey not found");
+        if (!queryResult.creator)
+            throw new NotFoundError("journey creator not found");
         return {
-            journey,
-            experiencesCount,
-            thumbnail,
-            thumbnails,
-            creator
+            journey: queryResult.journey.properties,
+            thumbnail: queryResult.thumbnail.properties,
+            experiencesCount: queryResult.expCount,
+            thumbnails: queryResult.thumbnails.map((img) => img.properties),
+            creator: queryResult.creator
         };
     }
 
+    /**
+     * create a journey with its optional experiences
+     * @param user the user uid that created the journey
+     * @param createJourney the journey to create
+     * @returns the journey with its experiences
+     */
+    async createOne(user: string, createJourney: CreateJourneyDto) {
+        const session = this.neo4jService.getWriteSession();
+        return await session.executeWrite(async (transaction) => {
+            const journeyQueryResult = await this.journeyRepository.create(
+                user,
+                createJourney,
+                transaction
+            );
+
+            const experiences = await Promise.all(
+                createJourney.experiences.map(async (toCreate) => {
+                    const created = await this.experienceRepository.create(
+                        user,
+                        toCreate,
+                        journeyQueryResult.journey.id,
+                        transaction
+                    );
+                    return {
+                        experience: created.experience.properties,
+                        poi: created.poi.properties
+                    };
+                })
+            );
+
+            const images = await Promise.all(
+                experiences.map(async (experience) => {
+                    const images =
+                        await this.imageRepository.createAndConnectImageToExperience(
+                            experience.experience.id,
+                            transaction
+                        );
+                    return {
+                        experience: experience.experience,
+                        images: images.createdImages.map(
+                            (img) => img.properties
+                        )
+                    };
+                })
+            );
+            return {
+                createdJourney: journeyQueryResult.journey.properties,
+                creator: journeyQueryResult.creator,
+                createdExperiences: experiences,
+                createdImages: images
+            };
+        });
+    }
     /**
      * get experiences of a journey
      * @param journey_id  the journey id
@@ -117,42 +153,6 @@ export class JourneyService {
     }
 
     /**
-     * create a journey with its optional experiences
-     * @param user the user uid that created the journey
-     * @param createJourney the journey to create
-     * @returns the journey with its experiences
-     */
-    async create(user: string, createJourney: CreateJourneyDto) {
-        //create the journey node first
-        const journeyQueryResult = await this.journeyRepository.create(
-            user,
-            createJourney
-        );
-        const journeyNode = new JourneyNode(
-            journeyQueryResult.records[0].get("journey")
-        );
-
-        const batch: BatchUpdateExperienceDto = {
-            connected: [...createJourney.experiences],
-            deleted: [],
-            updated: []
-        };
-        //create the experiences
-        const experiences = await this.experienceService.batchUpdate(
-            user,
-            journeyNode.id,
-            batch
-        );
-        const createdJourney = journeyNode.properties;
-        const creator = journeyQueryResult.records[0].get("creator");
-        return {
-            journey: createdJourney,
-            experiences: experiences,
-            creator: creator
-        };
-    }
-
-    /**
      * updates a journey, first find journey and set appropriate fields that have to be
      * updated
      * @param user the user uid that created the journey
@@ -168,11 +168,14 @@ export class JourneyService {
         const session = this.neo4jService.getWriteSession();
         return session
             .executeWrite(async (tx) => {
+                //get result of the query
                 const queryResult = await this.journeyRepository.update(
                     user,
                     journey,
                     tx
                 );
+
+                //create journey node
                 const journeyNode = new JourneyNode(
                     queryResult.records[0].get("journey"),
                     []

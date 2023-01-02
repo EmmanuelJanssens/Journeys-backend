@@ -11,6 +11,7 @@ import { Integer, Point } from "neo4j-driver";
 
 import { Experience } from "../experience/entities/experience.entity";
 import { PointOfInterest } from "../point-of-interest/entities/point-of-interest.entity";
+import { ExperienceRepository } from "../experience/experience.repository";
 
 describe("JourneyService", () => {
     let service: JourneyService;
@@ -32,17 +33,20 @@ describe("JourneyService", () => {
                         poi: PointOfInterest;
                     }[] = exps.map((created) => {
                         return {
-                            experience: <Experience>{
+                            experience: {
                                 title: created.title,
+                                date: new Date(created.date),
                                 description: created.description,
                                 id: "test-id",
-                                images: created.images
+                                images: created.addedImages
                             },
-                            poi: <PointOfInterest>{
+                            poi: <PointOfInterest>(<unknown>{
                                 id: "test-id",
                                 name: "test-name",
-                                location: new Point(new Integer(1000), 0, 0)
-                            }
+                                location: new Point(new Integer(1000), 0, 0),
+                                createdAt: new Date(),
+                                updatedAt: new Date()
+                            })
                         };
                     });
                     return Promise.resolve({ created: resp });
@@ -58,7 +62,8 @@ describe("JourneyService", () => {
                 Neo4jService,
                 JourneyRepository,
                 ImageRepository,
-                ExperienceService
+                ExperienceService,
+                ExperienceRepository
             ]
         })
             .overrideProvider(Neo4jService)
@@ -67,6 +72,8 @@ describe("JourneyService", () => {
             .useValue(mockExpService)
             .overrideProvider(JourneyRepository)
             .useClass(JourneyRepositoryMock)
+            .overrideProvider(ExperienceRepository)
+            .useValue({})
             .compile();
 
         service = await testingModule.resolve(JourneyService);
@@ -83,13 +90,13 @@ describe("JourneyService", () => {
                     id: "test-id",
                     title: "title",
                     description: "description",
-                    thumbnail: "thumbnail",
                     start: new Point(new Integer(4326), 0, 0),
                     end: new Point(new Integer(4326), 0, 0),
                     visibility: "public"
                 },
                 creator: "test-user",
                 experiencesCount: 10,
+                thumbnail: "thumbnail",
                 thumbnails: [["thumbnail"], []]
             };
             const res = await service.findOne("test-id");
@@ -99,7 +106,7 @@ describe("JourneyService", () => {
 
     describe("::create", () => {
         it("should return the created journey with additional metadata(creator,experiencesCount, thumbnails)", async () => {
-            const res = await service.create("test-user", {
+            const res = await service.createOne("test-user", {
                 visibility: "public",
                 title: "title",
                 description: "description",
@@ -124,12 +131,11 @@ describe("JourneyService", () => {
                 visibility: "public"
             });
             expect(res.creator).toEqual("test-user");
-            expect(res.journey.thumbnail).toBeUndefined();
             expect(res.experiences.created.length).toEqual(0);
         });
 
         it("should return the created journey with added experiences and additional metadata(creator,experiencesCount, thumbnails)", async () => {
-            const res = await service.create("test-user", {
+            const res = await service.createOne("test-user", {
                 visibility: "public",
                 title: "title",
                 description: "description",
@@ -145,14 +151,12 @@ describe("JourneyService", () => {
                     {
                         title: "title",
                         description: "description",
-                        images: ["img", "img2"],
                         date: "2021-01-01",
                         poi: "poi-id"
                     },
                     {
                         title: "title2",
                         description: "description2",
-                        images: ["img", "img2"],
                         date: "2021-01-01",
                         poi: "poi-id2"
                     }
@@ -168,7 +172,6 @@ describe("JourneyService", () => {
                 visibility: "public"
             });
             expect(res.creator).toEqual("test-user");
-            expect(res.journey.thumbnail).toBeUndefined();
             expect(res.experiences.created.length).toEqual(2);
         });
     });
@@ -208,14 +211,7 @@ describe("JourneyService", () => {
             expect(res.journey.description).toEqual("description");
             expect(res.journey.title).toEqual("new-title");
         });
-        it("should update the thumbnail fields of the journey ", async () => {
-            const res = await service.update("test-user", {
-                id: "test-id",
-                thumbnail: "new-thumbnail"
-            });
-            expect(res.journey.description).toEqual("description");
-            expect(res.journey.thumbnail).toEqual("new-thumbnail");
-        });
+
         it("should update the visibility fields of the journey", async () => {
             const res = await service.update("test-user", {
                 id: "test-id",

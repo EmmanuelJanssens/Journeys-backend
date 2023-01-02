@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { ManagedTransaction, QueryResult, Transaction } from "neo4j-driver";
+import { ExperienceNode } from "src/experience/entities/experience.entity";
 import { Neo4jService } from "../neo4j/neo4j.service";
+import { ImageNode } from "./entities/image.entity";
 
 @Injectable()
 export class ImageRepository {
@@ -12,16 +14,16 @@ export class ImageRepository {
      * @param imageFile file location on the CDN or bucket
      */
     async createAndConnectImageToExperience(
-        tx: ManagedTransaction | Transaction,
         experienceId: string,
-        imageFiles: string[]
-    ): Promise<QueryResult> {
+        transaction?: ManagedTransaction
+    ) {
         const query = `
+            MATCH (connectTo: Experience{id:$experienceId})<-[:CREATED|EXPERIENCE*0..2]-(user:User)
+            WITH connectTo, user
             CALL apoc.do.when(
-                size($imageFiles) > 0,
+                size(connectTo.addedImages) > 0,
                 "
-                    MATCH (experience:Experience{id: experienceId})<-[:CREATED|EXPERIENCE*0..2]-(user:User)
-                    WITH experience
+                    MATCH (experience: Experience{id:$experienceId})<-[:CREATED|EXPERIENCE*0..2]-(user:User)
                     UNWIND $imageFiles AS file
                     CREATE (image:Image {
                         id: apoc.create.uuid(),
@@ -32,18 +34,30 @@ export class ImageRepository {
                         updatedAt: datetime()
                     })
                     MERGE (image)<-[:HAS_IMAGE]-(experience)
-                    RETURN image
+                    RETURN image, experience
                 ",
                 "RETURN [] as images",
-                {experienceId: $experienceId, imageFiles: coalesce($imageFiles,[])}
+                {experienceId: $experienceId, imageFiles: connectTo.addedImages}
             ) YIELD value
-            MATCH (expToUpdt: Experience{id:$experienceId})-[:HAS_IMAGE]->(img:Image)
-
-            RETURN collect(DISTINCT img) as images
+            REMOVE connectTo.addedImages
+            RETURN value.experience as experience, collect(DISTINCT value.image) as images
         `;
-        const params = { experienceId, imageFiles: imageFiles || [] };
+        const params = { experienceId };
+        let result: QueryResult;
+        if (transaction) {
+            result = await transaction.run(query, params);
+        } else {
+            result = await this.neo4jService.write(query, params);
+        }
 
-        return tx.run(query, params);
+        return {
+            createdImages: <ImageNode[]>(
+                result.records[0]
+                    .get("images")
+                    .map((image) => new ImageNode(image))
+            ),
+            experience: new ExperienceNode(result.records[0].get("experience"))
+        };
     }
 
     /**
@@ -96,8 +110,7 @@ export class ImageRepository {
      */
     async connectImagesToExperience(
         tx: ManagedTransaction,
-        experienceId: string,
-        imageIds: string[]
+        experienceId: string
     ) {
         const query = `
             MATCH (experience:Experience{id: $experienceId, isActive: true})
@@ -115,7 +128,7 @@ export class ImageRepository {
             ) YIELD value
             RETURN value.images as images
         `;
-        const params = { experienceId, imageIds: imageIds || [] };
+        const params = { experienceId };
         return tx.run(query, params);
     }
 

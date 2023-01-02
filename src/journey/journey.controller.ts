@@ -34,38 +34,37 @@ export class JourneyController {
     async findOne(@Param("journey") journey: string) {
         const result = await this.journeyService.findOne(journey);
 
-        //concatenate thumnails into one array
-        const thumbnails = result.thumbnails.reduce(
-            (acc, curr) => [...acc, ...curr],
-            []
-        );
-
         const journeyDto = transformJourneyToDto(
             result.journey,
             result.creator,
             result.thumbnail,
-            thumbnails,
+            result.thumbnails,
             result.experiencesCount
         );
         return journeyDto;
     }
 
     @HttpCode(201)
-    @UseGuards(FirebaseAuthGuard)
+    // @UseGuards(FirebaseAuthGuard)
     @Post()
     async createOne(@Body() journey: CreateJourneyDto, @Request() req) {
         const user = req.user as UserInfo;
-        const result = await this.journeyService.create(user.uid, journey);
-        const createdExps = result.experiences.created;
+        const result = await this.journeyService.createOne(
+            "CSbJn3yoxjQYKGn1C9m4AF0CsvU2",
+            journey
+        );
+        const createdExps = result.createdExperiences;
 
-        const thumbnails = createdExps.reduce((acc, curr) => {
-            if (curr.images) return [...acc, ...curr.images];
-        }, []);
+        const thumbnails = result.createdImages
+            .map((image) => image.images)
+            .reduce((curr, acc) => {
+                return [...curr, ...acc];
+            }, []);
 
-        const expDtos = transformExperiencesToDto(createdExps);
+        //const expDtos = transformExperiencesToDto(createdExps);
 
         let journeyDto = transformJourneyToDto(
-            result.journey,
+            result.createdJourney,
             result.creator,
             null,
             thumbnails,
@@ -74,9 +73,9 @@ export class JourneyController {
 
         journeyDto = {
             ...journeyDto,
-            experiencesAggregate: { count: createdExps.length },
-            thumbnails,
-            experiences: expDtos
+            experiencesAggregate: { count: createdExps.length }
+
+            //experiences: expDtos
         };
         return journeyDto;
     }

@@ -1,9 +1,11 @@
-import { ManagedTransaction, QueryResult } from "neo4j-driver";
+import { Integer, ManagedTransaction, QueryResult } from "neo4j-driver";
 import { Logger } from "@nestjs/common/services";
 import { Injectable } from "@nestjs/common/decorators";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
+import { JourneyNode } from "./entities/journey.entity";
+import { ImageNode } from "src/image/entities/image.entity";
 @Injectable()
 export class JourneyRepository {
     logger = new Logger(JourneyRepository.name);
@@ -14,16 +16,29 @@ export class JourneyRepository {
      * @param journey the id of the journey
      * @returns the following records [journey: JourneyNode, creator: string, count: number]
      */
-    get(journey: string): Promise<QueryResult> {
+    async get(journeyId: string) {
         const query = `
-            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey,isActive: true})
-            OPTIONAL MATCH (journey)-[expRel:EXPERIENCE]->(exp:Experience{isActive: true})
+            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journeyId,isActive: true})
+            OPTIONAL MATCH (journey)-[:EXPERIENCE]->(experience:Experience{isActive: true})
             OPTIONAL MATCH (journey)-[:HAS_IMAGE]->(thumbnail:Image{isActive: true})
             OPTIONAL MATCH (exp)-[:HAS_IMAGE]->(image:Image{isActive: true})
-            RETURN  journey, thumbnail, user.username AS creator, count(DISTINCT expRel) as count, collect(DISTINCT image) as thumbnails`;
-        const params = { journey };
+            RETURN  journey, thumbnail, user.username AS creator, count(DISTINCT experience) as expCount, collect(DISTINCT image) as thumbnails`;
+        const params = { journeyId };
 
-        return this.neo4jService.read(query, params);
+        const result = await this.neo4jService.read(query, params);
+        const journey = new JourneyNode(result.records[0].get("journey"));
+        const thumbnail = new ImageNode(result.records[0].get("thumbnail"));
+        const creator = result.records[0].get("creator") as string;
+        const expCount = result.records[0].get("expCount") as Integer;
+        const thumbnails = result.records[0].get("thumbnails") as ImageNode[];
+
+        return {
+            journey,
+            thumbnail,
+            creator,
+            expCount,
+            thumbnails
+        };
     }
 
     /**
@@ -34,9 +49,9 @@ export class JourneyRepository {
      */
     async create(
         user: string,
-        journey: CreateJourneyDto,
+        createJourney: CreateJourneyDto,
         transaction?: ManagedTransaction
-    ): Promise<QueryResult> {
+    ) {
         const createJourneyQuery = `
             MATCH(user:User{uid: $user})
                 MERGE (journey:Journey{
@@ -52,13 +67,21 @@ export class JourneyRepository {
                     updatedAt: datetime()
                 })<-[:CREATED]-(user)
         RETURN journey, user.username AS creator`;
-        const params = { user, journey };
-
+        const params = { user, journey: createJourney };
+        let queryResult;
         if (transaction) {
-            return transaction.run(createJourneyQuery, params);
+            queryResult = await transaction.run(createJourneyQuery, params);
         } else {
-            return this.neo4jService.write(createJourneyQuery, params);
+            queryResult = await this.neo4jService.write(
+                createJourneyQuery,
+                params
+            );
         }
+
+        const journey = new JourneyNode(queryResult.records[0].get("journey"));
+        const creator = queryResult.records[0].get("creator") as string;
+
+        return { journey, creator };
     }
 
     /**

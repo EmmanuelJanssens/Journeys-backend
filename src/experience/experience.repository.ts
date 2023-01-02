@@ -1,20 +1,22 @@
 import { Injectable } from "@nestjs/common";
 import { ManagedTransaction } from "neo4j-driver";
 import { Transaction } from "nest-neo4j/dist";
+import { PoiNode } from "src/point-of-interest/entities/point-of-interest.entity";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
+import { ExperienceNode } from "./entities/experience.entity";
 
 @Injectable()
 export class ExperienceRepository {
     constructor(private readonly neo4jService: Neo4jService) {}
 
     async create(
-        tx: ManagedTransaction | Transaction,
         userId: string,
         experience: CreateExperienceDto,
-        journeyId: string
+        journeyId: string,
+        transaction?: ManagedTransaction
     ) {
         const query = `
             MATCH (user:User {uid: $userId})-[:CREATED]->(journey:Journey{id: $journeyId})
@@ -26,6 +28,7 @@ export class ExperienceRepository {
                 description: coalesce($experience.description, ''),
                 date: coalesce($experience.date , datetime()),
                 isActive: true,
+                addedImages: $experience.addedImages,
                 createdAt: datetime(),
                 updatedAt: datetime()})
             MERGE (journey)-[:EXPERIENCE]->(experience)-[:FOR]->(poi)
@@ -36,7 +39,17 @@ export class ExperienceRepository {
             journeyId,
             experience
         };
-        return tx.run(query, params);
+        let result;
+        if (transaction) {
+            result = await transaction.run(query, params);
+        } else {
+            result = await this.neo4jService.write(query, params);
+        }
+
+        return {
+            experience: new ExperienceNode(result.records[0].get("experience")),
+            poi: new PoiNode(result.records[0].get("poi"))
+        };
     }
 
     /**

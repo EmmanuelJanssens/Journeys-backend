@@ -8,8 +8,8 @@ import {
     UseInterceptors
 } from "@nestjs/common";
 import { UserInfo } from "firebase-admin/lib/auth/user-record";
-import { ErrorsInterceptor } from "src/errors/errors-interceptor.interceptor";
-import { FirebaseAuthGuard } from "src/guard/firebase-auth.guard";
+import { ErrorsInterceptor } from "../errors/errors-interceptor.interceptor";
+import { FirebaseAuthGuard } from "../guard/firebase-auth.guard";
 import { ImageService } from "./image.service";
 
 @Controller("image")

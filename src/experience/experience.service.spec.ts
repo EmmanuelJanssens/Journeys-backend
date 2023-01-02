@@ -28,7 +28,7 @@ describe("ExperienceService", () => {
                 (tx, experienceId: string, imageFiles: string[]) => {
                     const records = imageFiles.map((file) => {
                         const record = new Record(
-                            ["image"],
+                            ["images"],
                             [
                                 new Node(new Integer(1), ["Image"], {
                                     id: "test-image-id",
@@ -79,14 +79,14 @@ describe("ExperienceService", () => {
                     title: "test-title",
                     description: "test-description",
                     date: "2022-01-01",
-                    images: ["img1", "img2", "img3"],
+                    addedImages: ["img1", "img2", "img3"],
                     poi: "test-poi-id"
                 },
                 {
                     title: "test-title",
                     description: "test-description",
                     date: "2022-01-01",
-                    images: ["img1", "img2"],
+                    addedImages: ["img1", "img2"],
                     poi: "test-poi-id2"
                 }
             ];

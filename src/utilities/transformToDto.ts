@@ -8,7 +8,7 @@ import { Tag } from "../tag/entities/tag.entity";
 import { Journey } from "../journey/entities/journey.entity";
 import { JourneyDto } from "../journey/dto/journey.dto";
 import { Image } from "../image/entities/image.entity";
-import { ImageDto } from "src/image/dto/image.dto";
+import { ImageDto } from "../image/dto/image.dto";
 
 export function transformExperienceToDto(
     experience: Experience,
@@ -22,13 +22,7 @@ export function transformExperienceToDto(
         id: experience.id,
         title: experience.title,
         description: experience.description,
-        images: imageDto.map((image) => {
-            return {
-                id: image.id,
-                original: image.original,
-                thumbnail: image.thumbnail
-            };
-        }),
+        images: imageDto.map((image) => ImageToDto(image)),
         date: new Date(experience.date).toISOString() as any,
         poi: poiDto,
         journey: journey ? journey.id : undefined
@@ -59,6 +53,14 @@ export function transformPoiToDto(
     return dto;
 }
 
+export function ImageToDto(image: Image): ImageDto {
+    if (!image) return null;
+    return {
+        id: image.id,
+        original: image.original,
+        thumbnail: image.thumbnail
+    };
+}
 export function PointToLocation(point: Point): Locality {
     return {
         latitude: point.y,
@@ -81,8 +83,8 @@ export function transformJourneyToDto(
         start: PointToLocation(journey.start as Point) as Locality,
         end: PointToLocation(journey.end as Point) as Locality,
         visibility: journey.visibility,
-        thumbnail: thumbnail,
-        thumbnails: thumbnails,
+        thumbnail: ImageToDto(thumbnail),
+        thumbnails: thumbnails.map((image) => ImageToDto(image)),
         creator: creator,
         experiencesAggregate: { count: experiencesCount.low },
         experiences: experiences
@@ -111,13 +113,7 @@ export function transformExperiencesToDto(
             id: exp.experience.id,
             title: exp.experience.title,
             description: exp.experience.description,
-            images: exp.images.map((image) => {
-                return <ImageDto>{
-                    id: image.id,
-                    original: image.original,
-                    thumbnail: image.thumbnail
-                };
-            }),
+            images: exp.images.map((image) => ImageToDto(image)),
             date: new Date(exp.experience.date).toISOString() as any,
             poi: poiDto as PointOfInterestDto
         };

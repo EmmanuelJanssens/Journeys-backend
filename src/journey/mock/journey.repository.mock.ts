@@ -9,7 +9,6 @@ export const mockJourney = (id: string) => {
         id: id,
         title: "title",
         description: "description",
-        thumbnail: "thumbnail",
         start: new Point(new Integer(4326), 0, 0),
         end: new Point(new Integer(4326), 0, 0),
         visibility: "public"
@@ -33,18 +32,20 @@ export const mockJourneyWithExperience = (id: string) => {
 export class JourneyRepositoryMock {
     public get = jest.fn((journey: string): Promise<any> => {
         const record = new Record(
-            ["journey", "count", "thumbnails", "creator"],
+            ["journey", "count", "thumbnail", "thumbnails", "creator"],
             [
                 new Node(new Integer(1), ["Journey"], mockJourney(journey)),
                 10,
+                "thumbnail",
                 [["thumbnail"], []],
                 "test-user"
             ],
             {
                 journey: 0,
                 count: 1,
-                thumbnails: 2,
-                creator: 3
+                thumbnail: 2,
+                thumbnails: 3,
+                creator: 4
             }
         );
         const res = {
@@ -104,14 +105,16 @@ export class JourneyRepositoryMock {
                     thumbnail: journey.thumbnail
                 }),
                 10,
+                "thumbnail",
                 [["thumbnail"], []],
                 user
             ],
             {
                 journey: 0,
                 count: 1,
-                thumbnails: 2,
-                creator: 3
+                thumbnail: 2,
+                thumbnails: 3,
+                creator: 4
             }
         );
         const res = {
