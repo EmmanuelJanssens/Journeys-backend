@@ -138,23 +138,4 @@ export class JourneyController {
         };
         return journeyDto;
     }
-
-    //TODO move to experience controller
-    // @UseGuards(FirebaseAuthGuard)
-    // @Patch(":journey/experience/:poi/image")
-    // async updateExperienceImage(
-    //     @Param("journey") journey: string,
-    //     @Param("poi") poi: string,
-    //     @Body() image: { url: string },
-    //     @Request() req
-    // ) {
-    //     const user = req.user as UserInfo;
-    //     const result = await this.journeyService.pushImageToExperience(
-    //         user.uid,
-    //         journey,
-    //         poi,
-    //         image.url
-    //     );
-    //     return result;
-    // }
 }

@@ -218,27 +218,4 @@ export class JourneyService {
         const result = await this.journeyRepository.delete(user, journey);
         return result;
     }
-
-    /**
-     * push an image to the images array of an experience
-     * @param user the user uid that created the journey
-     * @param journey the journey id
-     * @param poi the poi id
-     * @param image the image to push
-     * @returns the updated experience
-     * */
-    async pushImageToExperience(
-        user: string,
-        journey: string,
-        poi: string,
-        image: string
-    ) {
-        const queryResult = await this.journeyRepository.pushImage(
-            user,
-            journey,
-            poi,
-            image
-        );
-        return queryResult.records[0].get("experience").properties;
-    }
 }

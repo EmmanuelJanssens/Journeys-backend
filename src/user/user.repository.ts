@@ -15,10 +15,10 @@ export class UserRepository {
     findOne(uid: string) {
         const query = `
             MATCH(user:User{uid:$uid})
-                OPTIONAL MATCH(user)-[j:CREATED]->(journey:Journey)
-                OPTIONAL MATCH(journey)-[e:EXPERIENCE]->(:POI)
+                OPTIONAL MATCH(user)-[j:CREATED]->(journey:Journey{isActive:true})
+                OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED|EXPERIENCE*0..2]->(experience:Experience{isActive:true})
                 OPTIONAL MATCH(user)-[p:CREATED]->(:POI)
-            RETURN user, count(distinct j) as journeys, count(distinct p) as pois, count(distinct e) as exps
+            RETURN user, count(distinct j) as journeyCount, count(distinct p) as poiCount, count(distinct experience) as experienceCount
         `;
         const params = { uid };
         return this.neo4jService.read(query, params);
@@ -59,7 +59,8 @@ export class UserRepository {
             SET user.username = newUser.username,
                 user.lastname = newUser.lastname,
                 user.firstname = newUser.firstname,
-                user.visibility = newUser.visibility
+                user.visibility = newUser.visibility,
+                user.updatedAt = datetime()
             RETURN user
         `;
         const params = { user, uid };
@@ -75,8 +76,8 @@ export class UserRepository {
      */
     getJourneys(uid: string, skip: Integer, limit: Integer) {
         const query = `
-            OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED]->(journey:Journey)-[:EXPERIENCE]->(exp:Experience)-[:HAS_IMAGE]->(image:Image)
-            OPTIONAL MATCH(journey)-[:HAS_IMAGE]->(thumbnail:Image)
+            OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED]->(journey:Journey{isActive: true})-[:EXPERIENCE]->(exp:Experience{isActive:true})-[:HAS_IMAGE]->(image:Image{isActive:true})
+            OPTIONAL MATCH(journey)-[:HAS_IMAGE]->(thumbnail:Image{isActive:true})
             RETURN  user, journey,thumbnail, count( exp) as expCount, collect(DISTINCT image) as thumbnails SKIP $skip*$limit LIMIT $limit
                     `;
         const params = { uid, skip, limit };
@@ -93,7 +94,7 @@ export class UserRepository {
     getPois(uid: string, skip: Integer, limit: Integer) {
         const query = `
             OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED]->(poi:POI)
-            OPTIONAL MATCH(poi)<-[exps:EXPERIENCE]-(journey:Journey)
+            OPTIONAL MATCH(poi)<-[exps:EXPERIENCE]-(journey:Journey{isActive:true})
             RETURN poi, count(distinct exps) as expCount SKIP $skip*$limit LIMIT $limit
         `;
         const params = { uid, skip, limit };
@@ -106,7 +107,7 @@ export class UserRepository {
      */
     getExperiences(uid: string) {
         const query = `
-            OPTIONAL MATCH(user:User{uid:$uid})-[:(CREATED|EXPERIENCE0..2)]->(experience:Experience)
+            OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED|EXPERIENCE*0..2]->(experience:Experience{isActive:true})
             RETURN experience
             `;
         const params = { uid };

@@ -26,7 +26,10 @@ export class ImageRepository {
                     CREATE (image:Image {
                         id: apoc.create.uuid(),
                         original: file,
-                        thumbnail: file
+                        thumbnail: file,
+                        isActive: true,
+                        createdAt: datetime(),
+                        updatedAt: datetime()
                     })
                     MERGE (image)<-[:HAS_IMAGE]-(experience)
                     RETURN image
@@ -56,11 +59,11 @@ export class ImageRepository {
         imageId: string
     ) {
         const query = `
-            OPTIONAL MATCH (journey:Journey{id: $journeyId})-[r:HAS_IMAGE]->(thumbnail:Image)
+            OPTIONAL MATCH (journey:Journey{id: $journeyId})-[r:HAS_IMAGE]->(thumbnail:Imagee{isActive: true})
             DELETE r
             WITH r
-            MATCH (jou:Journey{id: $journeyId})
-            MATCH (image:Image{id: $imageId})
+            MATCH (jou:Journey{id: $journeyId, isActive: true})
+            MATCH (image:Image{id: $imageId, isActive: true})
             MERGE (image)<-[:HAS_IMAGE]-(jou)
             RETURN image as thumbnail
         `;
@@ -74,7 +77,7 @@ export class ImageRepository {
         imageId: string
     ) {
         const query = `
-            MATCH (image:Image{id: $imageId}) <- [ img: HAS_IMAGE ] - (journey:Journey{id: $journeyId})
+            MATCH (image:Image{id: $imageId,isActive:true}) <- [ img: HAS_IMAGE ] - (journey:Journey{id: $journeyId,isActive:true})
             DELETE img
             WITH imgage
             RETURN image
@@ -97,13 +100,13 @@ export class ImageRepository {
         imageIds: string[]
     ) {
         const query = `
-            MATCH (experience:Experience{id: $experienceId})
+            MATCH (experience:Experience{id: $experienceId, isActive: true})
             WITH experience
             CALL apoc.do.when(
                 size($imageIds) > 0,
                 "
                     UNWIND $imageIds AS imageId
-                        MATCH (image:Image{id: imageId})
+                        MATCH (image:Image{id: imageId, isActive: true})
                         MERGE (image)<-[:HAS_IMAGE]-(experience)
                     RETURN collect(image) as images
                 ",
@@ -122,13 +125,13 @@ export class ImageRepository {
         imageIds: string[]
     ) {
         const query = `
-            MATCH (experience:Experience{id: $experienceId})
+            MATCH (experience:Experience{id: $experienceId, isActive: true})
             WITH experience
             CALL apoc.do.when(
                 size($imageIds) > 0,
                 "
                     UNWIND imageIds AS imageId
-                        MATCH (image:Image{id: imageId})<-[:HAS_IMAGE]-(experience)
+                        MATCH (image:Image{id: imageId,isActive: true})<-[:HAS_IMAGE]-(experience)
                         DETACH DELETE image
                         WITH imageId
                         RETURN collect(imageId) as deleted
@@ -159,7 +162,7 @@ export class ImageRepository {
         }
     ) {
         const query = `
-            MATCH (image: Image {id: $id})<-[*0..3]-(:User{uid: $userId})
+            MATCH (image: Image {id: $id,isActive:true})<-[*0..3]-(:User{uid: $userId})
             SET image.original = $image.original,
                 image.thumbnail = $image.thumbnail
             RETURN image

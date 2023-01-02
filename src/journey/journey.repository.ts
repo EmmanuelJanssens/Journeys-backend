@@ -16,10 +16,9 @@ export class JourneyRepository {
      */
     get(journey: string): Promise<QueryResult> {
         const query = `
-            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey})-[expRel:EXPERIENCE]->(exp:Experience)
+            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey,isActive: true})-[expRel:EXPERIENCE]->(exp:Experience{isActive: true})
             OPTIONAL MATCH(exp)-[:HAS_IMAGE]->(image:Image)
             OPTIONAL MATCH(journey)-[:HAS_IMAGE]->(thumbnail:Image)
-            WHERE journey.isActive = true
             RETURN  journey, thumbnail, user.username AS creator, count(DISTINCT expRel) as count, collect(DISTINCT image) as thumbnails`;
         const params = { journey };
 
@@ -74,7 +73,7 @@ export class JourneyRepository {
     ): Promise<QueryResult> {
         const query = `
             UNWIND $journey as updated
-            OPTIONAL MATCH (exp:Experience)<-[expRel:EXPERIENCE]-(journey:Journey{id: updated.id})<-[:CREATED]-(user: User{uid: $user})
+            OPTIONAL MATCH (exp:Experiencee{isActive: true})<-[expRel:EXPERIENCE]-(journey:Journey{id: updated.id,isActive: true})<-[:CREATED]-(user: User{uid: $user})
             SET journey.title = updated.title,
                 journey.description = updated.description,
                 journey.visibility = updated.visibility,
@@ -99,9 +98,10 @@ export class JourneyRepository {
      */
     async delete(user: string, journey: string): Promise<QueryResult> {
         const delExpRelationQuery = `
-            MATCH (journey: Journey{id: $journey})<-[:CREATED]-(user: User{uid: $user})
+            MATCH (r)<-[:EXPERIENCE|HAS_IMAGE*0..2]-(journey: Journey{id: $journey,isActive: true})<-[:CREATED]-(user: User{uid: $user})
             SET journey.isActive = false,
-                journey.updatedAt = datetime()
+                journey.updatedAt = datetime(),
+                r.isActive = false
             RETURN journey.id as journey
         `;
         const params = { user, journey };
@@ -114,7 +114,7 @@ export class JourneyRepository {
      */
     async getExperiences(journeyId: string) {
         const query = `
-                MATCH (user: User)-[:CREATED]->(journey:Journey {id: $journeyId})-[:EXPERIENCE]->(experience:Experience)-[:FOR]->(poi:POI)
+                MATCH (user: User)-[:CREATED]->(journey:Journey {id: $journeyId,isActive: true})-[:EXPERIENCE]->(experience:Experience{isActive:true})-[:FOR]->(poi:POI)
                 WHERE journey.isActive = true
                 RETURN journey,experience, poi, user.username as creator
             `;
@@ -122,28 +122,5 @@ export class JourneyRepository {
             journeyId
         };
         return await this.neo4jService.read(query, params);
-    }
-
-    /**
-     * push an image to an experience
-     * @param user user uid who created the journey
-     * @param journey journey id to which the experience belongs
-     * @param poi poi id to which the experience belongs
-     * @param image image url to push
-     * @returns the updated experience
-     */
-    async pushImage(
-        user: string,
-        journey: string,
-        poi: string,
-        image: string
-    ): Promise<QueryResult> {
-        const query = `
-            MATCH (user:User{uid:$user})-[:CREATED]->(journey:Journey{id:$journey})-[experience:EXPERIENCE]->(poi: POI{id:$poi})
-            SET experience.images = coalesce(experience.images, []) + $image
-            RETURN experience
-        `;
-        const params = { user, journey, poi, image };
-        return this.neo4jService.write(query, params);
     }
 }

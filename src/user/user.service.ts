@@ -149,13 +149,13 @@ export class UserService {
         const userNode = new UserNode(records.get("user"), [], []);
         const foundUser = userNode.getProperties() as UserDto;
         foundUser.journeysAggregate = {
-            count: records.get("journeys").low
+            count: records.get("journeyCount").low
         };
         foundUser.poisAggregate = {
-            count: records.get("pois").low
+            count: records.get("poiCount").low
         };
         foundUser.experiencesAggregate = {
-            count: records.get("exps").low
+            count: records.get("experienceCount").low
         };
         return foundUser;
     }
