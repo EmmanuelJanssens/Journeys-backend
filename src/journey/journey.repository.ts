@@ -1,4 +1,4 @@
-import { QueryResult } from "neo4j-driver";
+import { ManagedTransaction, QueryResult } from "neo4j-driver";
 import { Logger } from "@nestjs/common/services";
 import { Injectable } from "@nestjs/common/decorators";
 import { Neo4jService } from "../neo4j/neo4j.service";
@@ -16,9 +16,11 @@ export class JourneyRepository {
      */
     get(journey: string): Promise<QueryResult> {
         const query = `
-            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey})-[expRel:EXPERIENCE]->(exp    :Experience)
+            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey})-[expRel:EXPERIENCE]->(exp:Experience)
+            OPTIONAL MATCH(exp)-[:HAS_IMAGE]->(image:Image)
+            OPTIONAL MATCH(journey)-[:HAS_IMAGE]->(thumbnail:Image)
             WHERE journey.isActive = true
-            RETURN journey, user.username AS creator, count(DISTINCT expRel) as count, collect(DISTINCT exp.images) as thumbnails`;
+            RETURN  journey, thumbnail, user.username AS creator, count(DISTINCT expRel) as count, collect(DISTINCT image) as thumbnails`;
         const params = { journey };
 
         return this.neo4jService.read(query, params);
@@ -32,7 +34,8 @@ export class JourneyRepository {
      */
     async create(
         user: string,
-        journey: CreateJourneyDto
+        journey: CreateJourneyDto,
+        transaction?: ManagedTransaction
     ): Promise<QueryResult> {
         const createJourneyQuery = `
             MATCH(user:User{uid: $user})
@@ -50,7 +53,12 @@ export class JourneyRepository {
                 })<-[:CREATED]-(user)
         RETURN journey, user.username AS creator`;
         const params = { user, journey };
-        return this.neo4jService.write(createJourneyQuery, params);
+
+        if (transaction) {
+            return transaction.run(createJourneyQuery, params);
+        } else {
+            return this.neo4jService.write(createJourneyQuery, params);
+        }
     }
 
     /**
@@ -59,22 +67,28 @@ export class JourneyRepository {
      * @param journey  the journey to update with its id
      * @returns  the updated journey with its experiences
      */
-    update(user: string, journey: UpdateJourneyDto): Promise<QueryResult> {
+    update(
+        user: string,
+        journey: UpdateJourneyDto,
+        transaction?: ManagedTransaction
+    ): Promise<QueryResult> {
         const query = `
             UNWIND $journey as updated
             OPTIONAL MATCH (exp:Experience)<-[expRel:EXPERIENCE]-(journey:Journey{id: updated.id})<-[:CREATED]-(user: User{uid: $user})
-                SET journey.title = updated.title,
-                 journey.description = updated.description,
-                 journey.thumbnail = updated.thumbnail,
-                 journey.visibility = updated.visibility
-                 journey.updatedAt = datetime()
+            SET journey.title = updated.title,
+                journey.description = updated.description,
+                journey.visibility = updated.visibility,
+                journey.updatedAt = datetime()
             RETURN journey,  collect(DISTINCT exp.images) as thumbnails, count(DISTINCT expRel) as count, user.username AS creator
     `;
 
-        return this.neo4jService.write(query, {
-            journey,
-            user
-        });
+        const params = { user, journey };
+
+        if (transaction) {
+            return transaction.run(query, params);
+        } else {
+            return this.neo4jService.write(query, params);
+        }
     }
 
     /**

@@ -75,9 +75,9 @@ export class UserRepository {
      */
     getJourneys(uid: string, skip: Integer, limit: Integer) {
         const query = `
-            OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED]->(journey:Journey)
-            OPTIONAL MATCH(journey)-[exps:EXPERIENCE]-(:POI)
-            RETURN  user, journey, count( exps) as expCount, collect(exps.images) as thumbnails SKIP $skip*$limit LIMIT $limit
+            OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED]->(journey:Journey)-[:EXPERIENCE]->(exp:Experience)-[:HAS_IMAGE]->(image:Image)
+            OPTIONAL MATCH(journey)-[:HAS_IMAGE]->(thumbnail:Image)
+            RETURN  user, journey,thumbnail, count( exp) as expCount, collect(DISTINCT image) as thumbnails SKIP $skip*$limit LIMIT $limit
                     `;
         const params = { uid, skip, limit };
         return this.neo4jService.read(query, params);

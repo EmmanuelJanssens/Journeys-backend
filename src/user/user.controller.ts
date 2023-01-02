@@ -79,6 +79,7 @@ export class UserController {
             const transformed = transformJourneyToDto(
                 journey.journey,
                 user.uid,
+                journey.thumbnail,
                 thumbnails,
                 journey.expCount,
                 []

@@ -69,7 +69,8 @@ export function PointToLocation(point: Point): Locality {
 export function transformJourneyToDto(
     journey: Journey,
     creator: string,
-    thumbnails: string[],
+    thumbnail: Image,
+    thumbnails: Image[],
     experiencesCount: Integer,
     experiences?: Experience[]
 ) {
@@ -80,7 +81,7 @@ export function transformJourneyToDto(
         start: PointToLocation(journey.start as Point) as Locality,
         end: PointToLocation(journey.end as Point) as Locality,
         visibility: journey.visibility,
-        thumbnail: journey.thumbnail,
+        thumbnail: thumbnail,
         thumbnails: thumbnails,
         creator: creator,
         experiencesAggregate: { count: experiencesCount.low },

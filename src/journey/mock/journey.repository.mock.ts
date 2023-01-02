@@ -94,7 +94,7 @@ export class JourneyRepositoryMock {
         const record = new Record(
             ["journey", "count", "thumbnails", "creator"],
             [
-                new Node(new Integer(1), ["Journey"], <Journey>{
+                new Node(new Integer(1), ["Journey"], {
                     id: journey.id,
                     description: journey.description,
                     title: journey.title,

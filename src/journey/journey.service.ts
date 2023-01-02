@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { JourneyRepository } from "./journey.repository";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
@@ -15,15 +15,19 @@ import {
 import { Integer } from "neo4j-driver";
 import { NotFoundError } from "../errors/Errors";
 import { BatchUpdateExperienceDto } from "../experience/dto/batch-update-experience.dto";
-import { ExperienceRepository } from "src/experience/experience.repository";
-import { Image } from "src/image/entities/image.entity";
+import { ExperienceRepository } from "../experience/experience.repository";
+import { Image, ImageNode } from "../image/entities/image.entity";
+import { ImageRepository } from "../image/image.repository";
+import { Neo4jService } from "src/neo4j/neo4j.service";
 
 @Injectable()
 export class JourneyService {
     constructor(
         private journeyRepository: JourneyRepository,
         private experienceRepository: ExperienceRepository,
-        private experienceService: ExperienceService
+        private imageRepository: ImageRepository,
+        private experienceService: ExperienceService,
+        private neo4jService: Neo4jService
     ) {}
 
     getRepository() {
@@ -39,6 +43,7 @@ export class JourneyService {
         journey: Journey;
         experiencesCount: Integer;
         thumbnails: string[];
+        thumbnail: Image;
         creator: string;
     }> {
         const queryResult = await this.journeyRepository.get(id);
@@ -52,6 +57,10 @@ export class JourneyService {
             []
         );
 
+        let thumbnail = null;
+        if (queryResult.records[0].get("thumbnail"))
+            thumbnail = new ImageNode(queryResult.records[0].get("thumbnail"))
+                .properties;
         //build journey
         const journey = journeyNode.properties;
 
@@ -62,6 +71,7 @@ export class JourneyService {
         return {
             journey,
             experiencesCount,
+            thumbnail,
             thumbnails,
             creator
         };
@@ -86,7 +96,7 @@ export class JourneyService {
             journey_id
         );
 
-        const experiences = queryResult.records.map((record, idx) => {
+        const experiences = queryResult.records.map((record) => {
             return {
                 experience: new ExperienceNode(record.get("experience"))
                     .properties as Experience,
@@ -150,24 +160,52 @@ export class JourneyService {
         const found = await this.findOne(journey.id);
         journey.description = journey.description || found.journey.description;
         journey.title = journey.title || found.journey.title;
-        journey.thumbnail = journey.thumbnail || found.journey.thumbnail;
         journey.visibility = journey.visibility || found.journey.visibility;
 
-        const queryResult = await this.journeyRepository.update(user, journey);
-        const journeyNode = new JourneyNode(
-            queryResult.records[0].get("journey"),
-            []
-        );
-        const updatedJourney = journeyNode.properties;
-        const thumbnails = queryResult.records[0].get("thumbnails");
-        const experienceCount = queryResult.records[0].get("count");
-        const creator = queryResult.records[0].get("creator");
-        return {
-            journey: updatedJourney,
-            thumbnails: thumbnails,
-            experiencesCount: experienceCount,
-            creator: creator
-        };
+        const session = this.neo4jService.getWriteSession();
+        return session
+            .executeWrite(async (tx) => {
+                const queryResult = await this.journeyRepository.update(
+                    user,
+                    journey,
+                    tx
+                );
+                const journeyNode = new JourneyNode(
+                    queryResult.records[0].get("journey"),
+                    []
+                );
+                const updatedJourney = journeyNode.properties;
+                const thumbnails = queryResult.records[0].get("thumbnails");
+                const experienceCount = queryResult.records[0].get("count");
+                const creator = queryResult.records[0].get("creator");
+
+                //only update if the thumbnail is different
+                const thumbnailResult =
+                    await this.imageRepository.connectImageToJourney(
+                        tx,
+                        journey.id,
+                        journey.thumbnail
+                    );
+                let thumbnail;
+                if (thumbnailResult.records.length === 0)
+                    thumbnail = found.thumbnail;
+                else
+                    thumbnail = new ImageNode(
+                        thumbnailResult.records[0].get("thumbnail")
+                    ).properties;
+
+                return {
+                    journey: updatedJourney,
+                    thumbnail: thumbnail,
+                    thumbnails: thumbnails,
+                    experiencesCount: experienceCount,
+                    creator: creator
+                };
+            })
+            .catch((err) => {
+                Logger.debug(err.message);
+                throw err;
+            });
     }
 
     /**

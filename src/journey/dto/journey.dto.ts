@@ -3,6 +3,7 @@ import { IsArray, IsNotEmpty } from "class-validator";
 import { ExperienceDto } from "../../experience/dto/experience.dto";
 import { Journey } from "../entities/journey.entity";
 import { PartialType } from "@nestjs/mapped-types";
+import { Image } from "src/image/entities/image.entity";
 export class JourneyDto extends PartialType(Journey) {
     @ApiProperty()
     @IsNotEmpty()
@@ -18,5 +19,8 @@ export class JourneyDto extends PartialType(Journey) {
 
     @ApiProperty()
     @IsArray()
-    thumbnails?: string[];
+    thumbnails?: Image[];
+
+    @ApiProperty()
+    thumbnail?: Image;
 }

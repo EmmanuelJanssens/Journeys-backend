@@ -34,7 +34,9 @@ export class ImageRepository {
                 "RETURN [] as images",
                 {experienceId: $experienceId, imageFiles: coalesce($imageFiles,[])}
             ) YIELD value
-            RETURN collect(value.image) as images
+            MATCH (expToUpdt: Experience{id:$experienceId})-[:HAS_IMAGE]->(img:Image)
+
+            RETURN collect(DISTINCT img) as images
         `;
         const params = { experienceId, imageFiles: imageFiles || [] };
 
@@ -54,11 +56,13 @@ export class ImageRepository {
         imageId: string
     ) {
         const query = `
-            MATCH (journey:Journey{id: $journeyId})
-            WITH journey
+            OPTIONAL MATCH (journey:Journey{id: $journeyId})-[r:HAS_IMAGE]->(thumbnail:Image)
+            DELETE r
+            WITH r
+            MATCH (jou:Journey{id: $journeyId})
             MATCH (image:Image{id: $imageId})
-            MERGE (image)<-[:HAS_IMAGE]-(journey)
-            RETURN image
+            MERGE (image)<-[:HAS_IMAGE]-(jou)
+            RETURN image as thumbnail
         `;
         const params = { journeyId, imageId };
         return tx.run(query, params);

@@ -5,7 +5,6 @@ import { Point } from "neo4j-driver-core";
 import { Relationship } from "neo4j-driver-core";
 import { Entity } from "../../utilities/BaseEntity";
 import { Locality } from "../../utilities/Locality";
-
 export class JourneyNode {
     constructor(
         private readonly node: Node,
@@ -25,9 +24,7 @@ export class JourneyNode {
     get description(): string {
         return this.properties.description;
     }
-    get thumbnail(): string {
-        return this.properties.thumbnail;
-    }
+
     get visibility(): string {
         return this.properties.visibility;
     }
@@ -57,10 +54,6 @@ export class Journey extends Entity {
     @ApiProperty()
     @IsString()
     description: string;
-
-    @ApiProperty()
-    @IsNotEmpty()
-    thumbnail: string;
 
     @ApiProperty()
     @IsNotEmpty()

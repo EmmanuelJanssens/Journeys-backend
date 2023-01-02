@@ -43,6 +43,7 @@ export class JourneyController {
         const journeyDto = transformJourneyToDto(
             result.journey,
             result.creator,
+            result.thumbnail,
             thumbnails,
             result.experiencesCount
         );
@@ -66,6 +67,7 @@ export class JourneyController {
         let journeyDto = transformJourneyToDto(
             result.journey,
             result.creator,
+            null,
             thumbnails,
             new Integer(createdExps.length)
         );
@@ -95,6 +97,7 @@ export class JourneyController {
         const journeyDto = transformJourneyToDto(
             result.journey,
             result.creator,
+            result.thumbnail,
             thumbnails,
             result.experiencesCount
         );
@@ -122,6 +125,7 @@ export class JourneyController {
         let journeyDto = transformJourneyToDto(
             result.journey,
             result.creator,
+            null,
             thumbnails,
             new Integer(result.experiences.length)
         );

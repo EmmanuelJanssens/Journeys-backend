@@ -14,6 +14,8 @@ import { UserDto } from "./dto/user-dto";
 import { UserNode } from "./entities/user.entity";
 import { UserRepository } from "./user.repository";
 import { PointToLocation } from "../utilities/transformToDto";
+import { ImageNode, Image } from "../image/entities/image.entity";
+
 @Injectable()
 export class UserService {
     constructor(private readonly userRepository: UserRepository) {}
@@ -113,18 +115,26 @@ export class UserService {
         );
         const userJourneys: {
             journey: Journey;
-            thumbnails: string[][];
+            thumbnail: Image;
+            thumbnails: Image[][];
             expCount: Integer;
         }[] = [];
         queryResult.records.forEach((record) => {
             if (record.get("journey") != null) {
                 const journeyNode = new JourneyNode(record.get("journey"), []);
                 const journey = journeyNode.properties;
-                const thumbnails = record.get("thumbnails") as string[][];
+                let thumbnail = null;
+                if (record.get("thumbnail") != null)
+                    thumbnail = new ImageNode(record.get("thumbnail"))
+                        .properties;
+                const thumbnails = record
+                    .get("thumbnails")
+                    .map((img) => new ImageNode(img).properties);
                 const expCount = record.get("expCount").low as Integer;
 
                 userJourneys.push({
                     journey,
+                    thumbnail,
                     thumbnails,
                     expCount
                 });

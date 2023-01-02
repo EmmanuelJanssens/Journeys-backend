@@ -116,16 +116,15 @@ export class ExperienceService {
                     experience.addedImages
                 );
 
-            if (
-                experience.images &&
-                experience.images.length !== imagesAdded.records.length
-            )
-                throw new Error("Images not created");
+            // if (
+            //     experience.images &&
+            //     experience.images.length !== imagesAdded.records.length
+            // )
+            //     throw new Error("Images not created");
             let images = [];
-            if (experience.images)
-                images = imagesAdded.records.map((img) => {
-                    return new ImageNode(img.get("image")).properties;
-                });
+            images = imagesAdded.records[0].get("images").map((img) => {
+                return new ImageNode(img).properties;
+            });
             if (experience.removedImages && experience.removedImages.length > 0)
                 await this.imageRepository.disconnectImagesFromExperience(
                     tx,
