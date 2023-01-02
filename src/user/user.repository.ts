@@ -76,7 +76,8 @@ export class UserRepository {
      */
     getJourneys(uid: string, skip: Integer, limit: Integer) {
         const query = `
-            OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED]->(journey:Journey{isActive: true})-[:EXPERIENCE]->(exp:Experience{isActive:true})
+            OPTIONAL MATCH(user:User{uid:$uid})-[:CREATED]->(journey:Journey{isActive: true})
+            OPTIONAL MATCH(journey)-[:EXPERIENCE]->(exp:Experience{isActive:true})
             OPTIONAL MATCH(journey)-[:HAS_IMAGE]->(thumbnail:Image{isActive:true})
             OPTIONAL MATCH(exp)-[:HAS_IMAGE]->(image:Image{isActive:true})
             RETURN  journey,thumbnail, count( exp) as expCount, collect(DISTINCT image) as thumbnails SKIP $skip*$limit LIMIT $limit

@@ -59,7 +59,7 @@ export class ImageRepository {
         imageId: string
     ) {
         const query = `
-            OPTIONAL MATCH (journey:Journey{id: $journeyId})-[r:HAS_IMAGE]->(thumbnail:Imagee{isActive: true})
+            OPTIONAL MATCH (journey:Journey{id: $journeyId})-[r:HAS_IMAGE]->(thumbnail:Image)
             DELETE r
             WITH r
             MATCH (jou:Journey{id: $journeyId, isActive: true})

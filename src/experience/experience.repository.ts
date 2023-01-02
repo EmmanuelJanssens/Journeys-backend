@@ -68,42 +68,23 @@ export class ExperienceRepository {
         return tx.run(query, param);
     }
 
-    async delete2(
+    async delete(
         tx: ManagedTransaction | Transaction,
         userId: string,
         experienceId: string
     ) {
         const query = `
-        MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id : $experienceId})
+        OPTIONAL MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id : $experienceId})-[:HAS_IMAGE*0..1]->(end)
         WHERE experience.isActive = true
         SET experience.isActive = false,
-            experience.updatedAt = datetime()
-        RETURN experience
+            end.isActive = false
+        RETURN DISTINCT experience
         `;
         const param = {
             userId,
             experienceId
         };
         return tx.run(query, param);
-    }
-
-    /**
-     * delete an experience
-     * @param userId the user who deletes the experience
-     * @param experienceId the experience to be deleted
-     */
-    async delete(userId: string, experienceId: string) {
-        const query = `
-            MATCH(user:User {uid: $userId})-[:CREATED | EXPERIENCE*0..2]-(experience:Experience{id: $experienceId})
-            WHERE experience.isActive = true
-            SET experience.isActive = false
-            RETURN experience.id as experience
-        `;
-        const params = {
-            userId,
-            experienceId
-        };
-        return await this.neo4jService.write(query, params);
     }
 
     /**
@@ -132,7 +113,7 @@ export class ExperienceRepository {
      */
     async findManyByJourneyId(journeyId: string) {
         const query = `
-            OPTIONAL MATCH(journey:Journey{id: $journeyId})-[:EXPERIENCE]->(experience:Experience)-[:FOR]->(poi:POI)
+            OPTIONAL MATCH(journey:Journey{id: $journeyId})-[:EXPERIENCE]->(experience:Experience{isActive:true})-[:FOR]->(poi:POI)
             OPTIONAL MATCH (img:Image{isActive:true})<-[:HAS_IMAGE]-(experience)
             WHERE experience.isActive = true
             RETURN experience, collect(img) as images, poi

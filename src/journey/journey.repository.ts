@@ -16,9 +16,10 @@ export class JourneyRepository {
      */
     get(journey: string): Promise<QueryResult> {
         const query = `
-            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey,isActive: true})-[expRel:EXPERIENCE]->(exp:Experience{isActive: true})
-            OPTIONAL MATCH(exp)-[:HAS_IMAGE]->(image:Image)
-            OPTIONAL MATCH(journey)-[:HAS_IMAGE]->(thumbnail:Image)
+            OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journey,isActive: true})
+            OPTIONAL MATCH (journey)-[expRel:EXPERIENCE]->(exp:Experience{isActive: true})
+            OPTIONAL MATCH (journey)-[:HAS_IMAGE]->(thumbnail:Image{isActive: true})
+            OPTIONAL MATCH (exp)-[:HAS_IMAGE]->(image:Image{isActive: true})
             RETURN  journey, thumbnail, user.username AS creator, count(DISTINCT expRel) as count, collect(DISTINCT image) as thumbnails`;
         const params = { journey };
 

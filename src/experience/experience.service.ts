@@ -141,7 +141,7 @@ export class ExperienceService {
 
     async delete(tx, userId: string, toDelete: string[]) {
         const deleted = await toDelete.map(async (experienceId) => {
-            const deletedExps = await this.experienceRepository.delete2(
+            const deletedExps = await this.experienceRepository.delete(
                 tx,
                 userId,
                 experienceId

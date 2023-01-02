@@ -96,16 +96,19 @@ export class JourneyService {
             journey_id
         );
 
-        const experiences = queryResult.records.map((record) => {
-            return {
-                experience: new ExperienceNode(record.get("experience"))
-                    .properties as Experience,
-                images: record.get("images").map((imgRec) => {
-                    return imgRec.properties;
-                }),
-                poi: new PoiNode(record.get("poi")).properties
-            };
-        });
+        const experiences = queryResult.records
+            .map((record) => {
+                if (record.get("experience") !== null)
+                    return {
+                        experience: new ExperienceNode(record.get("experience"))
+                            .properties as Experience,
+                        images: record.get("images").map((imgRec) => {
+                            return imgRec.properties;
+                        }),
+                        poi: new PoiNode(record.get("poi")).properties
+                    };
+            })
+            .filter((exp) => exp !== undefined);
 
         return {
             ...journey,
