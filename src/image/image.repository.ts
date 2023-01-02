@@ -132,8 +132,7 @@ export class ImageRepository {
                 "
                     UNWIND imageIds AS imageId
                         MATCH (image:Image{id: imageId,isActive: true})<-[:HAS_IMAGE]-(experience)
-                        DETACH DELETE image
-                        WITH imageId
+                        SET image.isActive = false
                         RETURN collect(imageId) as deleted
                 ",
                 "RETURN []",

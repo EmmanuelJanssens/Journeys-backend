@@ -133,7 +133,7 @@ export class ExperienceRepository {
     async findManyByJourneyId(journeyId: string) {
         const query = `
             OPTIONAL MATCH(journey:Journey{id: $journeyId})-[:EXPERIENCE]->(experience:Experience)-[:FOR]->(poi:POI)
-            OPTIONAL MATCH (img:Image)<-[:HAS_IMAGE]-(experience)
+            OPTIONAL MATCH (img:Image{isActive:true})<-[:HAS_IMAGE]-(experience)
             WHERE experience.isActive = true
             RETURN experience, collect(img) as images, poi
         `;
