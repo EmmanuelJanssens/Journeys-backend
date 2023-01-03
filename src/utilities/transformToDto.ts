@@ -32,7 +32,7 @@ export function transformExperienceToDto(
 
 export function transformPoiToDto(
     poi: PointOfInterest,
-    thumbnail?: string,
+    thumbnails?: Image[],
     experiences?: Experience[],
     tags?: Tag[],
     expCount?: Integer
@@ -44,7 +44,7 @@ export function transformPoiToDto(
     const dto: PointOfInterestDto = {
         id: poi.id,
         name: poi.name,
-        thumbnail: thumbnail,
+        thumbnails: thumbnails.map((image) => ImageToDto(image)),
         location: PointToLocation(poi.location as Point),
         tags: tagsDto,
         experiences: experiencesDto,

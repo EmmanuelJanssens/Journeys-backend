@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { ManagedTransaction, QueryResult, Transaction } from "neo4j-driver";
-import { ExperienceNode } from "src/experience/entities/experience.entity";
+import { ManagedTransaction, QueryResult } from "neo4j-driver";
+import { ExperienceNode } from "../experience/entities/experience.entity";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { ImageNode } from "./entities/image.entity";
 
@@ -68,9 +68,9 @@ export class ImageRepository {
      * @returns
      */
     async connectImageToJourney(
-        tx: ManagedTransaction,
         journeyId: string,
-        imageId: string
+        imageId: string,
+        transaction?: ManagedTransaction
     ) {
         const query = `
             OPTIONAL MATCH (journey:Journey{id: $journeyId})-[r:HAS_IMAGE]->(thumbnail:Image)
@@ -82,13 +82,22 @@ export class ImageRepository {
             RETURN image as thumbnail
         `;
         const params = { journeyId, imageId };
-        return tx.run(query, params);
+        let result: QueryResult;
+        if (transaction) {
+            result = await transaction.run(query, params);
+        } else {
+            result = await this.neo4jService.write(query, params);
+        }
+
+        return {
+            thumbnail: new ImageNode(result.records[0].get("thumbnail"))
+        };
     }
 
     async disconnectImageFromJourney(
-        tx: ManagedTransaction,
         journeyId: string,
-        imageId: string
+        imageId: string,
+        transaction?: ManagedTransaction
     ) {
         const query = `
             MATCH (image:Image{id: $imageId,isActive:true}) <- [ img: HAS_IMAGE ] - (journey:Journey{id: $journeyId,isActive:true})
@@ -97,7 +106,16 @@ export class ImageRepository {
             RETURN image
         `;
         const params = { journeyId, imageId };
-        return tx.run(query, params);
+        let result: QueryResult;
+        if (transaction) {
+            result = await transaction.run(query, params);
+        } else {
+            result = await this.neo4jService.write(query, params);
+        }
+
+        return {
+            removed: new ImageNode(result.records[0].get("image"))
+        };
     }
 
     /**
@@ -109,8 +127,8 @@ export class ImageRepository {
      * @returns
      */
     async connectImagesToExperience(
-        tx: ManagedTransaction,
-        experienceId: string
+        experienceId: string,
+        transaction?: ManagedTransaction
     ) {
         const query = `
             MATCH (experience:Experience{id: $experienceId, isActive: true})
@@ -129,13 +147,26 @@ export class ImageRepository {
             RETURN value.images as images
         `;
         const params = { experienceId };
-        return tx.run(query, params);
+        let result: QueryResult;
+        if (transaction) {
+            result = await transaction.run(query, params);
+        } else {
+            result = await this.neo4jService.write(query, params);
+        }
+
+        return {
+            images: <ImageNode[]>(
+                result.records[0]
+                    .get("images")
+                    .map((image) => new ImageNode(image))
+            )
+        };
     }
 
     async disconnectImagesFromExperience(
-        tx: ManagedTransaction | Transaction,
         experienceId: string,
-        imageIds: string[]
+        imageIds: string[],
+        transaction?: ManagedTransaction
     ) {
         const query = `
             MATCH (experience:Experience{id: $experienceId, isActive: true})
@@ -154,7 +185,15 @@ export class ImageRepository {
             RETURN value.deleted as deleted
         `;
         const params = { experienceId, imageIds };
-        return tx.run(query, params);
+        let result: QueryResult;
+        if (transaction) {
+            result = await transaction.run(query, params);
+        } else {
+            result = await this.neo4jService.write(query, params);
+        }
+        return {
+            deleted: result.records[0].get("deleted")
+        };
     }
 
     /**
@@ -171,7 +210,8 @@ export class ImageRepository {
         image: {
             original: string;
             thumbnail: string;
-        }
+        },
+        transaction?: ManagedTransaction
     ) {
         const query = `
             MATCH (image: Image {id: $id,isActive:true})<-[*0..3]-(:User{uid: $userId})
@@ -180,6 +220,15 @@ export class ImageRepository {
             RETURN image
         `;
         const params = { id, image, userId };
-        return this.neo4jService.write(query, params);
+        let result: QueryResult;
+        if (transaction) {
+            result = await transaction.run(query, params);
+        } else {
+            result = await this.neo4jService.write(query, params);
+        }
+
+        return {
+            image: new ImageNode(result.records[0].get("image"))
+        };
     }
 }

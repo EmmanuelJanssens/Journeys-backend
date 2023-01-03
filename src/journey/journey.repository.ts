@@ -5,7 +5,8 @@ import { Neo4jService } from "../neo4j/neo4j.service";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
 import { JourneyNode } from "./entities/journey.entity";
-import { ImageNode } from "src/image/entities/image.entity";
+import { ImageNode } from "../image/entities/image.entity";
+
 @Injectable()
 export class JourneyRepository {
     logger = new Logger(JourneyRepository.name);
@@ -16,7 +17,7 @@ export class JourneyRepository {
      * @param journey the id of the journey
      * @returns the following records [journey: JourneyNode, creator: string, count: number]
      */
-    async get(journeyId: string) {
+    async findOne(journeyId: string) {
         const query = `
             OPTIONAL MATCH (user:User)-[:CREATED]->(journey:Journey{id: $journeyId,isActive: true})
             OPTIONAL MATCH (journey)-[:EXPERIENCE]->(experience:Experience{isActive: true})
@@ -90,28 +91,38 @@ export class JourneyRepository {
      * @param journey  the journey to update with its id
      * @returns  the updated journey with its experiences
      */
-    update(
+    async update(
         user: string,
-        journey: UpdateJourneyDto,
+        journeyUpdate: UpdateJourneyDto,
         transaction?: ManagedTransaction
-    ): Promise<QueryResult> {
+    ) {
         const query = `
-            UNWIND $journey as updated
+            UNWIND $journeyUpdate as updated
             OPTIONAL MATCH (exp:Experience{isActive: true})<-[expRel:EXPERIENCE]-(journey:Journey{id: updated.id,isActive: true})<-[:CREATED]-(user: User{uid: $user})
             SET journey.title = updated.title,
                 journey.description = updated.description,
                 journey.visibility = updated.visibility,
                 journey.updatedAt = datetime()
-            RETURN journey,  collect(DISTINCT exp.images) as thumbnails, count(DISTINCT expRel) as count, user.username AS creator
+            RETURN journey, count(DISTINCT expRel) as expCount, user.username AS creator
     `;
 
-        const params = { user, journey };
-
+        const params = { user, journeyUpdate };
+        let result: QueryResult;
         if (transaction) {
-            return transaction.run(query, params);
+            result = await transaction.run(query, params);
         } else {
-            return this.neo4jService.write(query, params);
+            result = await this.neo4jService.write(query, params);
         }
+
+        const journey = new JourneyNode(result.records[0].get("journey"));
+        const creator = result.records[0].get("creator") as string;
+        const experienceCount = result.records[0].get("expCount") as Integer;
+
+        return {
+            journey,
+            creator,
+            experienceCount
+        };
     }
 
     /**
@@ -120,7 +131,11 @@ export class JourneyRepository {
      * @param journey the id of the journey to delete
      * @returns returns the id of the deleted journey
      */
-    async delete(user: string, journey: string): Promise<QueryResult> {
+    async delete(
+        user: string,
+        journey: string,
+        transaction?: ManagedTransaction
+    ) {
         const delExpRelationQuery = `
             MATCH (r)<-[:EXPERIENCE|HAS_IMAGE*0..2]-(journey: Journey{id: $journey,isActive: true})<-[:CREATED]-(user: User{uid: $user})
             SET journey.isActive = false,
@@ -129,22 +144,15 @@ export class JourneyRepository {
             RETURN journey.id as journey
         `;
         const params = { user, journey };
-        return this.neo4jService.write(delExpRelationQuery, params);
-    }
+        let result: QueryResult;
+        if (transaction) {
+            result = await transaction.run(delExpRelationQuery, params);
+        } else {
+            result = await this.neo4jService.write(delExpRelationQuery, params);
+        }
 
-    /**
-     * Get experiences belonging to a journey
-     * @param journey_id the ID of the journey
-     */
-    async getExperiences(journeyId: string) {
-        const query = `
-                MATCH (user: User)-[:CREATED]->(journey:Journey {id: $journeyId,isActive: true})-[:EXPERIENCE]->(experience:Experience{isActive:true})-[:FOR]->(poi:POI)
-                WHERE journey.isActive = true
-                RETURN journey,experience, poi, user.username as creator
-            `;
-        const params = {
-            journeyId
+        return {
+            journey: result.records[0].get("journey") as string
         };
-        return await this.neo4jService.read(query, params);
     }
 }

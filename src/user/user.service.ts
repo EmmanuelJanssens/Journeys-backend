@@ -28,11 +28,7 @@ export class UserService {
      */
     async create(user: CreateUserDto, uid: string) {
         const queryResult = await this.userRepository.create(user, uid);
-        const userNode = new UserNode(
-            queryResult.records[0].get("user"),
-            [],
-            []
-        );
+        const userNode = new UserNode(queryResult.records[0].get("user"));
         const createdUser = userNode.getProperties() as UserDto;
 
         return createdUser;
@@ -46,7 +42,7 @@ export class UserService {
     async findOne(uid: string) {
         const queryResult = await this.userRepository.findOne(uid);
         const records = queryResult.records[0];
-        const userNode = new UserNode(records.get("user"), [], []);
+        const userNode = new UserNode(records.get("user"));
         const foundUser = userNode.getProperties() as UserDto;
         if (foundUser.visibility == "private")
             throw new UserPrivateError("User profile is private");
@@ -61,11 +57,7 @@ export class UserService {
 
     async updateUser(uid: string, user: UpdateUserDto) {
         const queryResult = await this.userRepository.update(uid, user);
-        const userNode = new UserNode(
-            queryResult.records[0].get("user"),
-            [],
-            []
-        );
+        const userNode = new UserNode(queryResult.records[0].get("user"));
         const updatedUser = userNode.getProperties() as UserDto;
         return updatedUser;
     }
@@ -82,10 +74,10 @@ export class UserService {
         );
         const userJourneys: JourneyDto[] = [];
         queryResult.records.forEach((record) => {
-            const userNode = new UserNode(record.get("user"), [], []);
+            const userNode = new UserNode(record.get("user"));
             if (userNode.getVisibility() == "private")
                 throw new UserPrivateError("User profile is private");
-            const journeyNode = new JourneyNode(record.get("journey"), []);
+            const journeyNode = new JourneyNode(record.get("journey"));
             if (journeyNode.visibility == "public") {
                 const journey: JourneyDto = { ...journeyNode.properties };
                 journey.start = PointToLocation(journeyNode.start);
@@ -121,7 +113,7 @@ export class UserService {
         }[] = [];
         queryResult.records.forEach((record) => {
             if (record.get("journey") != null) {
-                const journeyNode = new JourneyNode(record.get("journey"), []);
+                const journeyNode = new JourneyNode(record.get("journey"));
                 const journey = journeyNode.properties;
                 let thumbnail = null;
                 if (record.get("thumbnail") != null)
@@ -146,7 +138,7 @@ export class UserService {
     async getMyProfile(uid: string) {
         const queryResult = await this.userRepository.findOne(uid);
         const records = queryResult.records[0];
-        const userNode = new UserNode(records.get("user"), [], []);
+        const userNode = new UserNode(records.get("user"));
         const foundUser = userNode.getProperties() as UserDto;
         foundUser.journeysAggregate = {
             count: records.get("journeyCount").low
@@ -204,8 +196,8 @@ export class UserService {
         const records = queryResult.records[0];
         if (!records || records.length == 0)
             throw new UserNotFoundError("Users invitations not found");
-        const userNode = new UserNode(records.get("user"), [], []);
-        const friendNode = new UserNode(records.get("friend"), [], []);
+        const userNode = new UserNode(records.get("user"));
+        const friendNode = new UserNode(records.get("friend"));
         if (!userNode || !friendNode)
             throw new UserNotFoundError("User not found");
         const user = userNode.getProperties() as UserDto;

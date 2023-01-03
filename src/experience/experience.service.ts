@@ -1,19 +1,13 @@
 import { Injectable } from "@nestjs/common";
-import { ImageNode } from "../image/entities/image.entity";
-import { JourneyNode } from "../journey/entities/journey.entity";
-import {
-    PoiNode,
-    PointOfInterest
-} from "../point-of-interest/entities/point-of-interest.entity";
+import { PointOfInterest } from "../point-of-interest/entities/point-of-interest.entity";
 import { BatchUpdateExperienceDto } from "./dto/batch-update-experience.dto";
 import { CreateExperienceDto } from "./dto/create-experience.dto";
 import { UpdateExperienceDto } from "./dto/update-experience.dto";
-import { Experience, ExperienceNode } from "./entities/experience.entity";
+import { Experience } from "./entities/experience.entity";
 import { ExperienceRepository } from "./experience.repository";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { ImageRepository } from "../image/image.repository";
 import { Image } from "../image/entities/image.entity";
-import { NotFoundError } from "../errors/Errors";
 
 @Injectable()
 export class ExperienceService {
@@ -32,18 +26,11 @@ export class ExperienceService {
         const queryResult = await this.experienceRepository.findOne(
             experienceId
         );
-        const experienceNode = new ExperienceNode(
-            queryResult.records[0].get("experience")
-        );
-        const poiNode = new PoiNode(queryResult.records[0].get("poi"));
-        const journeyNode = new JourneyNode(
-            queryResult.records[0].get("journey")
-        );
 
         const found = {
-            experience: experienceNode.properties,
-            poi: poiNode.properties,
-            journey: journeyNode.properties
+            experience: queryResult.experience.properties,
+            poi: queryResult.poi.properties,
+            journey: queryResult.journey.properties
         };
         return found;
     }
@@ -84,18 +71,13 @@ export class ExperienceService {
     async update(transaction, userId: string, toUpdate: UpdateExperienceDto[]) {
         const updated = await toUpdate.map(async (experience) => {
             const updated = await this.experienceRepository.update(
-                transaction,
                 userId,
                 experience.id,
-                experience
+                experience,
+                transaction
             );
-            if (
-                updated.records.length === 0 ||
-                updated.records[0].get("experience") === null
-            )
-                throw new Error("Experience not updated");
-            const exp = new ExperienceNode(updated.records[0].get("experience"))
-                .properties;
+            if (!updated.experience) throw new Error("Experience not updated");
+            const exp = updated.experience.properties;
             const imagesAdded =
                 await this.imageRepository.createAndConnectImageToExperience(
                     experience.id,
@@ -111,9 +93,9 @@ export class ExperienceService {
             images = imagesAdded.createdImages.map((img) => img.properties);
             if (experience.removedImages && experience.removedImages.length > 0)
                 await this.imageRepository.disconnectImagesFromExperience(
-                    transaction,
                     experience.id,
-                    experience.removedImages
+                    experience.removedImages,
+                    transaction
                 );
             return {
                 experience: exp,
@@ -123,16 +105,14 @@ export class ExperienceService {
         return Promise.all(updated);
     }
 
-    async delete(tx, userId: string, toDelete: string[]) {
+    async delete(transaction, userId: string, toDelete: string[]) {
         const deleted = await toDelete.map(async (experienceId) => {
             const deletedExps = await this.experienceRepository.delete(
-                tx,
                 userId,
-                experienceId
+                experienceId,
+                transaction
             );
-            const deleted = new ExperienceNode(
-                deletedExps.records[0].get("experience")
-            ).properties;
+            const deleted = deletedExps.experience.properties;
             return {
                 experience: deleted
             };

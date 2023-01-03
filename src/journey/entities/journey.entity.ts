@@ -1,15 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, isString, IsString, IsUUID } from "class-validator";
+import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { Node } from "neo4j-driver";
 import { Point } from "neo4j-driver-core";
-import { Relationship } from "neo4j-driver-core";
+import { NotFoundError } from "src/errors/Errors";
 import { Entity } from "../../utilities/BaseEntity";
 import { Locality } from "../../utilities/Locality";
 export class JourneyNode {
-    constructor(
-        private readonly node: Node,
-        private readonly experiencesRelationShip?: Relationship[]
-    ) {}
+    constructor(private readonly node: Node) {
+        if (node === undefined || node === null) {
+            throw new NotFoundError("journey node is undefined or null");
+        }
+    }
 
     get properties(): Journey {
         return this.node.properties as Journey;
@@ -33,10 +34,6 @@ export class JourneyNode {
     }
     get end(): Point {
         return <Point>this.properties.end;
-    }
-
-    getExperiencesRelationships(): Relationship[] {
-        return this.experiencesRelationShip;
     }
 }
 

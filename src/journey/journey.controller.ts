@@ -45,22 +45,18 @@ export class JourneyController {
     }
 
     @HttpCode(201)
-    // @UseGuards(FirebaseAuthGuard)
+    @UseGuards(FirebaseAuthGuard)
     @Post()
     async createOne(@Body() journey: CreateJourneyDto, @Request() req) {
         const user = req.user as UserInfo;
-        const result = await this.journeyService.createOne(
-            "CSbJn3yoxjQYKGn1C9m4AF0CsvU2",
-            journey
-        );
+        const result = await this.journeyService.createOne(user.uid, journey);
         const createdExps = result.createdExperiences;
 
-        const thumbnails = result.createdImages
-            .map((image) => image.images)
+        const thumbnails = result.createdExperiences
+            .map((exp) => exp.images.map((img) => img))
             .reduce((curr, acc) => {
                 return [...curr, ...acc];
             }, []);
-
         //const expDtos = transformExperiencesToDto(createdExps);
 
         let journeyDto = transformJourneyToDto(
@@ -88,52 +84,41 @@ export class JourneyController {
         const result = await this.journeyService.update(user.uid, journey);
 
         //concatenate thumnails into one array
-        const thumbnails = result.thumbnails.reduce(
-            (acc, curr) => [...acc, ...curr],
-            []
-        );
 
         const journeyDto = transformJourneyToDto(
             result.journey,
             result.creator,
             result.thumbnail,
-            thumbnails,
+            result.thumbnails,
             result.experiencesCount
         );
 
         return journeyDto;
     }
 
-    @HttpCode(204)
     @UseGuards(FirebaseAuthGuard)
     @Delete(":journey")
     async remove(@Param("journey") journey: string, @Request() req) {
         const user = req.user as UserInfo;
-        await this.journeyService.delete(user.uid, journey);
+        return await this.journeyService.delete(user.uid, journey);
     }
 
     @Get(":journey/experiences")
     async getExperiences(@Param("journey") journey: string) {
         const result = await this.journeyService.getExperiences(journey);
 
-        //get thumbnails from experiences
-        const thumbnails = result.experiences.reduce((acc, curr) => {
-            if (curr.images) return [...acc, ...curr.images];
-        }, []);
-
         let journeyDto = transformJourneyToDto(
             result.journey,
             result.creator,
             null,
-            thumbnails,
+            [],
             new Integer(result.experiences.length)
         );
 
         journeyDto = {
             ...journeyDto,
             experiencesAggregate: { count: result.experiences.length },
-            experiences: transformExperiencesToDto(result.experiences),
-            thumbnails
+            experiences: transformExperiencesToDto(result.experiences)
         };
         return journeyDto;
     }

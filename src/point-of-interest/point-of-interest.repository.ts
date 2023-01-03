@@ -1,7 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { QueryResult } from "neo4j-driver";
+import { Integer, ManagedTransaction, QueryResult } from "neo4j-driver";
+import { ImageNode } from "src/image/entities/image.entity";
+import { TagNode } from "src/tag/entities/tag.entity";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
+import { PoiNode, PointOfInterest } from "./entities/point-of-interest.entity";
 
 @Injectable()
 export class PoiRepository {
@@ -33,7 +36,11 @@ export class PoiRepository {
      * @param poi  data of the poi
      * @returns  query result with poi and tags
      * */
-    create(user: string, poi: CreatePointOfInterestDto): Promise<QueryResult> {
+    async create(
+        user: string,
+        poi: CreatePointOfInterestDto,
+        transaction?: ManagedTransaction
+    ) {
         const query = `
             MATCH (user:User{uid: $user})
                 MERGE (poi: POI{
@@ -53,7 +60,19 @@ export class PoiRepository {
                 {tags: tags,poi:poi}) yield value
             RETURN distinct poi, value.tags as tags`;
         const params = { user, poi };
-        return this.neo4jService.write(query, params);
+        let result: QueryResult;
+        if (transaction) {
+            result = await transaction.run(query, params);
+        } else {
+            result = await this.neo4jService.write(query, params);
+        }
+
+        return {
+            poi: new PoiNode(result.records[0].get("poi")),
+            tags: result.records[0]
+                .get("tags")
+                .map((tag) => new TagNode(tag)) as TagNode[]
+        };
     }
 
     /**
@@ -62,13 +81,13 @@ export class PoiRepository {
      * @param radius  radius in meters
      * @returns  query result with pois, experiences and tags
      * */
-    getPoisInRadius(
+    async getPoisInRadius(
         center: {
             lat: number;
             lng: number;
         },
         radius: number
-    ): Promise<QueryResult> {
+    ) {
         const query = `
             UNWIND $center as centerPoint
             WITH point({crs:"WGS-84", latitude: centerPoint.lat, longitude: centerPoint.lng}) as center, centerPoint
@@ -79,7 +98,20 @@ export class PoiRepository {
             RETURN poi,count(distinct exp) as expCount,coalesce(exp.images, []) as images, collect(distinct tag) as tags
         `;
         const params = { center, radius };
-        return this.neo4jService.read(query, params);
+        const result = await this.neo4jService.read(query, params);
+
+        return {
+            pois: result.records.map((record) => {
+                return {
+                    poi: new PoiNode(record.get("poi")),
+                    expCount: record.get("expCount") as Integer,
+                    images: record.get("images"),
+                    tags: record
+                        .get("tags")
+                        .map((tag) => new TagNode(tag)) as TagNode[]
+                };
+            })
+        };
     }
 
     /**
@@ -87,12 +119,23 @@ export class PoiRepository {
      * @param poi  id of the poi
      * @returns  query result with thumbnail
      * */
-    getThumbnail(poi: string): Promise<QueryResult> {
+    async getThumbnail(poi: string, transaction?: ManagedTransaction) {
         const query = `
-            MATCH (poi:POI{id: $poi})<-[:FOR]-(exp:Experience)
-            RETURN collect(exp.images) as thumbnails
+            MATCH (poi:POI{id: $poi})<-[:FOR]-(:Experience)-[:HAS_IMAGE]->(image:Image)
+            RETURN image LIMIT 5
         `;
         const params = { poi };
-        return this.neo4jService.read(query, params);
+        let result: QueryResult;
+        if (transaction) {
+            result = await transaction.run(query, params);
+        } else {
+            result = await this.neo4jService.read(query, params);
+        }
+
+        return {
+            thumbnails: result.records.map(
+                (record) => new ImageNode(record.get("image"))
+            )
+        };
     }
 }

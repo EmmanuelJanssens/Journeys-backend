@@ -1,12 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsString, IsUUID } from "class-validator";
+import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { Node, Point } from "neo4j-driver";
+import { NotFoundError } from "src/errors/Errors";
 import { Entity } from "../../utilities/BaseEntity";
-import { Experience } from "../../experience/entities/experience.entity";
 import { Locality } from "../../utilities/Locality";
 
 export class PoiNode {
-    constructor(private readonly node: Node) {}
+    constructor(private readonly node: Node) {
+        if (node == null || node == undefined) {
+            throw new NotFoundError("Point of interest not found");
+        }
+    }
 
     get properties(): PointOfInterest {
         return this.node.properties as PointOfInterest;

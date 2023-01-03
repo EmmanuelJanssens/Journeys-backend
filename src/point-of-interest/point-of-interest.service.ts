@@ -23,13 +23,8 @@ export class PointOfInterestService {
             user,
             createPointOfInterestDto
         );
-        const poiNode = new PoiNode(queryResult.records[0].get("poi"));
-        const poi = poiNode.properties;
-        let tags = [];
-        if (queryResult.records[0].get("tags").length > 0)
-            tags = queryResult.records[0]
-                .get("tags")
-                .map((tag) => new TagNode(tag).properties as Tag);
+        const poi = queryResult.poi.properties;
+        const tags = queryResult.tags.map((tag) => tag.properties);
 
         return {
             poi,
@@ -48,25 +43,15 @@ export class PointOfInterestService {
             center,
             radius
         );
-        const pois: {
-            poi: PointOfInterest;
-            tags: Tag[];
-            thumbnail: string;
-            expCount: Integer;
-        }[] = [];
-        queryResult.records.forEach((record) => {
-            const poiNode = new PoiNode(record.get("poi"));
-            const poi = poiNode.properties;
-            const tags = record.get("tags").map((tag) => tag.properties as Tag);
-            const expCount = record.get("expCount");
-            const thumbnail = record.get("images")[0];
-            pois.push({
-                poi,
-                tags: tags,
-                thumbnail: thumbnail,
-                expCount: expCount
-            });
+        const poisPromise = queryResult.pois.map(async (data) => {
+            return {
+                poi: data.poi.properties,
+                tags: data.tags.map((tag) => tag.properties),
+                thumbnails: await this.getThumbnail(data.poi.properties.id),
+                expCount: data.expCount
+            };
         });
+        const pois = await Promise.all(poisPromise);
         return pois;
     }
 
@@ -95,7 +80,9 @@ export class PointOfInterestService {
 
     async getThumbnail(id: string) {
         const queryResult = await this.poiRepository.getThumbnail(id);
-        if (queryResult.records.length > 0) return queryResult.records;
-        else return "placeholder.png";
+
+        return {
+            thumbnails: queryResult.thumbnails.map((thumb) => thumb.properties)
+        };
     }
 }

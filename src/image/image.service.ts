@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { ImageNode, Image } from "./entities/image.entity";
 import { ImageRepository } from "./image.repository";
 
 @Injectable()
@@ -20,7 +19,7 @@ export class ImageService {
             userId,
             content
         );
-        const image = new ImageNode(result.records[0].get("image")).properties;
+        const image = result.image.properties;
         return image;
     }
 }

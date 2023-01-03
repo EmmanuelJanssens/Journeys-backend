@@ -1,12 +1,12 @@
-import { Relationship } from "@neo4j/graphql/dist/classes";
 import { Node } from "neo4j-driver";
+import { NotFoundError } from "src/errors/Errors";
 
 export class ExperienceNode {
-    constructor(
-        private readonly node: Node,
-        private readonly journeys?: Relationship[],
-        private readonly pois?: Relationship[]
-    ) {}
+    constructor(private readonly node: Node) {
+        if (node == undefined || node == null) {
+            throw new NotFoundError("Experience not found");
+        }
+    }
 
     get properties(): Experience {
         return this.node.properties as Experience;
@@ -26,13 +26,6 @@ export class ExperienceNode {
     }
     get images(): string[] {
         return this.node.properties.images;
-    }
-
-    get journeysRelationships(): Relationship[] {
-        return this.journeys;
-    }
-    get poisRelationships(): Relationship[] {
-        return this.pois;
     }
 }
 

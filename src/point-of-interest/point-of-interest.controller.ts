@@ -59,7 +59,7 @@ export class PointOfInterestController {
         const pois = result.map((poi) => {
             const dto = transformPoiToDto(
                 poi.poi,
-                poi.thumbnail,
+                poi.thumbnails.thumbnails,
                 undefined,
                 poi.tags,
                 poi.expCount
@@ -72,10 +72,9 @@ export class PointOfInterestController {
     @Get(":id")
     async findOne(@Param("id") id: string) {
         const result = await this.pointOfInterestService.findOne(id);
-        const thumbnail = await this.pointOfInterestService.getThumbnail(id);
         const dto = transformPoiToDto(
             result.poi,
-            "",
+            [],
             result.experiences,
             result.tags
         );

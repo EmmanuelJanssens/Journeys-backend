@@ -1,14 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { JourneyDto } from "../../journey/dto/journey.dto";
-import { Relationship, Node } from "neo4j-driver";
+import { Node } from "neo4j-driver";
 import { Entity } from "../../utilities/BaseEntity";
+import { NotFoundError } from "src/errors/Errors";
 
 export class UserNode {
-    constructor(
-        private readonly node: Node,
-        private readonly journeysRelationships: Relationship[],
-        private readonly poisRelationships: Relationship[]
-    ) {}
+    constructor(private readonly node: Node) {
+        if (node === undefined || node === null) {
+            throw new NotFoundError("user node is undefined or null");
+        }
+    }
 
     getUid(): string {
         return (<Record<string, any>>this.node.properties).uid;
@@ -32,13 +32,6 @@ export class UserNode {
 
     getProperties(): any {
         return this.node.properties;
-    }
-    getJourneysRelationships(): Relationship[] {
-        return this.journeysRelationships;
-    }
-
-    getPoiRelationships(): Relationship[] {
-        return this.poisRelationships;
     }
 }
 export class User extends Entity {

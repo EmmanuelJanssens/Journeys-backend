@@ -2,8 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { JourneyRepository } from "./journey.repository";
 import { CreateJourneyDto } from "./dto/create-journey.dto";
 import { UpdateJourneyDto } from "./dto/update-journey.dto";
-import { Journey, JourneyNode } from "./entities/journey.entity";
-import { ExperienceService } from "../experience/experience.service";
+import { Journey } from "./entities/journey.entity";
 import {
     Experience,
     ExperienceNode
@@ -14,7 +13,6 @@ import {
 } from "../point-of-interest/entities/point-of-interest.entity";
 import { Integer } from "neo4j-driver";
 import { NotFoundError } from "../errors/Errors";
-import { BatchUpdateExperienceDto } from "../experience/dto/batch-update-experience.dto";
 import { ExperienceRepository } from "../experience/experience.repository";
 import { Image, ImageNode } from "../image/entities/image.entity";
 import { ImageRepository } from "../image/image.repository";
@@ -26,12 +24,23 @@ export class JourneyService {
         private journeyRepository: JourneyRepository,
         private experienceRepository: ExperienceRepository,
         private imageRepository: ImageRepository,
-        private experienceService: ExperienceService,
         private neo4jService: Neo4jService
     ) {}
 
     getRepository() {
         return this.journeyRepository;
+    }
+    async transational(target, name, descriptor) {
+        const originalMethod = descriptor.value;
+
+        const newMethod = (...args) => {
+            console.log("before");
+            originalMethod.apply(target, args);
+            console.log("after");
+        };
+
+        descriptor.value = newMethod;
+        return descriptor;
     }
 
     /**
@@ -46,14 +55,16 @@ export class JourneyService {
         thumbnail: Image;
         creator: string;
     }> {
-        const queryResult = await this.journeyRepository.get(id);
+        const queryResult = await this.journeyRepository.findOne(id);
 
         if (!queryResult.journey) throw new NotFoundError("journey not found");
         if (!queryResult.creator)
             throw new NotFoundError("journey creator not found");
         return {
             journey: queryResult.journey.properties,
-            thumbnail: queryResult.thumbnail.properties,
+            thumbnail: queryResult.thumbnail
+                ? queryResult.thumbnail.properties
+                : null,
             experiencesCount: queryResult.expCount,
             thumbnails: queryResult.thumbnails.map((img) => img.properties),
             creator: queryResult.creator
@@ -68,50 +79,120 @@ export class JourneyService {
      */
     async createOne(user: string, createJourney: CreateJourneyDto) {
         const session = this.neo4jService.getWriteSession();
-        return await session.executeWrite(async (transaction) => {
-            const journeyQueryResult = await this.journeyRepository.create(
-                user,
-                createJourney,
-                transaction
-            );
+        return await session
+            .executeWrite(async (transaction) => {
+                const journeyQueryResult = await this.journeyRepository.create(
+                    user,
+                    createJourney,
+                    transaction
+                );
+                if (!journeyQueryResult.journey) {
+                    throw new Error("journey not created");
+                }
+                const experiences = await Promise.all(
+                    createJourney.experiences.map(async (toCreate) => {
+                        toCreate.addedImages = toCreate.addedImages || [];
+                        const experienceQueryResult =
+                            await this.experienceRepository.create(
+                                user,
+                                toCreate,
+                                journeyQueryResult.journey.id,
+                                transaction
+                            );
+                        if (!experienceQueryResult.experience) {
+                            throw new Error("experience not created");
+                        }
+                        const images =
+                            await this.imageRepository.createAndConnectImageToExperience(
+                                experienceQueryResult.experience.id,
+                                transaction
+                            );
+                        return {
+                            experience:
+                                experienceQueryResult.experience.properties,
+                            images: images.createdImages.map(
+                                (img) => img.properties
+                            ),
+                            poi: experienceQueryResult.poi.properties
+                        };
+                    })
+                );
 
-            const experiences = await Promise.all(
-                createJourney.experiences.map(async (toCreate) => {
-                    const created = await this.experienceRepository.create(
-                        user,
-                        toCreate,
-                        journeyQueryResult.journey.id,
-                        transaction
-                    );
-                    return {
-                        experience: created.experience.properties,
-                        poi: created.poi.properties
-                    };
-                })
-            );
+                return {
+                    createdJourney: journeyQueryResult.journey.properties,
+                    creator: journeyQueryResult.creator,
+                    createdExperiences: experiences
+                };
+            })
+            .catch((err) => {
+                Logger.debug(err.message);
+                throw err;
+            });
+    }
 
-            const images = await Promise.all(
-                experiences.map(async (experience) => {
-                    const images =
-                        await this.imageRepository.createAndConnectImageToExperience(
-                            experience.experience.id,
+    /**
+     * updates a journey, first find journey and set appropriate fields that have to be
+     * updated
+     * @param user the user uid that created the journey
+     * @param journey the journey to update
+     * @returns the updated journey
+     */
+    async update(user: string, journey: UpdateJourneyDto) {
+        const found = await this.findOne(journey.id);
+        journey.description = journey.description || found.journey.description;
+        journey.title = journey.title || found.journey.title;
+        journey.visibility = journey.visibility || found.journey.visibility;
+
+        const session = this.neo4jService.getWriteSession();
+        return session
+            .executeWrite(async (transaction) => {
+                //get result of the query
+                const result = await this.journeyRepository.update(
+                    user,
+                    journey,
+                    transaction
+                );
+
+                //only update if the thumbnail is different
+                let thumbnailResult: { thumbnail: ImageNode } = {
+                    thumbnail: null
+                };
+                if (journey.thumbnail)
+                    thumbnailResult =
+                        await this.imageRepository.connectImageToJourney(
+                            journey.id,
+                            journey.thumbnail,
                             transaction
                         );
-                    return {
-                        experience: experience.experience,
-                        images: images.createdImages.map(
-                            (img) => img.properties
-                        )
-                    };
-                })
-            );
-            return {
-                createdJourney: journeyQueryResult.journey.properties,
-                creator: journeyQueryResult.creator,
-                createdExperiences: experiences,
-                createdImages: images
-            };
-        });
+                let thumbnail;
+                if (!thumbnailResult.thumbnail) {
+                    thumbnail = found.thumbnail;
+                } else {
+                    thumbnail = thumbnailResult.thumbnail;
+                }
+                return {
+                    journey: result.journey.properties,
+                    thumbnail: thumbnail,
+                    thumbnails: found.thumbnails,
+                    experiencesCount: result.experienceCount,
+                    creator: result.creator
+                };
+            })
+            .catch((err) => {
+                Logger.debug(err.message);
+                throw err;
+            });
+    }
+
+    /**
+     * deletes a journey and its experiences
+     * @param user the user uid that created the journey
+     * @param journey the journey to delete
+     * @returns the deleted journey id
+     */
+    async delete(user: string, journey: string) {
+        const result = await this.journeyRepository.delete(user, journey);
+        return result;
     }
     /**
      * get experiences of a journey
@@ -132,96 +213,17 @@ export class JourneyService {
             journey_id
         );
 
-        const experiences = queryResult.records
-            .map((record) => {
-                if (record.get("experience") !== null)
-                    return {
-                        experience: new ExperienceNode(record.get("experience"))
-                            .properties as Experience,
-                        images: record.get("images").map((imgRec) => {
-                            return imgRec.properties;
-                        }),
-                        poi: new PoiNode(record.get("poi")).properties
-                    };
-            })
-            .filter((exp) => exp !== undefined);
+        const experiences = queryResult.experiences.map((exp) => {
+            return {
+                experience: exp.experience.properties,
+                images: exp.images.map((img) => img.properties),
+                poi: exp.poi.properties
+            };
+        });
 
         return {
             ...journey,
             experiences
         };
-    }
-
-    /**
-     * updates a journey, first find journey and set appropriate fields that have to be
-     * updated
-     * @param user the user uid that created the journey
-     * @param journey the journey to update
-     * @returns the updated journey
-     */
-    async update(user: string, journey: UpdateJourneyDto) {
-        const found = await this.findOne(journey.id);
-        journey.description = journey.description || found.journey.description;
-        journey.title = journey.title || found.journey.title;
-        journey.visibility = journey.visibility || found.journey.visibility;
-
-        const session = this.neo4jService.getWriteSession();
-        return session
-            .executeWrite(async (tx) => {
-                //get result of the query
-                const queryResult = await this.journeyRepository.update(
-                    user,
-                    journey,
-                    tx
-                );
-
-                //create journey node
-                const journeyNode = new JourneyNode(
-                    queryResult.records[0].get("journey"),
-                    []
-                );
-                const updatedJourney = journeyNode.properties;
-                const thumbnails = queryResult.records[0].get("thumbnails");
-                const experienceCount = queryResult.records[0].get("count");
-                const creator = queryResult.records[0].get("creator");
-
-                //only update if the thumbnail is different
-                const thumbnailResult =
-                    await this.imageRepository.connectImageToJourney(
-                        tx,
-                        journey.id,
-                        journey.thumbnail
-                    );
-                let thumbnail;
-                if (thumbnailResult.records.length === 0)
-                    thumbnail = found.thumbnail;
-                else
-                    thumbnail = new ImageNode(
-                        thumbnailResult.records[0].get("thumbnail")
-                    ).properties;
-
-                return {
-                    journey: updatedJourney,
-                    thumbnail: thumbnail,
-                    thumbnails: thumbnails,
-                    experiencesCount: experienceCount,
-                    creator: creator
-                };
-            })
-            .catch((err) => {
-                Logger.debug(err.message);
-                throw err;
-            });
-    }
-
-    /**
-     * deletes a journey and its experiences
-     * @param user the user uid that created the journey
-     * @param journey the journey to delete
-     * @returns the deleted journey id
-     */
-    async delete(user: string, journey: string) {
-        const result = await this.journeyRepository.delete(user, journey);
-        return result;
     }
 }
