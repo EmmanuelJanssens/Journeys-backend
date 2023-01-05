@@ -44,7 +44,7 @@ export function transformPoiToDto(
     const dto: PointOfInterestDto = {
         id: poi.id,
         name: poi.name,
-        thumbnails: thumbnails.map((image) => ImageToDto(image)),
+        thumbnails: thumbnails?.map((image) => ImageToDto(image)),
         location: PointToLocation(poi.location as Point),
         tags: tagsDto,
         experiences: experiencesDto,
@@ -57,7 +57,7 @@ export function ImageToDto(image: Image): ImageDto {
     if (!image) return null;
     return {
         id: image.id,
-        original: image.original,
+        url: image.url,
         thumbnail: image.thumbnail
     };
 }
@@ -74,7 +74,11 @@ export function transformJourneyToDto(
     thumbnail: Image,
     thumbnails: Image[],
     experiencesCount: Integer,
-    experiences?: Experience[]
+    createdExperiences?: {
+        experience?: Experience;
+        images?: Image[];
+        poi?: PointOfInterest;
+    }[]
 ) {
     const dto: JourneyDto = {
         id: journey.id,
@@ -87,9 +91,13 @@ export function transformJourneyToDto(
         thumbnails: thumbnails.map((image) => ImageToDto(image)),
         creator: creator,
         experiencesAggregate: { count: experiencesCount.low },
-        experiences: experiences
-            ? experiences.map((exp) => {
-                  return transformExperienceToDto(exp);
+        experiences: createdExperiences
+            ? createdExperiences.map((exp) => {
+                  return transformExperienceToDto(
+                      exp.experience,
+                      exp.images,
+                      exp.poi
+                  );
               })
             : []
     };

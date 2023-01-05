@@ -52,7 +52,7 @@ export class ExperienceService {
             if (!created.experience) throw new Error("Experience not created ");
 
             const imagesAdded =
-                await this.imageRepository.createAndConnectImageToExperience(
+                await this.imageRepository.unwindImagesToRelationships(
                     created.experience.id,
                     transaction
                 );
@@ -70,6 +70,13 @@ export class ExperienceService {
 
     async update(transaction, userId: string, toUpdate: UpdateExperienceDto[]) {
         const updated = await toUpdate.map(async (experience) => {
+            if (experience.removedImages && experience.removedImages.length > 0)
+                await this.imageRepository.disconnectImagesFromExperience(
+                    experience.id,
+                    experience.removedImages,
+                    transaction
+                );
+
             const updated = await this.experienceRepository.update(
                 userId,
                 experience.id,
@@ -79,24 +86,14 @@ export class ExperienceService {
             if (!updated.experience) throw new Error("Experience not updated");
             const exp = updated.experience.properties;
             const imagesAdded =
-                await this.imageRepository.createAndConnectImageToExperience(
+                await this.imageRepository.createAndConnectToExperience(
                     experience.id,
+                    experience.addedImages,
                     transaction
                 );
-
-            // if (
-            //     experience.images &&
-            //     experience.images.length !== imagesAdded.records.length
-            // )
-            //     throw new Error("Images not created");
             let images = [];
             images = imagesAdded.createdImages.map((img) => img.properties);
-            if (experience.removedImages && experience.removedImages.length > 0)
-                await this.imageRepository.disconnectImagesFromExperience(
-                    experience.id,
-                    experience.removedImages,
-                    transaction
-                );
+
             return {
                 experience: exp,
                 images

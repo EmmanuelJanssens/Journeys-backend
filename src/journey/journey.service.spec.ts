@@ -121,8 +121,8 @@ describe("JourneyService", () => {
                 experiences: []
             });
 
-            expect(res.journey).toBeDefined();
-            expect(res.journey).toEqual({
+            expect(res.createdJourney).toBeDefined();
+            expect(res.createdJourney).toEqual({
                 id: "created-journey-id",
                 title: "title",
                 description: "description",
@@ -131,7 +131,7 @@ describe("JourneyService", () => {
                 visibility: "public"
             });
             expect(res.creator).toEqual("test-user");
-            expect(res.experiences.created.length).toEqual(0);
+            expect(res.createdExperiences.length).toEqual(0);
         });
 
         it("should return the created journey with added experiences and additional metadata(creator,experiencesCount, thumbnails)", async () => {
@@ -151,19 +151,19 @@ describe("JourneyService", () => {
                     {
                         title: "title",
                         description: "description",
-                        date: "2021-01-01",
+                        date: new Date("2021-01-01"),
                         poi: "poi-id"
                     },
                     {
                         title: "title2",
                         description: "description2",
-                        date: "2021-01-01",
+                        date: new Date("2021-01-01"),
                         poi: "poi-id2"
                     }
                 ]
             });
-            expect(res.journey).toBeDefined();
-            expect(res.journey).toEqual({
+            expect(res.createdJourney).toBeDefined();
+            expect(res.createdJourney).toEqual({
                 id: "created-journey-id",
                 title: "title",
                 description: "description",
@@ -172,7 +172,7 @@ describe("JourneyService", () => {
                 visibility: "public"
             });
             expect(res.creator).toEqual("test-user");
-            expect(res.experiences.created.length).toEqual(2);
+            expect(res.createdExperiences.length).toEqual(2);
         });
     });
 
@@ -186,7 +186,7 @@ describe("JourneyService", () => {
 
     describe("::update", () => {
         it("should update multiple fields of a journey", async () => {
-            const res = await service.update("test-user", {
+            const res = await service.update("test-user", "journey-id", {
                 id: "test-id",
                 title: "new-title",
                 description: "new-description"
@@ -196,7 +196,7 @@ describe("JourneyService", () => {
             expect(res.journey.visibility).toEqual("public");
         });
         it("should update the description fields of the journey ", async () => {
-            const res = await service.update("test-user", {
+            const res = await service.update("test-user", "journey-id", {
                 id: "test-id",
                 description: "new-description"
             });
@@ -204,7 +204,7 @@ describe("JourneyService", () => {
             expect(res.journey.description).toEqual("new-description");
         });
         it("should update the title fields of the journey", async () => {
-            const res = await service.update("test-user", {
+            const res = await service.update("test-user", "journey-id", {
                 id: "test-id",
                 title: "new-title"
             });
@@ -213,7 +213,7 @@ describe("JourneyService", () => {
         });
 
         it("should update the visibility fields of the journey", async () => {
-            const res = await service.update("test-user", {
+            const res = await service.update("test-user", "journey-id", {
                 id: "test-id",
                 visibility: "private"
             });

@@ -27,7 +27,7 @@ export class ExperienceRepository {
                 description: coalesce($experience.description, ''),
                 date: coalesce($experience.date , datetime()),
                 isActive: true,
-                addedImages: $experience.addedImages,
+                addedImages: coalesce($experience.addedImages,[]),
                 createdAt: datetime(),
                 updatedAt: datetime()})
             MERGE (journey)-[:EXPERIENCE]->(experience)-[:FOR]->(poi)

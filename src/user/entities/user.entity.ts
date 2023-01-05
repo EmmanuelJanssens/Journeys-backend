@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Node } from "neo4j-driver";
 import { Entity } from "../../utilities/BaseEntity";
-import { NotFoundError } from "src/errors/Errors";
+import { NotFoundError } from "../../errors/Errors";
 
 export class UserNode {
     constructor(private readonly node: Node) {

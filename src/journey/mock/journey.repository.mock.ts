@@ -30,7 +30,7 @@ export const mockJourneyWithExperience = (id: string) => {
 };
 
 export class JourneyRepositoryMock {
-    public get = jest.fn((journey: string): Promise<any> => {
+    public findOne = jest.fn((journey: string): Promise<any> => {
         const record = new Record(
             ["journey", "count", "thumbnail", "thumbnails", "creator"],
             [

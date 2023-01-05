@@ -11,7 +11,7 @@ export class ImageService {
 
     async update(
         id: string,
-        content: { original: string; thumbnail: string },
+        content: { url: string; thumbnail: string },
         userId: string
     ) {
         const result = await this.imageRepository.setImageFileUrl(

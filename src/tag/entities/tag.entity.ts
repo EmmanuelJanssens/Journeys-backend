@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Node } from "neo4j-driver";
-import { NotFoundError } from "src/errors/Errors";
+import { NotFoundError } from "../../errors/Errors";
 import { Entity } from "../../utilities/BaseEntity";
 
 export class TagNode {

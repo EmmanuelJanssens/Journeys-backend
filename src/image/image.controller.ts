@@ -23,7 +23,7 @@ export class ImageController {
         @Param("id") id: string,
         @Body()
         content: {
-            original: string;
+            url: string;
             thumbnail: string;
         },
         @Request() req

@@ -1,10 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Integer, ManagedTransaction, QueryResult } from "neo4j-driver";
-import { ImageNode } from "src/image/entities/image.entity";
-import { TagNode } from "src/tag/entities/tag.entity";
+import { ImageNode } from "../image/entities/image.entity";
+import { TagNode } from "../tag/entities/tag.entity";
 import { Neo4jService } from "../neo4j/neo4j.service";
 import { CreatePointOfInterestDto } from "./dto/create-point-of-interest.dto";
-import { PoiNode, PointOfInterest } from "./entities/point-of-interest.entity";
+import { PoiNode } from "./entities/point-of-interest.entity";
 
 @Injectable()
 export class PoiRepository {

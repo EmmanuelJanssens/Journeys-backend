@@ -13,7 +13,7 @@ export class ExperienceDto {
     description: string;
 
     @IsDateString()
-    date: string;
+    date: Date;
 
     @IsArray()
     images?: ImageDto[];

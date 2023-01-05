@@ -103,7 +103,7 @@ export class JourneyService {
                             throw new Error("experience not created");
                         }
                         const images =
-                            await this.imageRepository.createAndConnectImageToExperience(
+                            await this.imageRepository.unwindImagesToRelationships(
                                 experienceQueryResult.experience.id,
                                 transaction
                             );
@@ -137,8 +137,8 @@ export class JourneyService {
      * @param journey the journey to update
      * @returns the updated journey
      */
-    async update(user: string, journey: UpdateJourneyDto) {
-        const found = await this.findOne(journey.id);
+    async update(user: string, journeyId: string, journey: UpdateJourneyDto) {
+        const found = await this.findOne(journeyId);
         journey.description = journey.description || found.journey.description;
         journey.title = journey.title || found.journey.title;
         journey.visibility = journey.visibility || found.journey.visibility;
@@ -149,6 +149,7 @@ export class JourneyService {
                 //get result of the query
                 const result = await this.journeyRepository.update(
                     user,
+                    journeyId,
                     journey,
                     transaction
                 );
@@ -160,7 +161,7 @@ export class JourneyService {
                 if (journey.thumbnail)
                     thumbnailResult =
                         await this.imageRepository.connectImageToJourney(
-                            journey.id,
+                            journeyId,
                             journey.thumbnail,
                             transaction
                         );

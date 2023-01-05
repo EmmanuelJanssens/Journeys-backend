@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString, IsUUID } from "class-validator";
 import { Node } from "neo4j-driver";
 import { Point } from "neo4j-driver-core";
-import { NotFoundError } from "src/errors/Errors";
+import { NotFoundError } from "../../errors/Errors";
 import { Entity } from "../../utilities/BaseEntity";
 import { Locality } from "../../utilities/Locality";
 export class JourneyNode {

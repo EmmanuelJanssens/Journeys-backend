@@ -64,7 +64,8 @@ export class JourneyController {
             result.creator,
             null,
             thumbnails,
-            new Integer(createdExps.length)
+            new Integer(createdExps.length),
+            result.createdExperiences
         );
 
         journeyDto = {
@@ -76,12 +77,16 @@ export class JourneyController {
         return journeyDto;
     }
 
+    @Patch(":id")
     @HttpCode(200)
     @UseGuards(FirebaseAuthGuard)
-    @Patch()
-    async update(@Body() journey: UpdateJourneyDto, @Request() req) {
+    async update(
+        @Param("id") id: string,
+        @Body() journey: UpdateJourneyDto,
+        @Request() req
+    ) {
         const user = req.user as UserInfo;
-        const result = await this.journeyService.update(user.uid, journey);
+        const result = await this.journeyService.update(user.uid, id, journey);
 
         //concatenate thumnails into one array
 

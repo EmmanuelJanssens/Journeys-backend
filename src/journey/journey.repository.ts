@@ -93,12 +93,13 @@ export class JourneyRepository {
      */
     async update(
         user: string,
+        journeyId: string,
         journeyUpdate: UpdateJourneyDto,
         transaction?: ManagedTransaction
     ) {
         const query = `
             UNWIND $journeyUpdate as updated
-            OPTIONAL MATCH (exp:Experience{isActive: true})<-[expRel:EXPERIENCE]-(journey:Journey{id: updated.id,isActive: true})<-[:CREATED]-(user: User{uid: $user})
+            OPTIONAL MATCH (exp:Experience{isActive: true})<-[expRel:EXPERIENCE]-(journey:Journey{id:$journeyId, isActive: true})<-[:CREATED]-(user: User{uid: $user})
             SET journey.title = updated.title,
                 journey.description = updated.description,
                 journey.visibility = updated.visibility,
@@ -106,7 +107,7 @@ export class JourneyRepository {
             RETURN journey, count(DISTINCT expRel) as expCount, user.username AS creator
     `;
 
-        const params = { user, journeyUpdate };
+        const params = { user, journeyUpdate, journeyId };
         let result: QueryResult;
         if (transaction) {
             result = await transaction.run(query, params);

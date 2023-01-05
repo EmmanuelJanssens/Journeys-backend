@@ -104,7 +104,18 @@ export class ExperienceController {
             journeyId,
             experiences
         );
-        return res;
+
+        const created = res.created.map((c) => {
+            return transformExperienceToDto(c.experience, c.images, c.poi);
+        });
+        const updated = res.updated.map((u) => {
+            return transformExperienceToDto(u.experience, u.images);
+        });
+        return {
+            created,
+            updated,
+            deleted: res.deleted
+        };
     }
 
     @HttpCode(200)

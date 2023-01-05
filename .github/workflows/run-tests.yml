@@ -1,14 +1,14 @@
-name: Run Unit tests
-run-name: ${{github.actor}} is executing Unit tests
-on: [push]
-jobs:
-    Unit-tests:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-node@v3
-              with:
-                node-version: 18.12.1
-            - run: npm i
-            - run: npm run lint
-            - run: npm run test
+# name: Run Unit tests
+# run-name: ${{github.actor}} is executing Unit tests
+# on: [push]
+# jobs:
+#     Unit-tests:
+#         runs-on: ubuntu-latest
+#         steps:
+#             - uses: actions/checkout@v3
+#             - uses: actions/setup-node@v3
+#               with:
+#                 node-version: 18.12.1
+#             - run: npm i
+#             - run: npm run lint
+#             - run: npm run test

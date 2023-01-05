@@ -1,13 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsUUID } from "class-validator";
 import { Node } from "neo4j-driver";
-import { NotFoundError } from "src/errors/Errors";
 import { Entity } from "../../utilities/BaseEntity";
 export class ImageNode {
-    constructor(private readonly node: Node) {
-        if (node == null || node == undefined)
-            throw new NotFoundError("Image not found");
-    }
+    constructor(private readonly node: Node) {}
 
     get properties(): Image {
         if (this.node) return <Image>this.node.properties;
@@ -18,8 +14,8 @@ export class ImageNode {
         if (this.properties) return this.properties.id;
         return null;
     }
-    get original(): string {
-        if (this.properties) return this.properties.original;
+    get url(): string {
+        if (this.properties) return this.properties.url;
         return null;
     }
     get thumbnail(): string {
@@ -34,7 +30,7 @@ export class Image extends Entity {
     id: string;
 
     @ApiProperty()
-    original: string;
+    url: string;
 
     @ApiProperty()
     thumbnail: string;

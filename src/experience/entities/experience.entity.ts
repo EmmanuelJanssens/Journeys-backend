@@ -1,5 +1,5 @@
 import { Node } from "neo4j-driver";
-import { NotFoundError } from "src/errors/Errors";
+import { NotFoundError } from "../../errors/Errors";
 
 export class ExperienceNode {
     constructor(private readonly node: Node) {

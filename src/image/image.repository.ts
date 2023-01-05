@@ -8,12 +8,54 @@ import { ImageNode } from "./entities/image.entity";
 export class ImageRepository {
     constructor(private readonly neo4jService: Neo4jService) {}
 
+    async createAndConnectToExperience(
+        experienceId: string,
+        addedImages: string[],
+        transaction?: ManagedTransaction
+    ) {
+        const query = `
+            CALL apoc.do.when(
+                size($addedImages) > 0,
+                "
+                    MATCH (experience: Experience{id:$experienceId})<-[:CREATED|EXPERIENCE*0..2]-(user:User)
+                    UNWIND $addedImages AS file
+                    CREATE (image:Image {
+                        id: apoc.create.uuid(),
+                        url: file,
+                        thumbnail: file,
+                        isActive: true,
+                        createdAt: datetime(),
+                        updatedAt: datetime()
+                    })
+                    MERGE (image)<-[:HAS_IMAGE]-(experience)
+                    RETURN image
+                ",
+                "RETURN [] as images",
+                {experienceId: $experienceId, addedImages: $addedImages}
+            ) YIELD value
+            MATCH (image:Image{isActive:true})<-[:HAS_IMAGE]-(experience: Experience{id:$experienceId})<-[:CREATED|EXPERIENCE*0..2]-(user:User)
+            RETURN DISTINCT image
+        `;
+        const params = { experienceId, addedImages };
+        let result: QueryResult;
+        if (transaction) {
+            result = await transaction.run(query, params);
+        } else {
+            result = await this.neo4jService.write(query, params);
+        }
+        if (result.records.length === 0) return { createdImages: [] };
+        return {
+            createdImages: result.records.map(
+                (record) => new ImageNode(record.get("image"))
+            )
+        };
+    }
     /**
      * Connect an image to an experience
      * @param experienceId id of the experience to wich to attach
      * @param imageFile file location on the CDN or bucket
      */
-    async createAndConnectImageToExperience(
+    async unwindImagesToRelationships(
         experienceId: string,
         transaction?: ManagedTransaction
     ) {
@@ -27,7 +69,7 @@ export class ImageRepository {
                     UNWIND $imageFiles AS file
                     CREATE (image:Image {
                         id: apoc.create.uuid(),
-                        original: file,
+                        url: file,
                         thumbnail: file,
                         isActive: true,
                         createdAt: datetime(),
@@ -55,8 +97,7 @@ export class ImageRepository {
                 result.records[0]
                     .get("images")
                     .map((image) => new ImageNode(image))
-            ),
-            experience: new ExperienceNode(result.records[0].get("experience"))
+            )
         };
     }
 
@@ -208,14 +249,14 @@ export class ImageRepository {
         id: string,
         userId: string,
         image: {
-            original: string;
+            url: string;
             thumbnail: string;
         },
         transaction?: ManagedTransaction
     ) {
         const query = `
             MATCH (image: Image {id: $id,isActive:true})<-[*0..3]-(:User{uid: $userId})
-            SET image.original = $image.original,
+            SET image.url = $image.url,
                 image.thumbnail = $image.thumbnail
             RETURN image
         `;
